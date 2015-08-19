@@ -1,0 +1,444 @@
+---
+title: Air
+subtitle: Status of Fine Particulate Matter in B.C. (2011-2013)
+output:
+  pdf_document:
+    template: D:/templates/print_ver_template.tex
+---
+
+```{r setup, echo=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, 
+                      error = FALSE, fig.width = 7)
+
+library("rcaaqs")
+library("dplyr")
+
+library("ggplot2")
+library("grid")
+library("envreportutils")
+library("extrafont")
+
+library("sp")
+library("rgdal")
+
+load("../tmp/analysed.RData")
+
+knitr_latex_char <- function(x) {
+  y <- gsub("\\\\", "\\\\textbackslash{}", x) # backslash has to be first!
+  y <- gsub("([#$%&_])", "\\\\\\1", y) # Doesdn't deal with { or } because of function{}
+  y <- gsub("\\^", "\\\\textasciicircum{}", y)
+  y <- gsub("~", "\\\\textasciitilde{}", y)
+  return(y)
+}
+```
+
+British Columbia operates a network of air monitoring stations that
+measure fine particulate matter and other air pollutants. This indicator
+reports on the concentration of fine particulate matter from 2011-2013
+and compares it to the [Canadian Ambient Air Quality Standards
+(CAAQS)](http://www.ccme.ca/en/current_priorities/air/caaqs.html)
+developed by the [Canadian Council of Ministers of the
+Environment](http://www.ccme.ca/index.html).
+
+\begin{center}
+  \fbox{
+    \begin{minipage}[c]{12cm}
+      \centering{\bf Fine Particulate Matter\\ Canadian Ambient Air Quality Standards (CAAQS)}
+    
+      \begin{itemize}
+          \itemsep1pt\parskip0pt\parsep0pt
+        \item
+          The \textbf{PM$_{\text{2.5}}$ 24-hour metric} should be lower than \textbf{28 µg/m3}. The
+          PM$_{\text{2.5}}$ 24-hour metric is the 3-year average of the annual 98th percentile
+          of the daily 24-hour average concentration.
+        \item
+          The \textbf{PM$_{\text{2.5}}$ annual metric} should be lower than \textbf{10.0 µg/m3}. The
+          PM$_{\text{2.5}}$ annual metric is the 3-year average of the annual average
+          concentration.
+      \end{itemize}
+      \href{http://www.ccme.ca/en/current_priorities/air/caaqs.html}{Learn 
+            more about CAAQS fine particulate matter metric calculations.}
+    \end{minipage}
+  }
+\end{center}
+
+-   **Fine particulate matter is an air pollutant.** Solid or liquid
+    particles floating in the air are called particulate matter. The
+    smallest of these particles - those that are 2.5 microns or less in
+    diameter, or less than 1/20th the width of a human hair - are called
+    fine particulate matter. Fine particulate matter comes from many
+    natural and human activities, including wildfires and emissions from
+    prescribed burning, forestry operations, residential woodstoves, and
+    transportation^[1](#fn1)^.
+-   **Fine particulate matter can be harmful to humans.** Exposure to
+    fine particulate matter has been associated with several serious
+    health effects including heart and lung disease^[1](#fn1)^. Both
+    short-term (24-hour) and longer-term (a year or more) exposure to
+    fine particulate matter can have negative effects on human health.
+-   **Fine particulate matter levels met the standard for the CAAQS
+    measures at 46 of the 50 assessed monitoring stations in B.C.** The two
+    PM~2.5~ CAAQS metrics exceeded the Canadian Ambient Air Quality
+    Standard at two of the 50 stations (4%). The PM~2.5~ 24-hour metric
+    exceeded the standard at an additional two stations (4%). Across all
+    50 stations the PM~2.5~ 24-hour metric ranged from 6 to 36 micrograms
+    per cubic meter of air (µg/m^3^). The PM~2.5~ annual metric ranged
+    from 1.6 to 10.8 µg/m^3^.
+-   **Two of B.C.'s seven air zones met the Canadian Ambient Air Quality 
+    Standard for both fine particulate matter metrics.** One air zone met the 
+    standard for the annual metric only and two air zones exceeded the standards 
+    for both metrics. There was not enough data to estimate the CAAQS PM~2.5~ 
+    metrics for the remaining two air zones for this reporting period.
+-   **CAAQS fine particulate matter metrics are used to set management
+    levels for each air zone.** Four management levels (green, yellow,
+    orange, and red) are each associated with a suite of actions that
+    become more rigorous as fine particulate matter metric values
+    approach the Canadian Ambient Air Quality Standards.
+    
+The maps and chart below summarise the Canadian Ambient Air Quality Standard
+(CAAQS) achievement status for fine particulate matter in B.C. air zones, as
+well as both the annual and 24-hour CAAQS PM~2.5~ metric values at individual
+monitoring stations. Summaries are given for each monitoring station where
+sufficient data was available for the 2011-2013 reporting period.
+
+```{r achievement_map, fig.height=8}
+# transformthe lat-long coordinates to BC Albers
+airzone_map <- spTransform(airzone_map, CRS("+init=epsg:3005"))
+
+## Transforming shapefile contents for use in ggplot2 
+airzone_map@data$id = rownames(airzone_map@data)
+airzone_map.points = fortify(airzone_map, region = "id")
+airzone_map.df = left_join(airzone_map.points, airzone_map@data, by = "id")
+
+airzone_map.df$caaqs_24h[is.na(airzone_map.df$caaqs_24h)] <- "Insufficient Data"
+airzone_map.df$caaqs_annual[is.na(airzone_map.df$caaqs_annual)] <- "Insufficient Data"
+
+labels_df = data.frame(x = c(680000, 1150000, 780000, 1150000, 
+                             1550000, 1150000, 1480000),
+                       y = c(950000, 1550000, 1500000, 950000, 
+                             600000, 325000, 390000), 
+                       airzone_name = c("Coastal", "Northeast", "Northwest", 
+                                        "Central\nInterior", "Southern\nInterior", 
+                                        "Georgia Strait", "Lower Fraser\nValley"))
+
+pm_stats <- SpatialPointsDataFrame(pm_stats[,c("Longitude", "Latitude")], 
+                                      pm_stats, 
+                                      proj4string = CRS("+init=epsg:4617")) %>% 
+  spTransform(CRS("+init=epsg:3005")) %>% 
+  as.data.frame()
+
+achievement_map_24 <- ggplot(airzone_map.df, aes(long, lat)) + 
+  geom_polygon(aes(group = group, fill = caaqs_24h)) + 
+  coord_fixed() + 
+  scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
+                    drop = FALSE, 
+                    name = ("Airzones:\nPM2.5 (24-hour) Air Quality Standard"), 
+                    guide = guide_legend(order = 1, title.position = "top")) + 
+  geom_path(aes(group = group), colour = "white") + 
+  geom_point(data = pm_stats[pm_stats$metric == "pm2.5_24h", ], 
+             aes(x = Longitude.1, y = Latitude.1, colour = metric_value)) +
+  scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
+                        name = "Monitoring Stations:\nPM2.5 (24-hour) Metric (µg/m³)", 
+                        guide = guide_colourbar(order = 2, title.position = "top", 
+                                                barwidth = 10)) + 
+  geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
+            colour = "black", size = 4.5) + 
+  ggtitle(expression(paste("Status of 24-hour " ,PM[2.5]," Levels in B.C. Air Zones (2011-2013)"))) + 
+  theme_minimal() + 
+  theme(axis.title = element_blank(), axis.text = element_blank(), 
+        axis.ticks = element_blank(), panel.grid = element_blank(), 
+        legend.position = "bottom", legend.box = "horizontal", 
+        legend.box.just = "top", legend.direction = "horizontal", 
+        legend.title.align = 0, legend.margin = unit(20, "mm"),
+        legend.title = element_text(face = "plain", size = 11))
+
+achievement_map_annual <- ggplot(airzone_map.df, aes(long, lat)) + 
+  geom_polygon(aes(group = group, fill = caaqs_annual)) + 
+  coord_fixed() + 
+  scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
+                    drop = FALSE, 
+                    name = "Airzones:\nPM2.5 (annual) Air Quality Standard", 
+                    guide = guide_legend(order = 1, title.position = "top")) + 
+  geom_path(aes(group = group), colour = "white") + 
+  geom_point(data = pm_stats[pm_stats$metric == "pm2.5_annual", ], 
+             aes(x = Longitude.1, y = Latitude.1, colour = metric_value)) +
+  scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
+                        name = "Monitoring Stations:\nPM2.5 (annual) Metric (µg/m³)", 
+                        guide = guide_colourbar(order = 2, title.position = "top", 
+                                                barwidth = 10)) + 
+  geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
+            colour = "black", size = 4.5) + 
+  ggtitle((expression(paste("Status of Annual " ,PM[2.5]," Levels in B.C. Air Zones (2011-2013)")))) + 
+  theme_minimal() + 
+  theme(axis.title = element_blank(), axis.text = element_blank(), 
+        axis.ticks = element_blank(), panel.grid = element_blank(), 
+        legend.position = "bottom", legend.box = "horizontal", 
+        legend.box.just = "top", legend.direction = "horizontal", 
+        legend.title.align = 0, legend.margin = unit(20, "mm"),
+        legend.title = element_text(face = "plain", size = 11))
+
+plot(achievement_map_24)
+plot(achievement_map_annual)
+```
+
+```{r summary-plot, fig.height=7}
+summary_plot(pm_stats, metric_val = "metric_value", station = "display_name", 
+             airzone = "Airzone", parameter = "metric", base_size = 10.5, pt_size = 2)
+```
+
+#### More about the CAAQS fine particulate matter metrics: 
+
+-   There are two CAAQS metrics for fine particulate matter (PM~2.5~):
+    PM~2.5~ 24-hour, 3-year average of the annual 98th percentile of the
+    daily 24-hour average concentrations of PM~2.5~, and PM~2.5~ annual, the
+    3-year average of the annual average concentration of PM~2.5~.
+-   PM~2.5~ levels for an air zone are the highest CAAQS PM~2.5~ metric
+    values reported from monitoring stations within the air zone. However, 
+    stations with metric values based on only two years of data are excluded 
+    for consideration of the *air zone* metric value.
+-   Only air monitoring stations with sufficient data on fine
+    particulate matter concentrations for the 2011-2013 reporting period
+    were included in this indicator. Visit [BC Air
+    Quality](http://www.bcairquality.ca/readings/index.html) for a
+    complete list of air monitoring stations across B.C.
+-   Data completeness and sufficiency criteria for the CAAQS PM~2.5~
+    metrics are described in the [Guidance Document on Achievement
+    Determination: Canadian Ambient Air Quality Standards for Fine
+    Particulate Matter and Ozone
+    (2012)](http://www.ccme.ca/files/Resources/air/aqms/pn_1483_gdad_eng.pdf)
+    
+### Canada-wide Air Quality Management System
+
+The Air Quality Management System (AQMS) is Canada's approach for
+protecting air quality. Under the AQMS, provinces and territories
+monitor, report and manage local air quality within air
+zones, with the goal of continuously improving air quality and
+keeping pollutants below the Canadian Ambient Air Quality Standards
+(CAAQS).
+
+-   Provinces and territories establish air zones that are defined by a
+    similar set of air quality characteristics, issues and trends.
+-   There are seven air zones in British Columbia: Coastal, Georgia
+    Strait, Lower Fraser Valley, Southern Interior, Central Interior,
+    Northeast and Northwest.
+-   The Air Zone Management Framework defines management levels based on
+    the highest annual and 24-hour CAAQS fine particulate matter metric values 
+    reported from monitoring stations within the air zone. Concluding air zone 
+    management levels for PM~2.5~ are based on the higher of the PM~2.5~ annual and 
+    the PM~2.5~ 24-hour management levels.
+-   The four management levels are (1) green (actions for keeping clean
+    areas clean); (2) yellow (actions for preventing air quality
+    deterioration); (3) orange (actions for preventing CAAQS
+    exceedance); and (4) red (actions for achieving air zone CAAQS).
+    Each management level is associated with a suite of actions that
+    become more rigorous as fine particulate matter concentration levels
+    approach the CAAQS.
+-   Based on the highest annual and 24-hour CAAQS fine particulate matter 
+    metric values reported within each air zone, the Central Interior and 
+    Georgia Strait air zones were assigned to a red management level (actions 
+    for achieving air zone CAAQS); the Lower Fraser Valley air zones was 
+    assigned to a yellow management level (actions for preventing air quality 
+    deterioration); the Southern Interior air zone to an orange management level
+    (actions for preventing CAAQS exceedance); and the Coastal air zone
+    was assigned to a green air zone (actions for keeping clean areas
+    clean). Due to insufficient data, particulate management levels in
+    the Northwest and Northeast air zones are yet to be determined.
+-   Actions for each management level are detailed in the CCME [Guidance
+    Document on Air Zone Management
+    (2012)](http://www.ccme.ca/files/Resources/air/aqms/pn_1481_gdazm_e.pdf).
+    
+```{r mgmt_map, fig.height = 9}
+airzone_map <- spTransform(airzone_map, CRS("+init=epsg:3005"))
+
+## Transforming shapefile contents for use in ggplot2 
+airzone_map@data$id = rownames(airzone_map@data)
+airzone_map.points = fortify(airzone_map, region = "id")
+airzone_map.df = left_join(airzone_map.points, airzone_map@data, by = "id")
+
+airzone_map.df$caaq_mgmt[is.na(airzone_map.df$caaq_mgmt)] <- "Insufficient Data"
+
+colrs <- get_colours(type = "management", drop_na = FALSE)
+
+mgmt_map <- ggplot(airzone_map.df, aes(long, lat)) +   
+  geom_polygon(aes(group = group, fill = caaq_mgmt)) + 
+  coord_fixed() + 
+  geom_path(aes(group = group), colour = "white") + 
+  theme_minimal() + 
+  scale_fill_manual(values = colrs, 
+                    drop = FALSE, 
+                    name = "Air Zone Management Levels", 
+                    guide = guide_legend(reverse = TRUE)) + 
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        #legend.position = "none",
+        legend.position = "bottom",
+        legend.direction = "vertical",
+        legend.box.just = "left",
+        plot.margin = unit(c(0,0,0,0),"mm")) +
+  geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
+            colour = "black", size = 4.5)
+plot(mgmt_map)
+```
+
+```{r mgmt_chart, fig.height=5}
+mgmt_chart <- ggplot(data = pm_stats,
+                     aes(x = metric, fill = mgmt)) + 
+  geom_bar(stat = "bin", alpha = 1, width = 0.8) +
+  facet_wrap(~Airzone, ncol = 1) +
+  xlab("") + ylab("Number of Reporting Stations") +
+  coord_flip() +
+  scale_y_continuous(limits = c(0,18), breaks = seq(0, 18, 2),
+                     expand = c(0,0)) +
+  scale_fill_manual(values = colrs, 
+                    drop = FALSE, 
+                    name = "Air Zone Management Levels", 
+                    guide = guide_legend(reverse = TRUE)) +
+  scale_x_discrete(labels = c("pm2.5_24h" = "24-hour", "pm2.5_annual" = "Annual")) +
+  theme_soe_facet(base_family = "") +
+  theme(panel.grid.major.y = (element_blank()),
+#         legend.position = "bottom",
+#         legend.direction = "vertical",
+#         legend.box.just = "left"
+        legend.position = "none")
+plot(mgmt_chart)
+```
+
+
+    
+#### More about the AQMS management levels:
+
+-   There can be cases when an air zone does not achieve a given CAAQS
+    because of sources over which jurisdictions have little or no
+    control, such as those related to transboundary flows and
+    exceptional events like forest fires.
+-   Before determining management levels, jurisdictions have the option
+    of adjusting their air zone metric values to remove such external
+    influences. These arrangements aim to ensure that jurisdictions are
+    responsible for managing only the emissions sources they can
+    control.
+-   In B.C., wildfires are generally the largest contributor to
+    transboundary flows and exceptional events. However, the highest
+    fine particulate matter levels for the 2011-2013 reporting period
+    occurred outside of the historic wildfire season. Thus, the
+    exceedances of the PM2.5 CAAQS are not believed to be a result of
+    transboundary flows and exceptional events. Air zone management
+    levels for fine particulate matter were thus determined directly
+    from the CAAQS fine particulate matter metrics with no adjustments
+    for this reporting period.
+
+### Methods
+
+The methods used to develop this indicator- including procedures, data
+requirements, and calculation of the CAAQS fine particulate matter
+metrics-are detailed in the [Guidance Document on Achievement
+Determination: Canadian Ambient Air Quality Standards for Fine
+Particulate Matter and Ozone
+(2012)](http://www.ccme.ca/files/Resources/air/aqms/pn_1483_gdad_eng.pdf)<span
+class="fileinfo"> (PDF)</span> published by the [Canadian Council of
+Ministers of the Environment (CCME)](http://www.ccme.ca/index.html).
+
+### References and Other Useful Links
+
+Visit [BC Air Quality](http://www.bcairquality.ca/plans/national-air-quality-management-system.html) for more information on the implementation of the AQMS in B.C., and to read individual Air Zone reports on the achievement of CAAQS for ground-level ozone and fine particulate matter.
+
+Access [B.C.'s Air Quality
+Readings](http://www.bcairquality.ca/readings/index.html) for real-time
+data on air pollutants and locations of all air monitoring stations in
+B.C.
+
+For more details on the CAAQS and Canada's Air Quality Management System
+visit [Canada-wide Air Quality Management System
+(AQMS)](http://www.ccme.ca/en/resources/air/aqms.html)
+
+[BC Lung Association's BC State of the Air
+Reports](http://www.bc.lung.ca/airquality/stateoftheair-report.html).
+
+[Canadian Environmental Sustainability Indicators: Air and Climate
+Indicators](%20http://www.ec.gc.ca/indicateurs-indicators/default.asp?lang=En&n=03603FB3-1)
+
+^1^[B.C. Air Action Plan (June
+2008)](http://www.bcairsmart.ca/docs/bcairactionplan.pdf)<span
+class="fileinfo"> (PDF, 1.1MB)</span>
+
+### Data
+
+\*By accessing these datasets, you agree to the license associated with
+each file, as indicated in parentheses below.
+
+-   [Indicator data: BC Fine Particulate Matter CAAQS 2011-2013](http://catalogue.data.gov.bc.ca/dataset/bc-ambient-air-quality-standards-reporting-results-fine-particulate-matter)
+    (License: [B.C.
+    OGL](http://www.data.gov.bc.ca/local/dbc/docs/license/OGL-vbc2.0.pdf))
+-   [BC PM2.5
+    Hourly](http://catalogue.data.gov.bc.ca/dataset/air-quality-monitoring-verified-hourly-data-and-station-data)
+    (License: [B.C.
+    OGL](http://www.data.gov.bc.ca/local/dbc/docs/license/OGL-vbc2.0.pdf))
+-   [BC Air Monitoring
+    Stations](http://catalogue.data.gov.bc.ca/dataset/air-quality-monitoring-verified-hourly-data-and-station-data)
+    (License: [B.C.
+    OGL](http://www.data.gov.bc.ca/local/dbc/docs/license/OGL-vbc2.0.pdf))
+-   [BC Air Zones](http://catalogue.data.gov.bc.ca/dataset/british-columbia-air-zones) (License: [B.C.
+    OGL](http://www.data.gov.bc.ca/local/dbc/docs/license/OGL-vbc2.0.pdf))
+    
+Published and Available On-Line at Environmental Reporting BC (August 2015):
+<http://www.env.gov.bc.ca/soe/indicators/air/fine_pm.html>
+
+Email correspondence to: envreportbc@gov.bc.ca
+
+# Appendix: Detailed CAAQS results for each monitoring station within air zones in B.C.
+
+```{r appendix, results='asis', fig.height=3}
+
+for (az in unique(pm_stats$Airzone)) {
+  emsids <- unique(pm_stats$ems_id[pm_stats$Airzone == az])
+  cat("\\subsection{", az, " Air Zone}", sep = "")
+  
+  for (emsid in emsids) {
+    monitor <- pm_stats$monitor[pm_stats$ems_id == emsid][1]
+    
+    ## Subset daily, caaqs, and annual data
+    daily_data <- avgdaily[avgdaily$ems_id == emsid & avgdaily$simple_monitor == monitor, ]
+    
+    if (nrow(daily_data) == 0) next
+    
+    caaqs_data_24h <- pm_stats[pm_stats$ems_id == emsid & 
+                                 pm_stats$metric == "pm2.5_24h" &
+                                 pm_stats$monitor == monitor, ]
+    caaqs_data_annual <- pm_stats[pm_stats$ems_id == emsid & 
+                                    pm_stats$metric == "pm2.5_annual" &
+                                    pm_stats$monitor == monitor, ]
+
+    # Create plots
+    p_24 <- plot_ts(daily_data, caaqs_data = caaqs_data_24h, 
+                    parameter = "pm2.5_24h", rep_yr = 2013, annot_size = 2.5)
+    
+    p_annual <- plot_ts(daily_data, caaqs_data = caaqs_data_annual, 
+                        parameter = "pm2.5_annual", rep_yr = 2013, annot_size = 2.5)
+    
+    p_annual <- p_annual + scale_y_continuous(limits = c(0, 50))
+    p_24 <- p_24 + scale_y_continuous(limits = c(0, 50))
+    
+    site <- knitr_latex_char(caaqs_data_24h$display_name[1])
+    cat("\\subsubsection*{\\underline{", site, " monitoring station}}", sep = "")
+
+    cat("\\textbf{PM2.5 24-hour Air Quality Standard:} ", 
+        as.character(caaqs_data_24h$caaqs), " \\newline ")
+    cat("\\textbf{PM2.5 24-hour Metric:} ", caaqs_data_24h$metric_value, 
+        " µg/m³ (", caaqs_data_24h$n_years, 
+        " year average) \\newline ", sep = "")
+    plot(p_24)
+    
+    cat("\\newline ")
+    cat("\\textbf{PM2.5 Annual Air Quality Standard:} ", 
+        as.character(caaqs_data_annual$caaqs), " \\newline ")
+    cat("\\textbf{PM2.5 Annual Metric:} ", caaqs_data_annual$metric_value, 
+        " µg/m³ (", caaqs_data_annual$n_years, 
+        " year average) \\newline ", sep = "")
+    plot(p_annual)
+    
+    cat("\\newpage ")
+  }
+}
+
+```
+
