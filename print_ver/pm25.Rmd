@@ -336,7 +336,7 @@ Determination: Canadian Ambient Air Quality Standards for Fine
 Particulate Matter and Ozone
 (2012)](http://www.ccme.ca/files/Resources/air/aqms/pn_1483_gdad_eng.pdf)<span
 class="fileinfo"> (PDF)</span> published by the [Canadian Council of
-Ministers of the Environment (CCME)](http://www.ccme.ca/index.html).
+Ministers of the Environment (CCME)](http://www.ccme.ca/index.html). **R package and code:** We have developed an [R](http://www.r-project.org) package to facilitate the calculation of air quality metrics according to the Canadian Ambient Air Quality Standards [CAAQS](http://www.ccme.ca/en/current_priorities/air/caaqs.html). Download the 'rcaaqs' package from [GitHub](https://github.com/bcgov/rcaaqs). The source code for repeating the analysis presented on this page is also available on [GitHub](https://github.com/bcgov/pm25_caaqs_analysis).
 
 ### References and Other Useful Links
 
