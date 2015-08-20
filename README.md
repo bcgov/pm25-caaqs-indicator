@@ -6,7 +6,7 @@
 
 # Fine Particulate Matter CAAQS Analysis for B.C. (2011-2013)
 
-A set of R scripts to calculate the Canadian Ambient Air Quality Standards (CAAQS) for fine particulate matter (PM~2.5~) for 2011-2013. These scripts reproduce the 2015 analysis presented on [Environmental Reporting BC](http://www.env.gov.bc.ca/soe/indicators/air/fine_pm.html).
+A set of R scripts to calculate the Canadian Ambient Air Quality Standards (CAAQS) for fine particulate matter (PM<sub>2.5</sub>) for 2011-2013. These scripts reproduce the 2015 analysis presented on [Environmental Reporting BC](http://www.env.gov.bc.ca/soe/indicators/air/fine_pm.html).
 
 This analysis makes use of the [rcaaqs](https://github.com/bcgov/rcaaqs) package, and [air quality monitoring data](http://catalogue.data.gov.bc.ca/dataset/air-quality-monitoring-verified-hourly-data-and-station-data) from the Ministry of Enviornment.
 
