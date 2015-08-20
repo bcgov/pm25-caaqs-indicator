@@ -21,6 +21,16 @@ There are four core scripts that are required for the analysis, they need to be 
 
 The `run_all.R` script can be `source`ed to run it all at once.
 
+Most packages used in the analysis can be installed from CRAN using `install.packages()`, but you will need to install [rcaaqs](https://github.com/bcgov/rcaaqs) and [bcmaps](https://github.com/bcgov/bcmaps) using devtools:
+
+```r
+install.packages("devtools") # If you don't already have it installed
+
+library(devtools)
+install_github("bcgov/rcaaqs")
+install_github("bcgov/bcmaps")
+```
+
 ### Getting Help or Reporting an Issue
 
 To report bugs/issues/feature requests, please file an [issue](https://github.com/bcgov/<repo-name>/issues/).
