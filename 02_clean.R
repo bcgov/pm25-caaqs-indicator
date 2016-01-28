@@ -20,10 +20,13 @@ library("rcaaqs")
 
 if (!exists("pm25")) load("tmp/pm-raw.RData")
 
+reporting_year <- 2014
+min_year <- 2012
+
 ## Format dates, extract 2011-2013, and fill missing
 pm25$date_time <- format_date(pm25$date_time) - 1 # Subtract 1 second so reading is assigned to previous hour
-pm25 <- pm25[pm25$date_time >= as.POSIXct("2011-01-01", tz = "Etc/GMT+8") & 
-               pm25$date_time < as.POSIXct("2014-01-01", tz = "Etc/GMT+8"), ]
+pm25 <- pm25[pm25$date_time >= as.POSIXct(paste0(min_year, "-01-01"), tz = "Etc/GMT+8") & 
+               pm25$date_time < as.POSIXct(paste0(reporting_year + 1,"-01-01"), tz = "Etc/GMT+8"), ]
 
 pm25 %<>% 
   group_by(ems_id) %>% 
