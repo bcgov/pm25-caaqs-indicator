@@ -32,7 +32,7 @@ ann_98_per <- left_join(ann_98_per, completeness,
 ann_98_per <- ann_98_per[ann_98_per$use_annual | (ann_98_per$exceed & ann_98_per$annual_valid), ]
 
 pm_caaq_daily <- pm_24h_caaq(ann_98_per, by = c("ems_id", "monitor", "instrument", "simple_monitor"), 
-                              cyear = 2013)
+                              cyear = 2014)
 
 # PM25 Annual -------------------------------------------------------------
 
@@ -42,7 +42,7 @@ annual_avg <- left_join(annual_avg, completeness,
 annual_avg <- annual_avg[annual_avg$use_annual, ]
 
 pm_caaq_annual <- pm_annual_caaq(annual_avg, by = c("ems_id", "monitor", "instrument", "simple_monitor"), 
-                                 cyear = 2013)
+                                 cyear = 2014)
 
 ## Join the annual and daily tables:
 pm_stats <- bind_rows(pm_caaq_annual, pm_caaq_daily)
