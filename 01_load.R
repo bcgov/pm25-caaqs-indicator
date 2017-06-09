@@ -31,4 +31,4 @@ pm25_all <- read_csv(file.path(path, pm25_file))
 
 ## store data in local repository
 dir.create("tmp", showWarnings = FALSE)
-save(ozone_all, stations, file = "tmp/ozone_raw.RData")
+save(pm25_all, stations, file = "tmp/pm25_raw.RData")
