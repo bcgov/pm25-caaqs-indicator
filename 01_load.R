@@ -1,4 +1,4 @@
-# Copyright 2015 Province of British Columbia
+# Copyright 2017 Province of British Columbia
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -10,27 +10,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-library("readr")
-
+library(readr)
+## Download the pm2.5 and station data from the BC Data Catalogue:
+## pm2.5 data from http://catalogue.data.gov.bc.ca/dataset/air-quality-monitoring-raw-hourly-data-and-station-data
+## station data from https://catalogue.data.gov.bc.ca/dataset/air-quality-monitoring-unverified-hourly-air-quality-and-meteorological-data
+databc_pm25 <- "ftp://ftp.env.gov.bc.ca/pub/outgoing/AIR/AnnualSummary/2009-LatestVerified/PM25.csv"
+databc_stations <- "ftp://ftp.env.gov.bc.ca/pub/outgoing/AIR/Air_Monitoring_Stations/bc_air_monitoring_stations.csv"
 path <- "data"
-csvfile <- "PM25_hourly.csv"
-zipfile <- file.path(path, "PM25_hourly.zip")
+pm25_file <- "PM25.csv"
+stn_file <- "bc_air_monitoring_stations.csv"
+
 dir.create(path, showWarnings = FALSE)
 
-## Get data from DataBC: 
-## http://catalogue.data.gov.bc.ca/dataset/air-quality-monitoring-verified-hourly-data-and-station-data
-if (!file.exists(zipfile)) {
-  download.file("http://pub.data.gov.bc.ca/datasets/77eeadf4-0c19-48bf-a47a-fa9eef01f409/PM25_hourly.zip", 
-                destfile = zipfile)
-}
-pm25 <- read_csv(zipfile, col_types = "ccccccidc")
+download.file(databc_pm25, destfile = file.path(path,pm25_file))
+download.file(databc_stations, destfile = file.path(path, stn_file))
 
-## Get station metadata:
-stn_data_url <- "http://catalogue.data.gov.bc.ca/dataset/77eeadf4-0c19-48bf-a47a-fa9eef01f409/resource/b833311d-4126-4dad-b57e-c9ce2c1133c2/download/bcairmonitoringstations.csv"
-stn_data_csv <- "monitoring_stations.csv"
-download.file(stn_data_url, destfile = file.path(path, stn_data_csv))
+## Load stations and data from files
+stations <- read_csv(file.path(path, stn_file))
+pm25_all <- read_csv(file.path(path, pm25_file))
 
-stn_data <- read.csv(file.path(path, stn_data_csv), stringsAsFactors = FALSE)
-
+## store data in local repository
 dir.create("tmp", showWarnings = FALSE)
-save(pm25, stn_data, file = "tmp/pm-raw.RData")
+save(ozone_all, stations, file = "tmp/ozone_raw.RData")
