@@ -72,5 +72,8 @@ pm25_clean <- filter(pm25, !ems_id %in% unique(teom_fem_combos$ems_id)) %>%
   bind_rows(teom_fem_pm25)
 
 ## As a check, plot them - there should be only one monitor per station, 
-## except for theo two where they were combined (Kelowna College and Vernon Science Centre)
+## except for the two where they were combined (Kelowna College and Vernon Science Centre)
 plot_station_instruments(pm25_clean)
+
+save(pm25_clean, stations, file = "tmp/pm25_clean.rda")
+

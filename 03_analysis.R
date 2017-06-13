@@ -12,37 +12,35 @@
 
 library("rcaaqs")
 library("dplyr")
-library("magrittr")
-library("sp")
-library("rgdal")
-library("bcmaps")
+# library("magrittr")
+# library("sp")
+# library("rgdal")
+# library("bcmaps")
 
-if (!exists("pm25")) load("tmp/pm25-processed.RData")
+if (!exists("pm25_clean")) load("tmp/pm25_clean.rda")
+
+site_group_vars <- c("ems_id", "station_name")
 
 ## Compute average daily pm25 value for each site (used for both 24h and annual metric)
-completeness <- pm_data_complete(pm25, by = c("ems_id", "site", "monitor", "instrument", "simple_monitor"))
-avgdaily <- pm_daily_avg(pm25, by = c("ems_id", "site", "monitor", "instrument", "simple_monitor"))
+avgdaily <- pm_daily_avg(pm25_clean, by = site_group_vars)
 
 # PM25 24 Hour ------------------------------------------------------------
 
 ## Compute annual 98th percentile of 24h averages for each site
-ann_98_per <- pm_98_percentile(avgdaily, by = c("ems_id", "monitor", "instrument", "simple_monitor"))
-ann_98_per <- left_join(ann_98_per, completeness, 
-                        by = c("ems_id", "monitor", "instrument", "simple_monitor", "year"))
-ann_98_per <- ann_98_per[ann_98_per$use_annual | (ann_98_per$exceed & ann_98_per$annual_valid), ]
+pm_98 <- pm_yearly_98(avgdaily, by = site_group_vars)
 
-pm_caaq_daily <- pm_24h_caaq(ann_98_per, by = c("ems_id", "monitor", "instrument", "simple_monitor"), 
-                              cyear = 2014)
+pm_98_just_valid <- pm_98[pm_98$exceed | pm_98$valid_year,]
+pm_caaq_daily <- pm_24h_caaq(pm_98_just_valid, by = site_group_vars, cyear = 2016)
 
 # PM25 Annual -------------------------------------------------------------
 
-annual_avg <- pm_annual_average(avgdaily, by = c("ems_id", "monitor", "instrument", "simple_monitor"))
-annual_avg <- left_join(annual_avg, completeness, 
-                        by = c("ems_id", "monitor", "instrument", "simple_monitor", "year"))
-annual_avg <- annual_avg[annual_avg$use_annual, ]
+annual_avg <- pm_yearly_avg(avgdaily, by = site_group_vars)
+annual_avg_just_valid <- annual_avg[annual_avg$valid_year,]
+pm_caaq_annual <- pm_annual_caaq(annual_avg_just_valid, by = site_group_vars, cyear = 2016)
 
-pm_caaq_annual <- pm_annual_caaq(annual_avg, by = c("ems_id", "monitor", "instrument", "simple_monitor"), 
-                                 cyear = 2014)
+
+###### Updated 2017 to here
+
 
 ## Join the annual and daily tables:
 pm_stats <- bind_rows(pm_caaq_annual, pm_caaq_daily)
