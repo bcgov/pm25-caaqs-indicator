@@ -75,5 +75,14 @@ pm25_clean <- filter(pm25, !ems_id %in% unique(teom_fem_combos$ems_id)) %>%
 ## except for the two where they were combined (Kelowna College and Vernon Science Centre)
 plot_station_instruments(pm25_clean)
 
-save(pm25_clean, stations, file = "tmp/pm25_clean.rda")
+## Clean station data - lowercase column names, remove pseudo-duplicates, subset to those 
+## stations analysed
+stations_clean <- rename_all(stations, tolower) %>% 
+  group_by(ems_id) %>%
+  filter(n() == 1 | 
+           !grepl("_60$|Met$|OLD$", station_name)) %>% 
+  filter(ems_id %in% unique(pm25_clean$ems_id))
+
+
+save(pm25_clean, stations_clean, file = "tmp/pm25_clean.rda")
 
