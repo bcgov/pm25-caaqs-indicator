@@ -39,22 +39,17 @@ annual_avg_just_valid <- annual_avg[annual_avg$valid_year,]
 pm_caaq_annual <- pm_annual_caaq(annual_avg_just_valid, by = site_group_vars, cyear = 2016)
 
 
+
+
+## Join the annual and daily tables and join to station data:
+pm_stats <- bind_rows(pm_caaq_annual, pm_caaq_daily) %>% 
+  left_join(stations_clean, by = "ems_id") %>% 
+  select(-station_name.y) %>% 
+  rename(station_name = station_name.x)
+
+
 ###### Updated 2017 to here
 
-
-## Join the annual and daily tables:
-pm_stats <- bind_rows(pm_caaq_annual, pm_caaq_daily)
-
-pm_stats <- stn_data %>% 
-  select(ems_id, stationname, display_name, Longitude, Latitude) %>% 
-  merge(pm_stats, by = "ems_id", all.x = FALSE, all.y = TRUE) %>% 
-  filter(!grepl("Ucluelet|Rumble", stationname)) %>%  # remove Ucluelet and Rumble Beach (not well QA/QC'd and/or instrument issues until recently)
-  filter(!(grepl("Whistler", display_name) & simple_monitor == "TEOM")) # Use the Whistler FEM monitor
-
-## If there are more than one monitor for a station, select the one with most valid years
-pm_stats %<>% group_by(ems_id, metric) %>% 
-  slice(which.max(n_years)) %>% 
-  as.data.frame(stringsAsFactors = FALSE)
 
 ## Do a spatial join to get airzones:
 coordinates(pm_stats) <- ~Longitude + Latitude
