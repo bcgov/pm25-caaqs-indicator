@@ -26,7 +26,7 @@ download.file(databc_pm25, destfile = file.path(path,pm25_file))
 download.file(databc_stations, destfile = file.path(path, stn_file))
 
 ## Load stations and data from files
-stations <- read_csv(file.path(path, stn_file))
+stations <- read_csv(file.path(path, stn_file), na = c("", "N/A"))
 pm25_all <- read_csv(file.path(path, pm25_file))
 
 ## store data in local repository
