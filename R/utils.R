@@ -21,3 +21,13 @@ sf_over <- function(x, y) {
   })
   dplyr::bind_rows(out)
 }
+
+gg_fortify <- function(x) {
+  if (!require("maptools")) stop("maptools is not installed")
+  if (!requireNamespace("ggplot2")) stop("ggplot2 is not installed.")
+  if (!requireNamespace("dplyr")) stop("dplyr is not installed.")
+  x@data$ggid <- rownames(x@data)
+  x_points <- ggplot2::fortify(x, region = "ggid")
+  x_df <- dplyr::left_join(x_points, x@data, by = c("id" = "ggid"))
+  x_df
+}
