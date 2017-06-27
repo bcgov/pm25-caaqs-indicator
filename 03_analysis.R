@@ -56,7 +56,8 @@ airzone_map <- st_as_sf(bcmaps::airzones) %>%
 pm_stats$Airzone <- sf_over(pm_stats, airzone_map)$Airzone
 
 ## Determine achievement status for airzones:
-airzones_annual <- st_set_geometry(pm_stats[pm_stats$metric == "pm2.5_annual", ], NULL) %>% 
+airzones_annual <- filter(pm_stats, metric == "pm2.5_annual") %>% 
+  st_set_geometry(NULL) %>% 
   airzone_metric(val = "metric_value", 
                  n_years = "n_years", 
                  keep = c(rep_stn_annual = "station_name", 
@@ -65,7 +66,8 @@ airzones_annual <- st_set_geometry(pm_stats[pm_stats$metric == "pm2.5_annual", ]
                           n_years_annual = "n_years", 
                           pm2.5_annual_metric = "metric_value"))
 
-airzones_24h <- st_set_geometry(pm_stats[pm_stats$metric == "pm2.5_24h", ], NULL) %>% 
+airzones_24h <- filter(pm_stats, metric == "pm2.5_24h") %>% 
+  st_set_geometry(NULL) %>% 
   airzone_metric(val = "metric_value", 
                  n_years = "n_years", 
                  keep = c(rep_stn_24h = "station_name", 
@@ -81,14 +83,14 @@ airzone_summary$caaq_mgmt <- pmax(cut_management(airzone_summary$pm2.5_annual_me
                                   cut_management(airzone_summary$pm2.5_24h_metric, 
                                                  "pm2.5_24h"))
 
-airzone_map <- merge(airzone_map, airzone_summary, by = "Airzone")
+airzone_map <- left_join(airzone_map, airzone_summary, by = "Airzone")
 
 # Format pm_stats ----------------------------------------------
-pm_stats <- select(pm_stats, ems_id, Airzone, city, longitude, latitude,
-                   station_name, min_year, max_year, n_years, metric, metric_value, 
-                   caaqs, mgmt) %>%
+pm_stats <- pm_stats %>% 
+  select(ems_id, Airzone, city, longitude, latitude,
+         station_name, min_year, max_year, n_years, metric, metric_value, 
+         caaqs, mgmt) %>%
   filter(!is.na(metric_value)) %>% 
-  arrange(Airzone, station_name) %>% 
-  st_set_geometry(NULL)
+  arrange(Airzone, station_name) 
 
 save(list = ls(), file = "tmp/analysed.RData")
