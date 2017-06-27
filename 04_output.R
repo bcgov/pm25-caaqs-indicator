@@ -67,7 +67,7 @@ achievement_map_24 <- ggplot(airzone_map.df, aes(long, lat)) +
         axis.ticks = element_blank(), panel.grid = element_blank(), 
         legend.position = "bottom", legend.box = "horizontal", 
         legend.box.just = "top", legend.direction = "horizontal", 
-        legend.title.align = 0, legend.margin = unit(20, "mm"),
+        legend.title.align = 0, legend.spacing = unit(20, "mm"),
         legend.title = element_text(face = "plain", size = 11))
 
 achievement_map_annual <- ggplot(airzone_map.df, aes(long, lat)) + 
@@ -90,7 +90,7 @@ achievement_map_annual <- ggplot(airzone_map.df, aes(long, lat)) +
         axis.ticks = element_blank(), panel.grid = element_blank(), 
         legend.position = "bottom", legend.box = "horizontal", 
         legend.box.just = "top", legend.direction = "horizontal", 
-        legend.title.align = 0, legend.margin = unit(20, "mm"),
+        legend.title.align = 0, legend.spacing = unit(20, "mm"),
         legend.title = element_text(face = "plain", size = 11))
 
 plot(achievement_map_24)
@@ -192,6 +192,7 @@ plot(mgmt_chart)
 # multiplot of bar chart and mgmt map
 multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
 
+####### Updated to here for 2017 analysis
 
 # Output data, maps, and charts ------------------------------------------------
 
