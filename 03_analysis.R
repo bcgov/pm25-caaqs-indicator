@@ -15,7 +15,8 @@ library("dplyr")
 # library("magrittr")
 # library("sp")
 # library("rgdal")
-# library("bcmaps")
+library("sf")
+library("bcmaps")
 
 if (!exists("pm25_clean")) load("tmp/pm25_clean.rda")
 
@@ -38,9 +39,6 @@ annual_avg <- pm_yearly_avg(avgdaily, by = site_group_vars)
 annual_avg_just_valid <- annual_avg[annual_avg$valid_year,]
 pm_caaq_annual <- pm_annual_caaq(annual_avg_just_valid, by = site_group_vars, cyear = 2016)
 
-
-
-
 ## Join the annual and daily tables and join to station data:
 pm_stats <- bind_rows(pm_caaq_annual, pm_caaq_daily) %>% 
   left_join(stations_clean, by = "ems_id") %>% 
@@ -48,18 +46,14 @@ pm_stats <- bind_rows(pm_caaq_annual, pm_caaq_daily) %>%
   rename(station_name = station_name.x)
 
 
-###### Updated 2017 to here
 
-
-## Do a spatial join to get airzones:
-coordinates(pm_stats) <- ~Longitude + Latitude
-proj4string(pm_stats) <- CRS("+init=epsg:4617")
+pm_stats <- st_as_sf(pm_stats, coords = c("longitude", "latitude"), crs = 4617)
 
 ## Load airzones map
-data("airzone_map")
-rd_map <- regional_districts_analysis
-airzone_map <- spTransform(airzone_map, CRS(proj4string(pm_stats)))
-rd_map <- spTransform(rd_map, CRS(proj4string(pm_stats)))
+airzone_map <- st_as_sf(bcmaps::airzones)
+airzone_map <- st_transform(airzone_map, crs = st_crs(pm_stats))
+
+###### Updated 2017 to here
 
 ## Get airzone and rd info into pm_stats
 pm_stats$Airzone <- over(pm_stats, airzone_map)[[1]]
