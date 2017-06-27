@@ -17,6 +17,7 @@ library("dplyr")
 # library("rgdal")
 library("sf")
 library("bcmaps")
+source("R/utils.R")
 
 if (!exists("pm25_clean")) load("tmp/pm25_clean.rda")
 
@@ -47,39 +48,33 @@ pm_stats <- bind_rows(pm_caaq_annual, pm_caaq_daily) %>%
 
 
 
-pm_stats <- st_as_sf(pm_stats, coords = c("longitude", "latitude"), crs = 4617)
+pm_stats <- st_as_sf(pm_stats, coords = c("longitude", "latitude"), crs = 4617, remove = FALSE)
 
 ## Load airzones map
 airzone_map <- st_as_sf(bcmaps::airzones)
 airzone_map <- st_transform(airzone_map, crs = st_crs(pm_stats))
 
-###### Updated 2017 to here
-
-## Get airzone and rd info into pm_stats
-pm_stats$Airzone <- over(pm_stats, airzone_map)[[1]]
-pm_stats$regional_district <- over(pm_stats, rd_map)[[1]]
-
-## stringsAsFactors argument only works if using sp >= 1.1-1
-pm_stats %<>% as.data.frame(stringsAsFactors = FALSE)
+## Get airzone into pm_stats
+pm_stats$Airzone <- sf_over(pm_stats, airzone_map)$Airzone
 
 ## Determine achievement status for airzones:
-airzones_annual <- airzone_metric(pm_stats[pm_stats$metric == "pm2.5_annual", ], 
-                                  val = "metric_value", 
-                                  n_years = "n_years", 
-                                  keep = c(rep_stn_annual = "display_name", 
-                                           rep_id_annual = "ems_id", 
-                                           caaqs_annual = "caaqs", 
-                                           n_years_annual = "n_years", 
-                                           pm2.5_annual_metric = "metric_value"))
+airzones_annual <- st_set_geometry(pm_stats[pm_stats$metric == "pm2.5_annual", ], NULL) %>% 
+  airzone_metric(val = "metric_value", 
+                 n_years = "n_years", 
+                 keep = c(rep_stn_annual = "station_name", 
+                          rep_id_annual = "ems_id", 
+                          caaqs_annual = "caaqs", 
+                          n_years_annual = "n_years", 
+                          pm2.5_annual_metric = "metric_value"))
 
-airzones_24h <- airzone_metric(pm_stats[pm_stats$metric == "pm2.5_24h", ], 
-                               val = "metric_value", 
-                               n_years = "n_years", 
-                               keep = c(rep_stn_24h = "display_name", 
-                                        rep_id_24h = "ems_id", 
-                                        caaqs_24h = "caaqs",  
-                                        n_years_24h = "n_years", 
-                                        pm2.5_24h_metric = "metric_value"))
+airzones_24h <- st_set_geometry(pm_stats[pm_stats$metric == "pm2.5_24h", ], NULL) %>% 
+  airzone_metric(val = "metric_value", 
+                 n_years = "n_years", 
+                 keep = c(rep_stn_24h = "station_name", 
+                          rep_id_24h = "ems_id", 
+                          caaqs_24h = "caaqs",  
+                          n_years_24h = "n_years", 
+                          pm2.5_24h_metric = "metric_value"))
 
 airzone_summary <- merge(airzones_annual, airzones_24h, by = "Airzone")
 
@@ -88,15 +83,14 @@ airzone_summary$caaq_mgmt <- pmax(cut_management(airzone_summary$pm2.5_annual_me
                                   cut_management(airzone_summary$pm2.5_24h_metric, 
                                                  "pm2.5_24h"))
 
-airzone_map %<>% 
-  merge(airzone_summary, by = "Airzone")
+airzone_map <- merge(airzone_map, airzone_summary, by = "Airzone")
 
 # Format pm_stats ----------------------------------------------
-pm_stats %<>%
-  select(ems_id, Airzone, regional_district, stationname, display_name, 
-         Longitude, Latitude, simple_monitor:mgmt) %>%
+pm_stats <- select(pm_stats, ems_id, Airzone, city, longitude, latitude,
+                   station_name, min_year, max_year, n_years, metric, metric_value, 
+                   caaqs, mgmt) %>%
   filter(!is.na(metric_value)) %>% 
-  arrange(Airzone, display_name) %>%
-  rename(monitor = simple_monitor)
+  arrange(Airzone, station_name) %>% 
+  st_set_geometry(NULL)
 
 save(list = ls(), file = "tmp/analysed.RData")
