@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and limitations under the License.
 
 library("rcaaqs")
-library("magrittr")
+# library("magrittr")
 library("dplyr")
 library("tidyr")
 library("bcmaps")
@@ -20,8 +20,7 @@ library("ggplot2")
 library("grid")
 library("envreportutils")
 
-library("sp")
-library("rgdal")
+library("sf")
 library("geojsonio")
 
 if (!exists("airzone_summary")) load("tmp/analysed.RData")
@@ -31,27 +30,22 @@ dir.create("out", showWarnings = FALSE)
 
 # Summary plot of stations ------------------------------------------------
 
-summary_plot(pm_stats, metric_val = "metric_value", station = "display_name", 
+summary_plot(pm_stats, metric_val = "metric_value", station = "station_name", 
              airzone = "Airzone", parameter = "metric")
 
 # Summary achievement map -------------------------------------------------
 
 # transformthe lat-long coordinates to BC Albers
-airzone_map <- spTransform(airzone_map, CRS("+init=epsg:3005"))
+airzone_map <- transform_bc_albers(airzone_map)
 
 ## Transforming shapefile contents for use in ggplot2 
-airzone_map@data$id = rownames(airzone_map@data)
-airzone_map.points = fortify(airzone_map, region = "id")
-airzone_map.df = left_join(airzone_map.points, airzone_map@data, by = "id")
+airzone_map.df <- gg_fortify(as(airzone_map, "Spatial"))
 
 airzone_map.df$caaqs_24h[is.na(airzone_map.df$caaqs_24h)] <- "Insufficient Data"
 airzone_map.df$caaqs_annual[is.na(airzone_map.df$caaqs_annual)] <- "Insufficient Data"
 
-pm_stats <- SpatialPointsDataFrame(pm_stats[,c("Longitude", "Latitude")], 
-                                      pm_stats, 
-                                      proj4string = CRS("+init=epsg:4617")) %>% 
-  spTransform(CRS("+init=epsg:3005")) %>% 
-  as.data.frame()
+pm_stats <- transform_bc_albers(pm_stats)
+pm_stats <- cbind(pm_stats, st_coordinates(pm_stats))
 
 achievement_map_24 <- ggplot(airzone_map.df, aes(long, lat)) + 
   geom_polygon(aes(group = group, fill = caaqs_24h)) + 
@@ -62,7 +56,7 @@ achievement_map_24 <- ggplot(airzone_map.df, aes(long, lat)) +
                     guide = guide_legend(order = 1, title.position = "top")) + 
   geom_path(aes(group = group), colour = "white") + 
   geom_point(data = pm_stats[pm_stats$metric == "pm2.5_24h", ], 
-             aes(x = Longitude.1, y = Latitude.1, colour = metric_value)) +
+             aes(x = X, y = Y, colour = metric_value)) +
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
                         name = "Monitoring Stations:\nPM2.5 (24-hour) Metric (µg/m³)", 
                         guide = guide_colourbar(order = 2, title.position = "top", 
@@ -85,7 +79,7 @@ achievement_map_annual <- ggplot(airzone_map.df, aes(long, lat)) +
                     guide = guide_legend(order = 1, title.position = "top")) + 
   geom_path(aes(group = group), colour = "white") + 
   geom_point(data = pm_stats[pm_stats$metric == "pm2.5_annual", ], 
-             aes(x = Longitude.1, y = Latitude.1, colour = metric_value)) +
+             aes(x = X, y = Y, colour = metric_value)) +
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
                         name = "Monitoring Stations:\nPM2.5 (annual) Metric (µg/m³)", 
                         guide = guide_colourbar(order = 2, title.position = "top", 
@@ -109,27 +103,24 @@ stnplots <- vector("list", length(emsids))
 names(stnplots) <- emsids
 
 for (emsid in emsids) {
-  monitor <- pm_stats$monitor[pm_stats$ems_id == emsid][1]
   
   ## Subset daily, caaqs, and annual data
-  daily_data <- avgdaily[avgdaily$ems_id == emsid & avgdaily$simple_monitor == monitor, ]
+  daily_data <- avgdaily[avgdaily$ems_id == emsid, ]
   if (nrow(daily_data) == 0) next
   caaqs_data_24h <- pm_stats[pm_stats$ems_id == emsid & 
-                               pm_stats$metric == "pm2.5_24h" &
-                               pm_stats$monitor == monitor, ]
+                               pm_stats$metric == "pm2.5_24h", ]
   caaqs_data_annual <- pm_stats[pm_stats$ems_id == emsid & 
-                                  pm_stats$metric == "pm2.5_annual" &
-                                  pm_stats$monitor == monitor, ]
+                                  pm_stats$metric == "pm2.5_annual", ]
   
   # Create plots
   p_24 <- plot_ts(daily_data, caaqs_data = caaqs_data_24h, 
-                  parameter = "pm2.5_24h", rep_yr = 2013)
+                  parameter = "pm2.5_24h", rep_yr = 2016)
 
   p_annual <- plot_ts(daily_data, caaqs_data = caaqs_data_annual, 
-                      parameter = "pm2.5_annual", rep_yr = 2013)
+                      parameter = "pm2.5_annual", rep_yr = 2016)
   
-    p_annual <- p_annual + scale_y_continuous(limits = c(0, 50))
-    p_24 <- p_24 + scale_y_continuous(limits = c(0, 50))
+  p_annual <- p_annual + scale_y_continuous(limits = c(0, 50))
+  p_24 <- p_24 + scale_y_continuous(limits = c(0, 50))
 
   
   stnplots[[emsid]]$daily <- p_24
@@ -154,7 +145,7 @@ labels_df = data.frame(x = c(680000, 1150000, 780000, 1150000,
                                         "Georgia Strait", "Lower Fraser\nValley"))
 
 mgmt_map <- ggplot(airzone_map.df, aes(long, lat)) +   
-  geom_polygon(aes(group = group, fill = caaq_mgmt)) + 
+  geom_polygon(aes(group = Airzone, fill = caaq_mgmt)) + 
   coord_fixed() + 
   geom_path(aes(group = group), colour = "white") + 
   theme_minimal() + 
@@ -176,12 +167,11 @@ plot(mgmt_map)
 
 mgmt_chart <- ggplot(data = pm_stats,
                      aes(x = metric, fill = mgmt)) + 
-  geom_bar(stat = "bin", alpha = 1, width = 0.8) +
+  geom_bar(alpha = 1, width = 0.8) +
   facet_wrap(~Airzone, ncol = 1) +
   xlab("") + ylab("Number of Reporting Stations") +
   coord_flip() +
-  scale_y_continuous(limits = c(0,18), breaks = seq(0, 18, 2),
-                     expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
   scale_fill_manual(values = colrs, 
                     drop = FALSE, 
                     name = "Air Zone Management Levels", 
