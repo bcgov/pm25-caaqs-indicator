@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and limitations under the License.
 
 library("rcaaqs")
-# library("magrittr")
+library("readr")
 library("dplyr")
 library("tidyr")
 library("bcmaps")
@@ -115,13 +115,13 @@ for (emsid in emsids) {
   # Create plots
   p_24 <- plot_ts(daily_data, caaqs_data = caaqs_data_24h, 
                   parameter = "pm2.5_24h", rep_yr = 2016)
-
+  
   p_annual <- plot_ts(daily_data, caaqs_data = caaqs_data_annual, 
                       parameter = "pm2.5_annual", rep_yr = 2016)
   
   p_annual <- p_annual + scale_y_continuous(limits = c(0, 50))
   p_24 <- p_24 + scale_y_continuous(limits = c(0, 50))
-
+  
   
   stnplots[[emsid]]$daily <- p_24
   stnplots[[emsid]]$annual <- p_annual
@@ -196,7 +196,7 @@ multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
 
 # Output data, maps, and charts ------------------------------------------------
 
-outCRS <- CRS("+init=epsg:4326")
+outCRS <- 4326
 
 ## Combined Management map and barchart with multiplot
 png(filename = "./out/pm_mgmt_viz.png", width = 836, height = 560, units = "px")
@@ -204,22 +204,20 @@ multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
 dev.off()
 
 # write summary stats
-pm_stats %<>% 
-  select(-ends_with(".1"), -stationname) %T>% 
-  write.csv("out/pm25_site_summary.csv", row.names = FALSE)
+pm_stats <- select(pm_stats, -X, -Y) 
+write_csv(st_set_geometry(pm_stats, NULL), "out/pm25_site_summary.csv")
 
 ## Convert pm_stats back to SpatialPointsDataFrame and export as geojson
-pm_stats_wide <- reshape(pm_stats, 
-                         v.names = c("caaq_year", "min_year", "max_year", 
+pm_stats_wide <- reshape(st_set_geometry(pm_stats, NULL), 
+                         v.names = c("min_year", "max_year", 
                                      "n_years", "metric_value", "caaqs", "mgmt"), 
                          idvar = "ems_id", timevar = "metric", 
                          direction = "wide", sep = "_")
 names(pm_stats_wide) <- gsub("_pm2.5", "", names(pm_stats_wide))
 
-coordinates(pm_stats_wide) <- ~Longitude + Latitude
-proj4string(pm_stats_wide) <- CRS("+init=epsg:4617")
-pm_stats_wide %>% 
-  spTransform(outCRS) %>% 
+pm_stats_wide <- st_as_sf(pm_stats_wide, coords = c("longitude", "latitude"), 
+                          crs = 4617) %>% 
+  st_transform(outCRS) %>% 
   geojson_write(file = "out/pm_site_summary.geojson")
 
 ## Export airzone_map as geojson
@@ -229,17 +227,13 @@ replace_na <- function(x, text) {
   x
 }
 
-airzone_map@data$caaq_mgmt <- replace_na(airzone_map@data$caaq_mgmt, "Insufficient Data")
-airzone_map@data$caaqs_annual <- replace_na(airzone_map@data$caaqs_annual, "Insufficient Data")
-airzone_map@data$caaqs_24h <- replace_na(airzone_map@data$caaqs_24h, "Insufficient Data")
+airzone_map$caaq_mgmt <- replace_na(airzone_map$caaq_mgmt, "Insufficient Data")
+airzone_map$caaqs_annual <- replace_na(airzone_map$caaqs_annual, "Insufficient Data")
+airzone_map$caaqs_24h <- replace_na(airzone_map$caaqs_24h, "Insufficient Data")
 
 airzone_map %>%
-  spTransform(outCRS) %>% 
+  st_transform(outCRS) %>% 
   geojson_write(file = "out/pm_airzone_summary.geojson")
-
-regional_districts_disp %>% 
-  spTransform(outCRS) %>% 
-  geojson_write(file = "out/regional_districts.geojson", precision = 4)
 
 ## Save line plots
 line_dir <- "out/station_plots/"
