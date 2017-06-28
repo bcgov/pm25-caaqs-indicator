@@ -55,11 +55,11 @@ max_deployment_by_station <- group_by(instrument_deployments, ems_id, station_na
 teom_fem_combos <- tribble(
   ~ems_id,    ~year, ~instrument, 
   "E249492",  2014,  "PM25_R&P_TEOM",
-  "E249492",  2015,  "PM2.5 SHARP5030",
-  "E249492",  2016,  "PM2.5 SHARP5030",
+  "E249492",  2015,  "PM25 SHARP5030",
+  "E249492",  2016,  "PM25 SHARP5030",
   "0500886",  2014,  "PM25_R&P_TEOM",
-  "0500886",  2015,  "PM2.5 SHARP5030",
-  "0500886",  2016,  "PM2.5 SHARP5030"
+  "0500886",  2015,  "PM25 SHARP5030",
+  "0500886",  2016,  "PM25 SHARP5030"
 )
 
 ## Select the data for the two special cases above:
