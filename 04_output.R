@@ -185,7 +185,7 @@ mgmt_chart <- ggplot(data = pm_stats,
         legend.box.just = "left",
         legend.title = element_text(size = 12),
         legend.text = element_text(size = 12),
-        legend.margin = unit(5,"mm"),
+        legend.spacing = unit(5,"mm"),
         plot.margin = unit(c(15,0,5,0),"mm"))
 plot(mgmt_chart)
 
