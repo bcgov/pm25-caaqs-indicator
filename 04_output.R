@@ -36,18 +36,18 @@ summary_plot(pm_stats, metric_val = "metric_value", station = "station_name",
 # Summary achievement map -------------------------------------------------
 
 # transformthe lat-long coordinates to BC Albers
-airzone_map <- transform_bc_albers(airzone_map)
+airzone_ambient_map <- transform_bc_albers(airzone_ambient_map)
 
 ## Transforming shapefile contents for use in ggplot2 
-airzone_map.df <- gg_fortify(as(airzone_map, "Spatial"))
+airzone_ambient_map.df <- gg_fortify(as(airzone_ambient_map, "Spatial"))
 
-airzone_map.df$caaqs_24h[is.na(airzone_map.df$caaqs_24h)] <- "Insufficient Data"
-airzone_map.df$caaqs_annual[is.na(airzone_map.df$caaqs_annual)] <- "Insufficient Data"
+airzone_ambient_map.df$caaqs_24h[is.na(airzone_ambient_map.df$caaqs_24h)] <- "Insufficient Data"
+airzone_ambient_map.df$caaqs_annual[is.na(airzone_ambient_map.df$caaqs_annual)] <- "Insufficient Data"
 
 pm_stats <- transform_bc_albers(pm_stats)
 pm_stats <- cbind(pm_stats, st_coordinates(pm_stats))
 
-achievement_map_24 <- ggplot(airzone_map.df, aes(long, lat)) + 
+achievement_map_24 <- ggplot(airzone_ambient_map.df, aes(long, lat)) + 
   geom_polygon(aes(group = group, fill = caaqs_24h)) + 
   coord_fixed() + 
   scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
@@ -70,7 +70,7 @@ achievement_map_24 <- ggplot(airzone_map.df, aes(long, lat)) +
         legend.title.align = 0, legend.spacing = unit(20, "mm"),
         legend.title = element_text(face = "plain", size = 11))
 
-achievement_map_annual <- ggplot(airzone_map.df, aes(long, lat)) + 
+achievement_map_annual <- ggplot(airzone_ambient_map.df, aes(long, lat)) + 
   geom_polygon(aes(group = group, fill = caaqs_annual)) + 
   coord_fixed() + 
   scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
@@ -132,7 +132,11 @@ for (emsid in emsids) {
 # Management map and bar chart --------------------------------------------
 
 ## Management Air Zone Map
-airzone_map.df$caaq_mgmt[is.na(airzone_map.df$caaq_mgmt)] <- "Insufficient Data"
+
+airzone_mgmt_map <- transform_bc_albers(airzone_mgmt_map)
+
+airzone_mgmt_map.df <- gg_fortify(as(airzone_mgmt_map, "Spatial"))
+airzone_mgmt_map.df$caaq_mgmt[is.na(airzone_mgmt_map.df$caaq_mgmt)] <- "Insufficient Data"
 
 colrs <- get_colours("management", drop_na = FALSE)
 
@@ -144,7 +148,7 @@ labels_df = data.frame(x = c(680000, 1150000, 780000, 1150000,
                                         "Central\nInterior", "Southern\nInterior", 
                                         "Georgia Strait", "Lower Fraser\nValley"))
 
-mgmt_map <- ggplot(airzone_map.df, aes(long, lat)) +   
+mgmt_map <- ggplot(airzone_mgmt_map.df, aes(long, lat)) +   
   geom_polygon(aes(group = Airzone, fill = caaq_mgmt)) + 
   coord_fixed() + 
   geom_path(aes(group = group), colour = "white") + 
@@ -165,7 +169,7 @@ plot(mgmt_map)
 
 ## Management Bar Chart
 
-mgmt_chart <- ggplot(data = pm_stats,
+mgmt_chart <- ggplot(data = pm_mgmt_stats,
                      aes(x = metric, fill = mgmt)) + 
   geom_bar(alpha = 1, width = 0.8) +
   facet_wrap(~Airzone, ncol = 1) +
