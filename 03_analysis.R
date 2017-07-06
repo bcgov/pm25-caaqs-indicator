@@ -150,12 +150,13 @@ airzones_24h_mgmt <- filter(pm_mgmt_stats, metric == "pm2.5_24h") %>%
                           n_years_24h = "n_years", 
                           pm2.5_24h_metric = "metric_value"))
 
-airzone_mgmt_summary <- merge(airzones_annual_mgmt, airzones_24h_mgmt, by = "Airzone")
-
-airzone_mgmt_summary$caaq_mgmt <- pmax(cut_management(airzone_mgmt_summary$pm2.5_annual_metric, 
-                                                 "pm2.5_annual"), 
-                                  cut_management(airzone_mgmt_summary$pm2.5_24h_metric, 
-                                                 "pm2.5_24h"))
+airzone_mgmt_summary <- merge(airzones_annual_mgmt, airzones_24h_mgmt, by = "Airzone") %>% 
+  mutate(mgmt_annual = cut_management(pm2.5_annual_metric, "pm2.5_annual"), 
+         mgmt_24h = cut_management(pm2.5_24h_metric, "pm2.5_24h"), 
+         caaq_mgmt = pmax(mgmt_annual, mgmt_24h), 
+         caaq_mgmt_rep_stn_id = ifelse(caaq_mgmt == mgmt_24h, rep_id_24h, rep_id_annual), 
+         caaq_mgmt_rep_stn_name = ifelse(caaq_mgmt == mgmt_24h, rep_stn_24h, rep_stn_annual)) %>% 
+  select(-contains("annual"), -contains("24h"))
 
 airzone_mgmt_map <- left_join(airzone_map, airzone_mgmt_summary, by = "Airzone")
 

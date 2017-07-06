@@ -259,3 +259,9 @@ for (i in seq_along(stnplots)) {
 graphics.off() # Kill any hanging graphics processes
 
 ## Need to do two airzone summary csvs - one for ambient, one for management
+
+st_set_geometry(airzone_ambient_map, NULL) %>% 
+  write_csv("out/pm25_ambient_airzone_caaqs_summary.csv")
+
+st_set_geometry(airzone_mgmt_map, NULL) %>% 
+  write_csv("out/pm25_mgmt_airzone_caaqs_summary.csv")
