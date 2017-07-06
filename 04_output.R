@@ -214,12 +214,12 @@ write_csv(st_set_geometry(pm_stats, NULL), "out/pm25_site_summary.csv")
 ## Convert pm_stats back to SpatialPointsDataFrame and export as geojson
 pm_stats_wide <- reshape(st_set_geometry(pm_stats, NULL), 
                          v.names = c("min_year", "max_year", 
-                                     "n_years", "metric_value", "caaqs", "mgmt"), 
+                                     "n_years", "metric_value", "caaqs"), 
                          idvar = "ems_id", timevar = "metric", 
                          direction = "wide", sep = "_")
 names(pm_stats_wide) <- gsub("_pm2.5", "", names(pm_stats_wide))
 
-pm_stats_wide <- st_as_sf(pm_stats_wide, coords = c("longitude", "latitude"), 
+st_as_sf(pm_stats_wide, coords = c("longitude", "latitude"), 
                           crs = 4617) %>% 
   st_transform(outCRS) %>% 
   geojson_write(file = "out/pm_site_summary.geojson")
@@ -231,11 +231,10 @@ replace_na <- function(x, text) {
   x
 }
 
-airzone_map$caaq_mgmt <- replace_na(airzone_map$caaq_mgmt, "Insufficient Data")
-airzone_map$caaqs_annual <- replace_na(airzone_map$caaqs_annual, "Insufficient Data")
-airzone_map$caaqs_24h <- replace_na(airzone_map$caaqs_24h, "Insufficient Data")
+airzone_ambient_map$caaqs_annual <- replace_na(airzone_ambient_map$caaqs_annual, "Insufficient Data")
+airzone_ambient_map$caaqs_24h <- replace_na(airzone_ambient_map$caaqs_24h, "Insufficient Data")
 
-airzone_map %>%
+airzone_ambient_map %>%
   st_transform(outCRS) %>% 
   geojson_write(file = "out/pm_airzone_summary.geojson")
 
@@ -258,3 +257,5 @@ for (i in seq_along(stnplots)) {
   dev.off()
 }
 graphics.off() # Kill any hanging graphics processes
+
+## Need to do two airzone summary csvs - one for ambient, one for management
