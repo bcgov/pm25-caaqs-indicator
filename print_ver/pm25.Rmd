@@ -1,27 +1,28 @@
 ---
-title: Air
-subtitle: Status of Fine Particulate Matter in B.C. (2011-2013)
-output:
-  pdf_document:
-    template: D:/templates/print_ver_template.tex
+topic: "air"
+title: "Status of Fine Particulate Matter in B.C. (2014-2016)"
+output: envreportbc::print_ver
 ---
 
-```{r setup, echo=FALSE, message=FALSE}
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, 
                       error = FALSE, fig.width = 7)
 
 library("rcaaqs")
+library("readr")
 library("dplyr")
+library("tidyr")
+library("sf")
+library("bcmaps")
 
 library("ggplot2")
 library("grid")
+
 library("envreportutils")
 library("extrafont")
 
-library("sp")
-library("rgdal")
-
 load("../tmp/analysed.RData")
+knitr::read_chunk("../04_output.R")
 
 knitr_latex_char <- function(x) {
   y <- gsub("\\\\", "\\\\textbackslash{}", x) # backslash has to be first!
@@ -31,6 +32,11 @@ knitr_latex_char <- function(x) {
   return(y)
 }
 ```
+
+```{r pre}
+
+```
+
 
 British Columbia operates a network of air monitoring stations that
 measure fine particulate matter and other air pollutants. This indicator
@@ -43,7 +49,7 @@ Environment](http://www.ccme.ca/index.html).
 \begin{center}
   \fbox{
     \begin{minipage}[c]{12cm}
-      \centering{\bf Fine Particulate Matter\\ Canadian Ambient Air Quality Standards (CAAQS)}
+      \centering{\textbf Fine Particulate Matter\\ Canadian Ambient Air Quality Standards (CAAQS)}
     
       \begin{itemize}
           \itemsep1pt\parskip0pt\parsep0pt
@@ -100,90 +106,27 @@ well as both the annual and 24-hour CAAQS PM~2.5~ metric values at individual
 monitoring stations. Summaries are given for each monitoring station where
 sufficient data was available for the 2011-2013 reporting period.
 
-```{r achievement_map, fig.height=8}
-# transformthe lat-long coordinates to BC Albers
-airzone_map <- spTransform(airzone_map, CRS("+init=epsg:3005"))
+```{r achievement_map_24}
+```
 
-## Transforming shapefile contents for use in ggplot2 
-airzone_map@data$id = rownames(airzone_map@data)
-airzone_map.points = fortify(airzone_map, region = "id")
-airzone_map.df = left_join(airzone_map.points, airzone_map@data, by = "id")
-
-airzone_map.df$caaqs_24h[is.na(airzone_map.df$caaqs_24h)] <- "Insufficient Data"
-airzone_map.df$caaqs_annual[is.na(airzone_map.df$caaqs_annual)] <- "Insufficient Data"
-
-labels_df = data.frame(x = c(680000, 1150000, 780000, 1150000, 
-                             1550000, 1150000, 1480000),
-                       y = c(950000, 1550000, 1500000, 950000, 
-                             600000, 325000, 390000), 
-                       airzone_name = c("Coastal", "Northeast", "Northwest", 
-                                        "Central\nInterior", "Southern\nInterior", 
-                                        "Georgia Strait", "Lower Fraser\nValley"))
-
-pm_stats <- SpatialPointsDataFrame(pm_stats[,c("Longitude", "Latitude")], 
-                                      pm_stats, 
-                                      proj4string = CRS("+init=epsg:4617")) %>% 
-  spTransform(CRS("+init=epsg:3005")) %>% 
-  as.data.frame()
-
-achievement_map_24 <- ggplot(airzone_map.df, aes(long, lat)) + 
-  geom_polygon(aes(group = group, fill = caaqs_24h)) + 
-  coord_fixed() + 
-  scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
-                    drop = FALSE, 
-                    name = ("Airzones:\nPM2.5 (24-hour) Air Quality Standard"), 
-                    guide = guide_legend(order = 1, title.position = "top")) + 
-  geom_path(aes(group = group), colour = "white") + 
-  geom_point(data = pm_stats[pm_stats$metric == "pm2.5_24h", ], 
-             aes(x = Longitude.1, y = Latitude.1, colour = metric_value)) +
-  scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        name = "Monitoring Stations:\nPM2.5 (24-hour) Metric (µg/m³)", 
-                        guide = guide_colourbar(order = 2, title.position = "top", 
-                                                barwidth = 10)) + 
-  geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
-            colour = "black", size = 4.5) + 
-  ggtitle(expression(paste("Status of 24-hour " ,PM[2.5]," Levels in B.C. Air Zones (2011-2013)"))) + 
-  theme_minimal() + 
-  theme(axis.title = element_blank(), axis.text = element_blank(), 
-        axis.ticks = element_blank(), panel.grid = element_blank(), 
-        legend.position = "bottom", legend.box = "horizontal", 
-        legend.box.just = "top", legend.direction = "horizontal", 
-        legend.title.align = 0, legend.margin = unit(20, "mm"),
-        legend.title = element_text(face = "plain", size = 11))
-
-achievement_map_annual <- ggplot(airzone_map.df, aes(long, lat)) + 
-  geom_polygon(aes(group = group, fill = caaqs_annual)) + 
-  coord_fixed() + 
-  scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
-                    drop = FALSE, 
-                    name = "Airzones:\nPM2.5 (annual) Air Quality Standard", 
-                    guide = guide_legend(order = 1, title.position = "top")) + 
-  geom_path(aes(group = group), colour = "white") + 
-  geom_point(data = pm_stats[pm_stats$metric == "pm2.5_annual", ], 
-             aes(x = Longitude.1, y = Latitude.1, colour = metric_value)) +
-  scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        name = "Monitoring Stations:\nPM2.5 (annual) Metric (µg/m³)", 
-                        guide = guide_colourbar(order = 2, title.position = "top", 
-                                                barwidth = 10)) + 
-  geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
-            colour = "black", size = 4.5) + 
-  ggtitle((expression(paste("Status of Annual " ,PM[2.5]," Levels in B.C. Air Zones (2011-2013)")))) + 
-  theme_minimal() + 
-  theme(axis.title = element_blank(), axis.text = element_blank(), 
-        axis.ticks = element_blank(), panel.grid = element_blank(), 
-        legend.position = "bottom", legend.box = "horizontal", 
-        legend.box.just = "top", legend.direction = "horizontal", 
-        legend.title.align = 0, legend.margin = unit(20, "mm"),
-        legend.title = element_text(face = "plain", size = 11))
-
+```{r fig.height=8}
 plot(achievement_map_24)
+```
+
+```{r achievement_map_annual}
+```
+
+```{r fig.height=8}
 plot(achievement_map_annual)
 ```
 
-```{r summary-plot, fig.height=7}
-summary_plot(pm_stats, metric_val = "metric_value", station = "display_name", 
-             airzone = "Airzone", parameter = "metric", base_size = 10.5, pt_size = 2)
+```{r summary_plot}
 ```
+
+```{r fig.height=10}
+plot(ambient_summary_plot)
+```
+
 
 #### More about the CAAQS fine particulate matter metrics: 
 
@@ -246,66 +189,24 @@ keeping pollutants below the Canadian Ambient Air Quality Standards
     Document on Air Zone Management
     (2012)](http://www.ccme.ca/files/Resources/air/aqms/pn_1481_gdazm_e.pdf).
     
-```{r mgmt_map, fig.height = 9}
-airzone_map <- spTransform(airzone_map, CRS("+init=epsg:3005"))
-
-## Transforming shapefile contents for use in ggplot2 
-airzone_map@data$id = rownames(airzone_map@data)
-airzone_map.points = fortify(airzone_map, region = "id")
-airzone_map.df = left_join(airzone_map.points, airzone_map@data, by = "id")
-
-airzone_map.df$caaq_mgmt[is.na(airzone_map.df$caaq_mgmt)] <- "Insufficient Data"
-
-colrs <- get_colours(type = "management", drop_na = FALSE)
-
-mgmt_map <- ggplot(airzone_map.df, aes(long, lat)) +   
-  geom_polygon(aes(group = group, fill = caaq_mgmt)) + 
-  coord_fixed() + 
-  geom_path(aes(group = group), colour = "white") + 
-  theme_minimal() + 
-  scale_fill_manual(values = colrs, 
-                    drop = FALSE, 
-                    name = "Air Zone Management Levels", 
-                    guide = guide_legend(reverse = TRUE)) + 
-  theme(axis.title = element_blank(),
-        axis.text = element_blank(), 
-        axis.ticks = element_blank(),
-        panel.grid = element_blank(),
-        #legend.position = "none",
-        legend.position = "bottom",
-        legend.direction = "vertical",
-        legend.box.just = "left",
-        plot.margin = unit(c(0,0,0,0),"mm")) +
-  geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
-            colour = "black", size = 4.5)
-plot(mgmt_map)
+```{r mgmt_map}
 ```
 
-```{r mgmt_chart, fig.height=5}
-mgmt_chart <- ggplot(data = pm_stats,
-                     aes(x = metric, fill = mgmt)) + 
-  geom_bar(stat = "bin", alpha = 1, width = 0.8) +
-  facet_wrap(~Airzone, ncol = 1) +
-  xlab("") + ylab("Number of Reporting Stations") +
-  coord_flip() +
-  scale_y_continuous(limits = c(0,18), breaks = seq(0, 18, 2),
-                     expand = c(0,0)) +
-  scale_fill_manual(values = colrs, 
-                    drop = FALSE, 
-                    name = "Air Zone Management Levels", 
-                    guide = guide_legend(reverse = TRUE)) +
-  scale_x_discrete(labels = c("pm2.5_24h" = "24-hour", "pm2.5_annual" = "Annual")) +
-  theme_soe_facet(base_family = "") +
-  theme(panel.grid.major.y = (element_blank()),
-#         legend.position = "bottom",
-#         legend.direction = "vertical",
-#         legend.box.just = "left"
-        legend.position = "none")
-plot(mgmt_chart)
+```{r fig.height=9}
+mgmt_map + 
+  labs(title = "Air Quality Management Levels in B.C. Air Zones") +
+  theme(legend.position = "bottom", legend.direction = "vertical")
 ```
 
 
-    
+```{r mgmt_chart}
+```
+
+```{r fig.height=8}
+mgmt_chart + 
+  labs(title = "Station-level Air Quality Management Levels Within Air Zones")
+```
+
 #### More about the AQMS management levels:
 
 -   There can be cases when an air zone does not achieve a given CAAQS
@@ -387,55 +288,47 @@ Email correspondence to: envreportbc@gov.bc.ca
 
 # Appendix: Detailed CAAQS results for each monitoring station within air zones in B.C.
 
+```{r stn_plots, message=FALSE}
+
+```
+
+
 ```{r appendix, results='asis', fig.height=3}
 
-for (az in unique(pm_stats$Airzone)) {
-  emsids <- unique(pm_stats$ems_id[pm_stats$Airzone == az])
+pm_data <- sf::st_set_geometry(pm_stats, NULL)
+
+for (az in unique(pm_data$Airzone)) {
+  emsids <- unique(pm_data$ems_id[pm_stats$Airzone == az])
   cat("\\subsection{", az, " Air Zone}", sep = "")
-  
+
   for (emsid in emsids) {
-    monitor <- pm_stats$monitor[pm_stats$ems_id == emsid][1]
     
+    caaqs_data_24h <- filter(pm_data, ems_id == !!emsid, metric == "pm2.5_24h")
+    caaqs_data_annual <- filter(pm_data, ems_id == !!emsid, metric == "pm2.5_annual")
+    
+    site <- pm_stats$station_name[pm_data$ems_id == emsid][1]
+
     ## Subset daily, caaqs, and annual data
-    daily_data <- avgdaily[avgdaily$ems_id == emsid & avgdaily$simple_monitor == monitor, ]
-    
-    if (nrow(daily_data) == 0) next
-    
-    caaqs_data_24h <- pm_stats[pm_stats$ems_id == emsid & 
-                                 pm_stats$metric == "pm2.5_24h" &
-                                 pm_stats$monitor == monitor, ]
-    caaqs_data_annual <- pm_stats[pm_stats$ems_id == emsid & 
-                                    pm_stats$metric == "pm2.5_annual" &
-                                    pm_stats$monitor == monitor, ]
+    daily_plot <- stnplots[[emsid]]$daily
+    annual_plot <- stnplots[[emsid]]$annual
 
-    # Create plots
-    p_24 <- plot_ts(daily_data, caaqs_data = caaqs_data_24h, 
-                    parameter = "pm2.5_24h", rep_yr = 2013, annot_size = 2.5)
-    
-    p_annual <- plot_ts(daily_data, caaqs_data = caaqs_data_annual, 
-                        parameter = "pm2.5_annual", rep_yr = 2013, annot_size = 2.5)
-    
-    p_annual <- p_annual + scale_y_continuous(limits = c(0, 50))
-    p_24 <- p_24 + scale_y_continuous(limits = c(0, 50))
-    
-    site <- knitr_latex_char(caaqs_data_24h$display_name[1])
-    cat("\\subsubsection*{\\underline{", site, " monitoring station}}", sep = "")
+    cat("\\subsubsection*{\\underline{", knitr_latex_char(site), " monitoring station}}", sep = "")
 
-    cat("\\textbf{PM2.5 24-hour Air Quality Standard:} ", 
+    cat("\\textbf{PM2.5 24-hour Air Quality Standard:} ",
         as.character(caaqs_data_24h$caaqs), " \\newline ")
-    cat("\\textbf{PM2.5 24-hour Metric:} ", caaqs_data_24h$metric_value, 
-        " µg/m³ (", caaqs_data_24h$n_years, 
+    cat("\\textbf{PM2.5 24-hour Metric:} ", caaqs_data_24h$metric_value,
+        " µg/m³ (", caaqs_data_24h$n_years,
         " year average) \\newline ", sep = "")
-    plot(p_24)
-    
+    plot(daily_plot)
+
     cat("\\newline ")
-    cat("\\textbf{PM2.5 Annual Air Quality Standard:} ", 
+    cat("\\textbf{PM2.5 Annual Air Quality Standard:} ",
         as.character(caaqs_data_annual$caaqs), " \\newline ")
-    cat("\\textbf{PM2.5 Annual Metric:} ", caaqs_data_annual$metric_value, 
-        " µg/m³ (", caaqs_data_annual$n_years, 
+    cat("\\textbf{PM2.5 Annual Metric:} ", caaqs_data_annual$metric_value,
+        " µg/m³ (", caaqs_data_annual$n_years,
         " year average) \\newline ", sep = "")
-    plot(p_annual)
-    
+    plot(annual_plot)
+
     cat("\\newpage ")
   }
 }
