@@ -30,10 +30,10 @@ dir.create("out", showWarnings = FALSE)
 
 # Summary plot of stations ------------------------------------------------
 
-summary_plot(pm_stats, metric_val = "metric_value", station = "station_name", 
-             airzone = "Airzone", parameter = "metric")
 
 # Summary achievement map -------------------------------------------------
+
+## @knitr pre
 
 # transformthe lat-long coordinates to BC Albers
 airzone_ambient_map <- transform_bc_albers(airzone_ambient_map)
@@ -46,6 +46,13 @@ airzone_ambient_map.df$caaqs_annual[is.na(airzone_ambient_map.df$caaqs_annual)] 
 
 pm_stats <- transform_bc_albers(pm_stats)
 pm_stats <- cbind(pm_stats, st_coordinates(pm_stats))
+
+## @knitr summary_plot
+
+ambient_summary_plot <- summary_plot(pm_stats, metric_val = "metric_value", station = "station_name", 
+                                     airzone = "Airzone", parameter = "metric", pt_size = 2)
+
+## @knitr achievement_map_24
 
 achievement_map_24 <- ggplot(airzone_ambient_map.df, aes(long, lat)) + 
   geom_polygon(aes(group = group, fill = caaqs_24h)) + 
@@ -61,7 +68,7 @@ achievement_map_24 <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
                         name = "Monitoring Stations:\nPM2.5 (24-hour) Metric (µg/m³)", 
                         guide = guide_colourbar(order = 2, title.position = "top", 
                                                 barwidth = 10)) + 
-  ggtitle("Status of 24-hour PM2.5 Levels in B.C. Air Zones, 2011-2013") + 
+  ggtitle("Status of 24-hour PM2.5 Levels in B.C. Air Zones, 2014-2016") + 
   theme_minimal() + 
   theme(axis.title = element_blank(), axis.text = element_blank(), 
         axis.ticks = element_blank(), panel.grid = element_blank(), 
@@ -69,6 +76,8 @@ achievement_map_24 <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
         legend.box.just = "top", legend.direction = "horizontal", 
         legend.title.align = 0, legend.spacing = unit(20, "mm"),
         legend.title = element_text(face = "plain", size = 11))
+
+## @knitr achievement_map_annual
 
 achievement_map_annual <- ggplot(airzone_ambient_map.df, aes(long, lat)) + 
   geom_polygon(aes(group = group, fill = caaqs_annual)) + 
@@ -84,7 +93,7 @@ achievement_map_annual <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
                         name = "Monitoring Stations:\nPM2.5 (annual) Metric (µg/m³)", 
                         guide = guide_colourbar(order = 2, title.position = "top", 
                                                 barwidth = 10)) + 
-  ggtitle("Status of annual PM2.5 Levels in B.C. Air Zones, 2011-2013") + 
+  ggtitle("Status of annual PM2.5 Levels in B.C. Air Zones, 2014-2016") + 
   theme_minimal() + 
   theme(axis.title = element_blank(), axis.text = element_blank(), 
         axis.ticks = element_blank(), panel.grid = element_blank(), 
@@ -93,10 +102,10 @@ achievement_map_annual <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
         legend.title.align = 0, legend.spacing = unit(20, "mm"),
         legend.title = element_text(face = "plain", size = 11))
 
-plot(achievement_map_24)
-plot(achievement_map_annual)
 
 # Individual Station Plots ------------------------------------------------
+
+## @knitr stn_plots
 
 emsids <- unique(pm_stats$ems_id)
 stnplots <- vector("list", length(emsids))
@@ -119,19 +128,21 @@ for (emsid in emsids) {
   p_annual <- plot_ts(daily_data, caaqs_data = caaqs_data_annual, 
                       parameter = "pm2.5_annual", rep_yr = 2016)
   
-  p_annual <- p_annual + scale_y_continuous(limits = c(0, 50))
-  p_24 <- p_24 + scale_y_continuous(limits = c(0, 50))
+  p_annual <- p_annual + scale_y_continuous(limits = c(0, 100))
+  p_24 <- p_24 + scale_y_continuous(limits = c(0, 100))
   
   
   stnplots[[emsid]]$daily <- p_24
   stnplots[[emsid]]$annual <- p_annual
-  cat("creating plots for", emsid, "\n")
+  message("creating plots for ", emsid, "\n")
 }
 
 
 # Management map and bar chart --------------------------------------------
 
 ## Management Air Zone Map
+
+## @knitr mgmt_map
 
 airzone_mgmt_map <- transform_bc_albers(airzone_mgmt_map)
 
@@ -164,10 +175,11 @@ mgmt_map <- ggplot(airzone_mgmt_map.df, aes(long, lat)) +
         legend.position = "none",
         plot.margin = unit(c(-15,0,0,0),"mm")) +
   geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
-            colour = "black", size = 4.5, family = "Verdana")
-plot(mgmt_map)
+            colour = "black", size = 4.5)
 
 ## Management Bar Chart
+
+## @knitr mgmt_chart
 
 mgmt_chart <- ggplot(data = pm_mgmt_stats,
                      aes(x = metric, fill = mgmt)) + 
@@ -191,10 +203,11 @@ mgmt_chart <- ggplot(data = pm_mgmt_stats,
         legend.text = element_text(size = 12),
         legend.spacing = unit(5,"mm"),
         plot.margin = unit(c(15,0,5,0),"mm"))
-plot(mgmt_chart)
 
 # multiplot of bar chart and mgmt map
-multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
+## multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
+
+## @knitr end
 
 ####### Updated to here for 2017 analysis
 
