@@ -288,12 +288,12 @@ Email correspondence to: envreportbc@gov.bc.ca
 
 # Appendix: Detailed CAAQS results for each monitoring station within air zones in B.C.
 
-```{r stn_plots, message=FALSE, cache=FALSE}
+```{r stn_plots, message=FALSE}
 
 ```
 
 
-```{r appendix, results='asis', cache=FALSE, fig.height=3}
+```{r appendix, results='asis', fig.height=3}
 
 ## Function to identify the layers in the plot that are labels ("annotations")
 label_layers <- function(plot) {
