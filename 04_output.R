@@ -128,8 +128,8 @@ for (emsid in emsids) {
   p_annual <- plot_ts(daily_data, caaqs_data = caaqs_data_annual, 
                       parameter = "pm2.5_annual", rep_yr = 2016)
   
-  p_annual <- p_annual + scale_y_continuous(limits = c(0, 100))
-  p_24 <- p_24 + scale_y_continuous(limits = c(0, 100))
+  p_annual <- p_annual + coord_cartesian(ylim = c(0, 75))
+  p_24 <- p_24 + coord_cartesian(ylim = c(0, 75))
   
   
   stnplots[[emsid]]$daily <- p_24
