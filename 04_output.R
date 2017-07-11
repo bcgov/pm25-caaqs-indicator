@@ -235,7 +235,12 @@ names(pm_stats_wide) <- gsub("_pm2.5", "", names(pm_stats_wide))
 st_as_sf(pm_stats_wide, coords = c("longitude", "latitude"), 
                           crs = 4617) %>% 
   st_transform(outCRS) %>% 
-  geojson_write(file = "out/pm_site_summary.geojson")
+  ## Can't currently use geojson_write because it turns NA into "NA" in the geojson rather than
+  ## null - issue opened here: https://github.com/ropensci/geojsonio/issues/109
+  # geojson_write(file = "out/pm_site_summary.geojson")
+  geojson_list %>% unclass() %>% 
+  jsonlite::toJSON(pretty = FALSE, auto_unbox = TRUE, na = "null") %>% 
+  cat(file = "out/pm_site_summary.geojson")
 
 ## Export airzone_map as geojson
 # Replace NAs in caaq status and management levels in airzone_map
