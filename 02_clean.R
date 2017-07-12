@@ -52,27 +52,31 @@ max_deployment_by_station <- group_by(instrument_deployments, ems_id, station_na
 
 ## There are two stations for which we are using data from different instruments for 
 ## different years:
-teom_fem_combos <- tribble(
+instrument_selections <- tribble(
   ~ems_id,    ~year, ~instrument, 
   "E249492",  2014,  "PM25_R&P_TEOM",
   "E249492",  2015,  "PM25 SHARP5030",
   "E249492",  2016,  "PM25 SHARP5030",
   "0500886",  2014,  "PM25_R&P_TEOM",
   "0500886",  2015,  "PM25 SHARP5030",
-  "0500886",  2016,  "PM25 SHARP5030"
+  "0500886",  2016,  "PM25 SHARP5030",
+  "0310172",  2014,  "BAM1020",  # Slightly fewer days on FEM for Squamish but use it over TEOM
+  "0310172",  2015,  "BAM1020",
+  "0310172",  2016,  "BAM1020"
 )
 
 ## Select the data for the two special cases above:
-teom_fem_pm25 <- inner_join(pm25, teom_fem_combos, by = c("ems_id", "year", "instrument"))
+teom_fem_pm25 <- inner_join(pm25, instrument_selections, by = c("ems_id", "year", "instrument"))
 
 ## Now select the rest based on max deployments:
-pm25_clean <- filter(pm25, !ems_id %in% unique(teom_fem_combos$ems_id)) %>% 
+pm25_clean <- filter(pm25, !ems_id %in% unique(instrument_selections$ems_id)) %>% 
   inner_join(max_deployment_by_station, 
              by = c("ems_id", "station_name", "instrument" = "which_instrument")) %>% 
   bind_rows(teom_fem_pm25)
 
 ## As a check, plot them - there should be only one monitor per station, 
 ## except for the two where they were combined (Kelowna College and Vernon Science Centre)
+## and these should not overlap
 plot_station_instruments(pm25_clean)
 
 ## Clean station data - lowercase column names, remove pseudo-duplicates, subset to those 
