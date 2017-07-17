@@ -23,7 +23,8 @@ if (!exists("pm25_clean")) load("tmp/pm25_clean.rda")
 site_group_vars <- c("ems_id", "station_name")
 
 ## Compute average daily pm25 value for each site (used for both 24h and annual metric)
-avgdaily <- pm_daily_avg(pm25_clean, by = site_group_vars)
+avgdaily <- pm_daily_avg(pm25_clean, by = site_group_vars) %>% 
+  filter(valid_avg_24h | flag_avg_24hr_incomplete)
 
 # PM25 24 Hour ------------------------------------------------------------
 
@@ -50,7 +51,8 @@ excludes <- filter(avgdaily, avg_24h > 28, between(month(date), 5, 9)) %>%
   select(site_group_vars, date)
 
 avgdaily_mgmt <- pm_daily_avg(pm25_clean, by = site_group_vars, 
-                              exclude_df = excludes, exclude_df_dt = "date")
+                              exclude_df = excludes, exclude_df_dt = "date") %>% 
+  filter(valid_avg_24h | flag_avg_24hr_incomplete)
 
 # PM25 24 Hour - Management -----------------------------------------------
 
