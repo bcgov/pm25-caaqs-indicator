@@ -21,11 +21,15 @@ if (!exists("pm25_all")) load("tmp/pm25_raw.RData")
 min_year <- 2014
 max_year <- 2016
 
+## Set stations to exclude from analyis (those in indsutrial settings):
+excluded_stations <- stations$EMS_ID[grepl("industr", stations$STATION_ENVIRONMENT, ignore.case = TRUE)]
+
 ## Format dates, extract 2011-2013, set variable names
 
-pm25 <- mutate(pm25_all, 
-               date_time = format_caaqs_dt(DATE_PST), 
-               year = year(date_time)) %>% 
+pm25 <- pm25_all %>% 
+  filter(!EMS_ID %in% excluded_stations) %>% 
+  mutate(date_time = format_caaqs_dt(DATE_PST), 
+         year = year(date_time)) %>% 
   filter(year >= min_year, year <= max_year) %>% 
   select(-DATE_PST) %>% 
   rename_all(tolower) %>% 
