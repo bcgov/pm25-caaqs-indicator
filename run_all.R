@@ -21,3 +21,28 @@ outfile <- paste0("envreportbc_pm25_", mon_year, ".pdf")
 rmarkdown::render("print_ver/pm25.Rmd", output_file = outfile)
 extrafont::embed_fonts(file.path("print_ver/", outfile))
 ## You will likely want to 'optimize pdf' in Acrobat to make the print version smaller
+
+## copy files to web dev folder
+air_indicators_path <- "R:/indicators/air"
+air_viz_data_path <- file.path(air_indicators_path, "pm25_viz/data/")
+
+web_data_files <- list.files("out", "*.geojson", full.names = TRUE)
+web_viz_plots <- list.files("out/station_plots/", full.names = TRUE)
+
+over_copy <- function(...) {
+  file.copy(..., overwrite = TRUE)
+}
+
+## Copy print version
+over_copy(file.path("print_ver", outfile), 
+          file.path(air_indicators_path, "print_ver/"))
+
+## Copy the management viz
+over_copy("out/pm_mgmt_viz.png", 
+          file.path(air_indicators_path, "images/"))
+
+## Copy geojson files for viz
+lapply(web_data_files, over_copy, to = air_viz_data_path)
+
+## Copy dataviz plots
+lapply(web_viz_plots, over_copy, to = file.path(air_viz_data_path, "station_plots/"))
