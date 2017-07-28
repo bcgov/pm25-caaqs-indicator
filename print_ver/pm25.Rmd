@@ -78,11 +78,11 @@ Environment](http://www.ccme.ca/index.html).
     short-term (24-hour) and longer-term (a year or more) exposure to
     fine particulate matter can have negative effects on human health.
 -   **Fine particulate matter levels met the Canadian Ambient Air
-    Quality Standard at 85 percent of assessed monitoring stations in
+    Quality Standard at 86 percent of assessed monitoring stations in
     B.C.** There are two standards for PM2.5 - an annual standard, and a
     24-hour standard (see sidebar). The annual standard was met at all
-    of the 52 stations for which valid data was obtained, while the
-    24-hour standard was met at 46 of the 54 stations (85%) with
+    of the 49 stations for which valid data was obtained, while the
+    24-hour standard was met at 43 of the 50 stations (86%) with
     sufficient data for analysis.
 -   **Two of B.C.'s seven air zones met the Canadian Ambient Air Quality
     Standard for both fine particulate matter metrics.** All air zones
@@ -102,7 +102,7 @@ The maps and chart below summarise the Canadian Ambient Air Quality Standard
 (CAAQS) achievement status for fine particulate matter in B.C. air zones, as
 well as both the annual and 24-hour CAAQS PM~2.5~ metric values at individual
 monitoring stations. Summaries are given for each monitoring station where
-sufficient data was available for the 2011-2013 reporting period.
+sufficient data was available for the 2014-2016 reporting period.
 
 ```{r achievement_map_24}
 ```
@@ -136,7 +136,8 @@ plot(ambient_summary_plot)
 -   The PM2.5 metric for an air zone is the highest PM2.5 metric value
     reported from monitoring stations within the air zone. However,
     stations with metric values based on only two years of data are
-    excluded for consideration of the *air zone* metric value.
+    excluded for consideration of the *air zone* metric value, unless 
+    all station metric values are based on 2 years of data.
 -   Only air monitoring stations with sufficient data on fine
     particulate matter concentrations for the 2014-2016 reporting period
     were included in this indicator. Visit [Current Air Quality
@@ -176,14 +177,17 @@ pollutants below the Canadian Ambient Air Quality Standards.
     the standard. Actions for each management level are detailed in the
     CCME [Guidance Document on Air Zone Management (2012)
     (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1481_gdazm_e.pdf)
--   The Central Interior and Georgia Strait air zones were assigned to a
-    red management level; the Lower Fraser Valley air zone was assigned
-    to a yellow management level; and the Southern Interior and Coastal
-    air zones to an orange management level. Due to insufficient data,
-    particulate management levels in the Northwest and Northeast air
-    zones are yet to be determined. Please see the box below for
-    information on how influences from wildfire smoke is accounted for
-    in the determination of management levels.
+-   The Central Interior and Georgia Strait air zones were assigned to a 
+    red management level; the Lower Fraser Valley and Coastal air zones were 
+    assigned to a yellow management level; and the Southern Interior to an 
+    orange management level. Due to insufficient data, particulate management 
+    levels in the Northwest and Northeast air zones are yet to be determined. 
+    Note that while two stations in the Coastal air zone (Kitimat Haisla 
+    Village and Kitimat Smeltersite Road) had an annual metric that would 
+    indicate an 'orange' management level, they were excluded from consideration 
+    of the air zone metric value because they are based on only two years of 
+    data. Please see the box below for information on how influences from 
+    wildfire smoke is accounted for in the determination of management levels. 
     
 ```{r mgmt_map}
 ```
@@ -267,22 +271,22 @@ the analysis presented on this page is also available on
     Canada's Air Quality Management System visit [Canada-wide Air
     Quality Management
     System](http://www.ccme.ca/en/resources/air/aqms.html)
--   B.C. Air Action Plan (June 2008) (PDF, 1.1MB)](http://www.bcairquality.ca/plans/pdf/bcairactionplan.pdf)
+-   [Canadian Smog Science Assessment: Highlights and Key Messages](http://publications.gc.ca/site/eng/9.694820/publication.html) (PDF, 1.1MB)
 
 ### Data
 
-\*By accessing these datasets, you agree to the license associated with
+\*By accessing these datasets, you agree to the licence associated with
 each file, as indicated in parentheses below.
 
 -   [Indicator data: BC Fine Particulate Matter Canadian Ambient Air
     Quality Standards
-    2014-2016](https://catalogue.data.gov.bc.ca/dataset/699be99e-a9ba-403e-b0fe-3d13f84f45ab)
+    2014-2016](https://catalogue.data.gov.bc.ca/dataset/699be99e-a9ba-403e-b0fe-3d13f84f45ab) (`r get_data_license("ogl-bc")`)
 -   [BC PM2.5 Hourly Data & Air Monitoring Station
-    locations](https://catalogue.data.gov.bc.ca/dataset/77eeadf4-0c19-48bf-a47a-fa9eef01f409)
+    locations](https://catalogue.data.gov.bc.ca/dataset/77eeadf4-0c19-48bf-a47a-fa9eef01f409) (`r get_data_license("ogl-bc")`)
 -   [BC Air
-    Zones](https://catalogue.data.gov.bc.ca/dataset/e8eeefc4-2826-47bc-8430-85703d328516)
+    Zones](https://catalogue.data.gov.bc.ca/dataset/e8eeefc4-2826-47bc-8430-85703d328516) (`r get_data_license("ogl-bc")`)
 
-Published and Available On-Line at Environmental Reporting BC (July 2017):
+Published and Available On-Line at Environmental Reporting BC (August 2017):
 <http://www.env.gov.bc.ca/soe/indicators/air/fine_pm.html>
 
 Email correspondence to: envreportbc@gov.bc.ca
