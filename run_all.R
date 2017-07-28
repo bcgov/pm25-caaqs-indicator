@@ -48,5 +48,5 @@ over_copy("out/pm_mgmt_viz.png",
 lapply(web_data_files, over_copy, to = air_viz_data_path)
 
 ## Copy dataviz plots
-
+lapply(list.files(air_indicators_station_plots, full.names = TRUE), file.remove)
 lapply(web_viz_plots, over_copy, to = air_indicators_station_plots)
