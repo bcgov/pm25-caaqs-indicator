@@ -24,7 +24,10 @@ max_year <- 2016
 ## Set stations to exclude from analyis (those in indsutrial settings):
 excluded_stations <- stations$EMS_ID[grepl("industr", stations$STATION_ENVIRONMENT, ignore.case = TRUE)]
 
-## Format dates, extract 2011-2013, set variable names
+## Exclude Valemount due to too much missing data
+excluded_stations <- c(excluded_stations, "E234293")
+
+## Format dates, extract 2014-2016, set variable names
 
 pm25 <- pm25_all %>% 
   filter(!EMS_ID %in% excluded_stations) %>% 
