@@ -49,7 +49,7 @@ Environment](http://www.ccme.ca/index.html).
 \begin{center}
   \fbox{
     \begin{minipage}[c]{12cm}
-      \centering{\textbf Fine Particulate Matter (PM$_{\text{2.5}}$):\\ Canadian Ambient Air Quality Standard}
+      \centering{\textbf{Fine Particulate Matter (PM$_{\text{2.5}}$): Canadian Ambient Air Quality Standard}}
     
       \begin{itemize}
           \itemsep1pt\parskip0pt\parsep0pt
@@ -66,8 +66,8 @@ Environment](http://www.ccme.ca/index.html).
 
 -   **Fine particulate matter is an air pollutant.** Solid or liquid
     particles floating in the air are called particulate matter. The
-    smallest of these particles - those that are 2.5 microns or less in
-    diameter, or less than 1/20th the width of a human hair - are called
+    smallest of these particles---those that are 2.5 microns or less in
+    diameter, or less than 1/20th the width of a human hair---are called
     fine particulate matter (PM$_{\text{2.5}}$). Fine particulate matter comes from
     many natural and human activities, including wildfires and emissions
     from prescribed burning, forestry operations, residential
@@ -79,7 +79,7 @@ Environment](http://www.ccme.ca/index.html).
     fine particulate matter can have negative effects on human health.
 -   **Fine particulate matter levels met the Canadian Ambient Air
     Quality Standard at 86 percent of assessed monitoring stations in
-    B.C.** There are two standards for PM$_{\text{2.5}}$ - an annual standard and a
+    B.C.** There are two standards for PM$_{\text{2.5}}$---an annual standard and a
     24-hour standard (see sidebar). The annual standard was met at all
     of the 49 stations for which valid data was obtained, while the
     24-hour standard was met at 43 of the 50 stations (86%) with
@@ -118,10 +118,12 @@ plot(achievement_map_24)
 plot(achievement_map_annual)
 ```
 
+# PM$_{\text{2.5}}$ Metrics for Air Monitoring Statons within B.C. Air Zones (2014-2016)
+
 ```{r summary_plot}
 ```
 
-```{r fig.height=10}
+```{r fig.height=9}
 plot(ambient_summary_plot)
 ```
 
@@ -177,13 +179,11 @@ pollutants below the Canadian Ambient Air Quality Standards.
 -   The Central Interior and Georgia Strait air zones were assigned to a 
     red management level; the Lower Fraser Valley and Coastal air zones were 
     assigned to a yellow management level; and the Southern Interior to an 
-    orange management level. Due to insufficient data, particulate management 
-    levels in the Northwest and Northeast air zones are yet to be determined. 
-    Note that while two stations in the Coastal air zone (Kitimat Haisla 
+    orange management level. Note that while two stations in the Coastal air zone (Kitimat Haisla 
     Village and Kitimat Smeltersite Road) had an annual metric that would 
     indicate an 'orange' management level, they were excluded from consideration 
     of the air zone metric value because they are based on only two years of 
-    data. Please see the box below for information on how influences from 
+    data. There was not enough data to estimate the management level for the Northeast air zone for this reporting period, and currently there are no [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E) in the Northwest air zone. Please see the box below for information on how influences from 
     wildfire smoke is accounted for in the determination of management levels. 
     
 ```{r mgmt_map}
@@ -195,13 +195,13 @@ mgmt_map +
   theme(legend.position = "bottom", legend.direction = "vertical")
 ```
 
+# Station-Level Air Quality Management Levels Within Air Zones
 
 ```{r mgmt_chart}
 ```
 
 ```{r fig.height=8}
-mgmt_chart + 
-  labs(title = "Station-level Air Quality Management Levels Within Air Zones")
+plot(mgmt_chart) 
 ```
 
 #### More about the AQMS management levels:
@@ -335,15 +335,15 @@ for (az in unique(pm_data$Airzone)) {
     
     if (nrow(caaqs_data_24h)) {
       
-      cat("\\textbf{PM2.5 24-hour Air Quality Standard:} ",
+      cat("\\textbf{PM$_{2.5}$ 24-hour Air Quality Standard:} ",
           as.character(caaqs_data_24h$caaqs), " \\newline ")
-      cat("\\textbf{PM2.5 24-hour Metric:} ", caaqs_data_24h$metric_value,
+      cat("\\textbf{PM$_{2.5}$ 24-hour Metric:} ", caaqs_data_24h$metric_value,
           " µg/m³ (", caaqs_data_24h$n_years,
           " year average) \\newline ", sep = "")
       plot(set_label_size(daily_plot, 3))
       
     } else {
-      cat("\\textbf{PM2.5 24-hour Air Quality Standard:} Insufficient Data")
+      cat("\\textbf{PM$_{2.5}$ 24-hour Air Quality Standard:} Insufficient Data")
     }
     
     cat("\\newline ")
@@ -352,15 +352,15 @@ for (az in unique(pm_data$Airzone)) {
     
     if (nrow(caaqs_data_annual)) {
       
-      cat("\\textbf{PM2.5 Annual Air Quality Standard:} ",
+      cat("\\textbf{PM$_{2.5}$ Annual Air Quality Standard:} ",
           as.character(caaqs_data_annual$caaqs), " \\newline ")
-      cat("\\textbf{PM2.5 Annual Metric:} ", caaqs_data_annual$metric_value,
+      cat("\\textbf{PM$_{2.5}$ Annual Metric:} ", caaqs_data_annual$metric_value,
           " µg/m³ (", caaqs_data_annual$n_years,
           " year average) \\newline ", sep = "")
       plot(set_label_size(annual_plot, 3))
       
     } else {
-      cat("\\textbf{PM2.5 Annual Air Quality Standard:} Insufficient Data")
+      cat("\\textbf{PM$_{2.5}$ Annual Air Quality Standard:} Insufficient Data")
     }
     
     cat("\\newpage ")
