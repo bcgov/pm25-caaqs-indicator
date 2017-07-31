@@ -59,23 +59,23 @@ achievement_map_24 <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
   coord_fixed() + 
   scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
                     drop = FALSE, 
-                    name = "Airzones:\nPM2.5 (24-hour) Air Quality Standard", 
+                    name = bquote(atop('Airzones:', ~PM[2.5]~ '(24-hour) Air Quality Standard')), 
                     guide = guide_legend(order = 1, title.position = "top")) + 
   geom_path(aes(group = group), colour = "white") + 
   geom_point(data = pm_stats[pm_stats$metric == "pm2.5_24h", ], 
              aes(x = X, y = Y, colour = metric_value)) +
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        name = "Monitoring Stations:\nPM2.5 (24-hour) Metric (µg/m³)", 
+                        name = bquote(atop('Monitoring Stations:',~PM[2.5]~ '(24-hour) Metric (µg/m³)')), 
                         guide = guide_colourbar(order = 2, title.position = "top", 
                                                 barwidth = 10)) + 
-  ggtitle("Status of 24-hour PM2.5 Levels in B.C. Air Zones, 2014-2016") + 
+  labs(title = bquote('Status of 24-hour '~PM[2.5]~ 'Levels in B.C. Air Zones (2014-2016)')) + 
   theme_minimal() + 
   theme(axis.title = element_blank(), axis.text = element_blank(), 
         axis.ticks = element_blank(), panel.grid = element_blank(), 
         legend.position = "bottom", legend.box = "horizontal", 
         legend.box.just = "top", legend.direction = "horizontal", 
         legend.title.align = 0, legend.spacing = unit(20, "mm"),
-        legend.title = element_text(face = "plain", size = 11))
+        legend.title = element_text(face = "plain", size = 11, hjust = ))
 
 ## @knitr achievement_map_annual
 
@@ -84,16 +84,16 @@ achievement_map_annual <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
   coord_fixed() + 
   scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
                     drop = FALSE, 
-                    name = "Airzones:\nPM2.5 (annual) Air Quality Standard", 
+                    name = bquote(atop('Airzones:', ~PM[2.5]~ '(Annual) Air Quality Standard')), 
                     guide = guide_legend(order = 1, title.position = "top")) + 
   geom_path(aes(group = group), colour = "white") + 
   geom_point(data = pm_stats[pm_stats$metric == "pm2.5_annual", ], 
              aes(x = X, y = Y, colour = metric_value)) +
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        name = "Monitoring Stations:\nPM2.5 (annual) Metric (µg/m³)", 
+                        name = bquote(atop('Monitoring Stations:', ~PM[2.5]~ '(Annual) Metric (µg/m³)')), 
                         guide = guide_colourbar(order = 2, title.position = "top", 
                                                 barwidth = 10)) + 
-  ggtitle("Status of annual PM2.5 Levels in B.C. Air Zones, 2014-2016") + 
+  labs(title = bquote('Status of Annual '~PM[2.5]~ 'Levels in B.C. Air Zones (2014-2016)')) + 
   theme_minimal() + 
   theme(axis.title = element_blank(), axis.text = element_blank(), 
         axis.ticks = element_blank(), panel.grid = element_blank(), 
