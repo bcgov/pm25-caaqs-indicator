@@ -54,9 +54,9 @@ Environment](http://www.ccme.ca/index.html).
       \begin{itemize}
           \itemsep1pt\parskip0pt\parsep0pt
         \item
-          The \textbf{PM$_{\text{2.5}}$ 24-hour metric} should be lower than \textbf{28 µg/m3}.
+          The \textbf{PM$_{\text{2.5}}$ 24-hour metric} should be lower than \textbf{28 micrograms per cubic metre (µg/m3)}.
         \item
-          The \textbf{PM$_{\text{2.5}}$ annual metric} should be lower than \textbf{10.0 µg/m3}.
+          The \textbf{PM$_{\text{2.5}}$ annual metric} should be lower than \textbf{10.0 micrograms per cubic metre (µg/m3)}.
       \end{itemize}
       \href{http://www.ccme.ca/en/current_priorities/air/caaqs.html}{Learn 
             more about CAAQS fine particulate matter metric calculations.}
@@ -68,7 +68,7 @@ Environment](http://www.ccme.ca/index.html).
     particles floating in the air are called particulate matter. The
     smallest of these particles - those that are 2.5 microns or less in
     diameter, or less than 1/20th the width of a human hair - are called
-    fine particulate matter (PM2.5). Fine particulate matter comes from
+    fine particulate matter (PM~2.5~). Fine particulate matter comes from
     many natural and human activities, including wildfires and emissions
     from prescribed burning, forestry operations, residential
     woodstoves, and transportation.^[1](#fn1)^
@@ -79,7 +79,7 @@ Environment](http://www.ccme.ca/index.html).
     fine particulate matter can have negative effects on human health.
 -   **Fine particulate matter levels met the Canadian Ambient Air
     Quality Standard at 86 percent of assessed monitoring stations in
-    B.C.** There are two standards for PM2.5 - an annual standard and a
+    B.C.** There are two standards for PM~2.5~ - an annual standard and a
     24-hour standard (see sidebar). The annual standard was met at all
     of the 49 stations for which valid data was obtained, while the
     24-hour standard was met at 43 of the 50 stations (86%) with
@@ -88,7 +88,7 @@ Environment](http://www.ccme.ca/index.html).
     Standard for both fine particulate matter metrics.** All air zones
     met the standard for the annual metric, and three air zones exceeded
     the standards for the 24-hour metric. There was not enough data to
-    estimate the PM2.5 metrics for the Northeast air zone for this reporting
+    estimate the PM~2.5~ metrics for the Northeast air zone for this reporting
     period. Currently, there are no [air monitoring
     stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -128,19 +128,19 @@ plot(ambient_summary_plot)
 
 ### More about the Canadian Ambient Air Quality Standard fine particulate matter metrics:
 
--   There are two standards for fine particulate matter (PM2.5): the
+-   There are two standards for fine particulate matter (PM~2.5~): the
     24-hour standard, which is the 3-year average of the annual 98th
-    percentile of the daily average concentrations of PM2.5, and the
+    percentile of the daily average concentrations of PM~2.5~, and the
     annual standard, which is the 3-year average of the annual average
-    concentration of PM2.5.
--   The PM2.5 metric for an air zone is the highest PM2.5 metric value
+    concentration of PM~2.5~.
+-   The PM~2.5~ metric for an air zone is the highest PM~2.5~ metric value
     reported from monitoring stations within the air zone. Air zone metric values are only taken from stations reporting on two years of data when there are no available three year reporting stations in the air zone.
 -   Only air monitoring stations with sufficient data on fine
     particulate matter concentrations for the 2014-2016 reporting period
     were included in this indicator. Visit [Current Air Quality
     Data](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     for a complete list of air monitoring stations across B.C.
--   Data completeness and sufficiency criteria for the two PM2.5 metrics
+-   Data completeness and sufficiency criteria for the two PM~2.5~ metrics
     are described in the [Guidance Document on Achievement
     Determination: Canadian Ambient Air Quality Standards for Fine
     Particulate Matter and Ozone (2012)
@@ -162,8 +162,8 @@ pollutants below the Canadian Ambient Air Quality Standards.
 -   The Air Zone Management Framework defines air zone management levels
     based on the highest annual and 24-hour fine particulate matter
     metric values reported from monitoring stations within the air zone.
-    Air zone management levels for PM2.5 are based on the higher of the
-    PM2.5 annual and the PM2.5 24-hour management levels.
+    Air zone management levels for PM~2.5~ are based on the higher of the
+    PM~2.5~ annual and the PM~2.5~ 24-hour management levels.
 -   The four management levels are (1) green (actions for keeping clean
     areas clean); (2) yellow (actions for preventing air quality
     deterioration); (3) orange (actions for preventing Canadian Ambient
@@ -277,7 +277,7 @@ each file, as indicated in parentheses below.
 -   [Indicator data: BC Fine Particulate Matter Canadian Ambient Air
     Quality Standards
     2014-2016](https://catalogue.data.gov.bc.ca/dataset/699be99e-a9ba-403e-b0fe-3d13f84f45ab) (`r get_data_license("ogl-bc")`)
--   [BC PM2.5 Hourly Data & Air Monitoring Station
+-   [BC PM~2.5~ Hourly Data & Air Monitoring Station
     locations](https://catalogue.data.gov.bc.ca/dataset/77eeadf4-0c19-48bf-a47a-fa9eef01f409) (`r get_data_license("ogl-bc")`)
 -   [BC Air
     Zones](https://catalogue.data.gov.bc.ca/dataset/e8eeefc4-2826-47bc-8430-85703d328516) (`r get_data_license("ogl-bc")`)
