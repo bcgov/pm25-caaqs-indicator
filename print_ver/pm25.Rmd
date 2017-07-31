@@ -49,7 +49,7 @@ Environment](http://www.ccme.ca/index.html).
 \begin{center}
   \fbox{
     \begin{minipage}[c]{12cm}
-      \centering{\textbf Fine Particulate Matter\\ Canadian Ambient Air Quality Standards for PM$_{\text{2.5}}$}
+      \centering{\textbf Fine Particulate Matter (PM$_{\text{2.5}}$):\\ Canadian Ambient Air Quality Standard}
     
       \begin{itemize}
           \itemsep1pt\parskip0pt\parsep0pt
@@ -79,7 +79,7 @@ Environment](http://www.ccme.ca/index.html).
     fine particulate matter can have negative effects on human health.
 -   **Fine particulate matter levels met the Canadian Ambient Air
     Quality Standard at 86 percent of assessed monitoring stations in
-    B.C.** There are two standards for PM2.5 - an annual standard, and a
+    B.C.** There are two standards for PM2.5 - an annual standard and a
     24-hour standard (see sidebar). The annual standard was met at all
     of the 49 stations for which valid data was obtained, while the
     24-hour standard was met at 43 of the 50 stations (86%) with
@@ -88,7 +88,7 @@ Environment](http://www.ccme.ca/index.html).
     Standard for both fine particulate matter metrics.** All air zones
     met the standard for the annual metric, and three air zones exceeded
     the standards for the 24-hour metric. There was not enough data to
-    estimate the PM2.5 metrics Northeast air zones for this reporting
+    estimate the PM2.5 metrics for the Northeast air zone for this reporting
     period. Currently, there are no [air monitoring
     stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -134,10 +134,7 @@ plot(ambient_summary_plot)
     annual standard, which is the 3-year average of the annual average
     concentration of PM2.5.
 -   The PM2.5 metric for an air zone is the highest PM2.5 metric value
-    reported from monitoring stations within the air zone. However,
-    stations with metric values based on only two years of data are
-    excluded for consideration of the *air zone* metric value, unless 
-    all station metric values are based on 2 years of data.
+    reported from monitoring stations within the air zone. Air zone metric values are only taken from stations reporting on two years of data when there are no available three year reporting stations in the air zone.
 -   Only air monitoring stations with sufficient data on fine
     particulate matter concentrations for the 2014-2016 reporting period
     were included in this indicator. Visit [Current Air Quality
@@ -218,9 +215,9 @@ mgmt_chart +
     influences. These arrangements aim to ensure that jurisdictions are
     responsible for managing only the emissions sources they can
     control.
--   In B.C., wildfires are generally the largest contributor to
-    transboundary flows and exceptional events. Over the 2014-16
-    reporting period, 50 stations had one or more days during wildfire
+-   Wildfires are generally the largest contributor to
+    transboundary flows and exceptional events in B.C. Over the 2014-16
+    reporting period, 50 stations had one or more days during the wildfire
     season (May-September) where the daily fine particulate matter
     concentration was determined to be influenced by wildfire and
     exceeded the standard of 28 µg/m^3^. Those daily concentrations were
@@ -239,8 +236,7 @@ Standard fine particulate matter metrics - are detailed in the [Guidance
 Document on Achievement Determination: Canadian Ambient Air Quality
 Standards for Fine Particulate Matter and Ozone (2012)
 (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1483_gdad_eng.pdf)
-published by the [Canadian Council of Ministers of the Environment
-(CCME)](http://www.ccme.ca/index.html).
+published by the [Canadian Council of Ministers of the Environment](http://www.ccme.ca/index.html).
 
 **R package and code:** We have developed an
 [**R**](http://www.r-project.org) package to facilitate the calculation
@@ -291,7 +287,7 @@ Published and Available On-Line at Environmental Reporting BC (August 2017):
 
 Email correspondence to: envreportbc@gov.bc.ca
 
-# Appendix: Detailed CAAQS results for each monitoring station within air zones in B.C.
+# Appendix: Detailed fine particulate matter Candadian Ambient Air Quality Standard results for each monitoring station within air zones in B.C.
 
 ```{r stn_plots, message=FALSE}
 
