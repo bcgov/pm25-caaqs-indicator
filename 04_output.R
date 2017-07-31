@@ -157,7 +157,7 @@ labels_df = data.frame(x = c(680000, 1150000, 780000, 1150000,
                              600000, 325000, 410000), 
                        airzone_name = c("Coastal", "Northeast", "Northwest", 
                                         "Central\nInterior", "Southern\nInterior", 
-                                        "Georgia Strait", "Lower Fraser\nValley"))
+                                        "Georgia Strait", "Lower Fraser Valley"))
 
 mgmt_map <- ggplot(airzone_mgmt_map.df, aes(long, lat)) +   
   geom_polygon(aes(group = Airzone, fill = caaq_mgmt)) + 
