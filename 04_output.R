@@ -189,7 +189,7 @@ mgmt_chart <- ggplot(data = pm_mgmt_stats,
   coord_flip() +
   scale_y_continuous(expand = c(0,0)) +
   scale_fill_manual(values = colrs, 
-                    drop = FALSE, 
+                    drop = TRUE, 
                     name = "Air Zone Management Levels", 
                     guide = guide_legend(reverse = TRUE)) +
   scale_x_discrete(labels = c("pm2.5_24h" = "24-hour", "pm2.5_annual" = "Annual")) +
