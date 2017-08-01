@@ -175,7 +175,7 @@ mgmt_map <- ggplot(airzone_mgmt_map.df, aes(long, lat)) +
         legend.position = "none",
         plot.margin = unit(c(-15,0,0,0),"mm")) +
   geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
-            colour = "black", size = 4.5)
+            colour = "black", size = 5)
 
 ## Management Bar Chart
 
@@ -202,7 +202,8 @@ mgmt_chart <- ggplot(data = pm_mgmt_stats,
         legend.title = element_text(size = 12),
         legend.text = element_text(size = 12),
         legend.spacing = unit(5,"mm"),
-        plot.margin = unit(c(15,0,5,0),"mm"))
+        plot.margin = unit(c(15,0,5,0),"mm"),
+        strip.text = element_text(size = 12))
 
 # multiplot of bar chart and mgmt map
 ## multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
