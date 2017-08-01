@@ -68,7 +68,7 @@ achievement_map_24 <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
                         name = bquote(atop('Monitoring Stations:',~PM[2.5]~ '(24-hour) Metric (µg/m³)')), 
                         guide = guide_colourbar(order = 2, title.position = "top", 
                                                 barwidth = 10)) + 
-  labs(title = bquote('Status of 24-hour '~PM[2.5]~ 'Levels in B.C. Air Zones (2014-2016)')) + 
+ # labs(title = bquote('Status of 24-hour '~PM[2.5]~ 'Levels in B.C. Air Zones (2014-2016)')) + 
   theme_minimal() + 
   theme(axis.title = element_blank(), axis.text = element_blank(), 
         axis.ticks = element_blank(), panel.grid = element_blank(), 
@@ -93,7 +93,7 @@ achievement_map_annual <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
                         name = bquote(atop('Monitoring Stations:', ~PM[2.5]~ '(Annual) Metric (µg/m³)')), 
                         guide = guide_colourbar(order = 2, title.position = "top", 
                                                 barwidth = 10)) + 
-  labs(title = bquote('Status of Annual '~PM[2.5]~ 'Levels in B.C. Air Zones (2014-2016)')) + 
+#  labs(title = bquote('Status of Annual '~PM[2.5]~ 'Levels in B.C. Air Zones (2014-2016)')) + 
   theme_minimal() + 
   theme(axis.title = element_blank(), axis.text = element_blank(), 
         axis.ticks = element_blank(), panel.grid = element_blank(), 
