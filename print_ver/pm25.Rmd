@@ -104,6 +104,10 @@ well as both the annual and 24-hour CAAQS PM$_{\text{2.5}}$ metric values at ind
 monitoring stations. Summaries are given for each monitoring station where
 sufficient data was available for the 2014-2016 reporting period.
 
+\newpage
+
+# Status of 24-hour PM$_{\text{2.5}}$ Levels in B.C. Air Zones (2014-2016)
+
 ```{r achievement_map_24}
 ```
 
@@ -111,12 +115,18 @@ sufficient data was available for the 2014-2016 reporting period.
 plot(achievement_map_24)
 ```
 
+\newpage
+
+# Status of Annual PM$_{\text{2.5}}$ Levels in B.C. Air Zones (2014-2016)
+
 ```{r achievement_map_annual}
 ```
 
 ```{r fig.height=8}
 plot(achievement_map_annual)
 ```
+
+\newpage
 
 # PM$_{\text{2.5}}$ Metrics for Air Monitoring Statons within B.C. Air Zones (2014-2016)
 
@@ -186,14 +196,19 @@ pollutants below the Canadian Ambient Air Quality Standards.
     data. There was not enough data to estimate the management level for the Northeast air zone for this reporting period, and currently there are no [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E) in the Northwest air zone. Please see the box below for information on how influences from 
     wildfire smoke is accounted for in the determination of management levels. 
     
+\newpage
+    
+# Air Quality Management Levels in B.C. Air Zones   
+    
 ```{r mgmt_map}
 ```
 
 ```{r fig.height=9}
 mgmt_map + 
-  labs(title = "Air Quality Management Levels in B.C. Air Zones") +
   theme(legend.position = "bottom", legend.direction = "vertical")
 ```
+
+\newpage
 
 # Station-Level Air Quality Management Levels Within Air Zones
 
