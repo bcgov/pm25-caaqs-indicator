@@ -189,12 +189,11 @@ pollutants below the Canadian Ambient Air Quality Standards.
 -   The Central Interior and Georgia Strait air zones were assigned to a 
     red management level; the Lower Fraser Valley and Coastal air zones were 
     assigned to a yellow management level; and the Southern Interior to an 
-    orange management level. Note that while two stations in the Coastal air zone (Kitimat Haisla 
-    Village and Kitimat Smeltersite Road) had an annual metric that would 
-    indicate an 'orange' management level, they were excluded from consideration 
-    of the air zone metric value because they are based on only two years of 
-    data. There was not enough data to estimate the management level for the Northeast air zone for this reporting period, and currently there are no [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E) in the Northwest air zone. Please see the box below for information on how influences from 
-    wildfire smoke is accounted for in the determination of management levels. 
+    orange management level. 
+-   Note that while the Kitimat Haisla Village station in the Coastal air zone 
+    had an annual level that would indicate an 'orange' management level, it was 
+    excluded from consideration because the level was based on only two years of 
+    data, with three year reporting stations available in the air zone.
     
 \newpage
     
