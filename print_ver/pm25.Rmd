@@ -1,6 +1,10 @@
 ---
 topic: "air"
 title: "Status of Fine Particulate Matter in B.C. (2014-2016)"
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage{siunitx}
+  - \sisetup{detect-all,per-mode=symbol}
 output: envreportbc::print_ver
 ---
 
@@ -57,11 +61,11 @@ Environment](http://www.ccme.ca/index.html).
       
       \vspace{1mm}
           
-      PM$_{\text{2.5}}$ levels are calculated using \textbf{two} \hyperref[metric-info]{statistical forms called the annual and the 24-hour metrics}. The Canadian Ambient Air Quality Standard value for PM$_{\text{2.5}}$ annual is \textbf{10.0 micrograms per cubic metre} and the standard value for PM$_{\text{2.5}}$ 24-hour is \textbf{28 micrograms per cubic metre (µg/m\textsuperscript{3})}.
+      PM$_{\text{2.5}}$ levels are calculated using \textbf{two} \hyperref[metric-info]{statistical forms called the annual and the 24-hour metrics}. The Canadian Ambient Air Quality Standard value for PM$_{\text{2.5}}$ annual is \textbf{10.0 micrograms per cubic metre} and the standard value for PM$_{\text{2.5}}$ 24-hour is \textbf{28 micrograms per cubic metre (\SI{}{\micro\gram\per\metre\cubed})}.
           
       \vspace{2mm}
       
-      PM$_{\text{2.5}}$ standards are achieved when annual levels are $\leq$10 µg/m\textsuperscript{3} and 24-hour levels are $\leq$28 µg/m\textsuperscript{3}.
+      PM$_{\text{2.5}}$ standards are achieved when annual levels are $\leq$\SI{10}{\micro\gram\per\metre\cubed} and 24-hour levels are $\leq$\SI{28}{\micro\gram\per\metre\cubed}.
           
   \end{minipage}
 }
@@ -86,8 +90,8 @@ Environment](http://www.ccme.ca/index.html).
 
 -   **Fine particulate matter is an air pollutant.** Solid or liquid
     particles floating in the air are called particulate matter. The
-    smallest of these particles—those that are 2.5 microns or less in
-    diameter, or less than 1/20th the width of a human hair—are called
+    smallest of these particles---those that are 2.5 microns or less in
+    diameter, or less than 1/20th the width of a human hair---are called
     fine particulate matter (PM$_{\text{2.5}}$). Fine particulate matter comes from
     many natural and human activities, including wildfires and emissions
     from prescribed burning, forestry operations, residential
@@ -99,7 +103,7 @@ Environment](http://www.ccme.ca/index.html).
     fine particulate matter can have negative effects on human health.
 -   **Fine particulate matter levels met the Canadian Ambient Air
     Quality Standards at 86 percent of assessed monitoring stations in
-    B.C.** There are two standards for PM$_{\text{2.5}}$—an annual standard and a
+    B.C.** There are two standards for PM$_{\text{2.5}}$---an annual standard and a
     24-hour standard (see sidebar). The annual standard was met at all
     of the 48 stations for which valid data was obtained, while the
     24-hour standard was met at 42 of the 49 stations (86%) with
@@ -108,7 +112,7 @@ Environment](http://www.ccme.ca/index.html).
     Air Quality Standards in two of B.C.'s seven air zones.** All air
     zones met the PM$_{\text{2.5}}$ annual standard, and three air zones exceeded
     the PM$_{\text{2.5}}$ 24-hour standard. One of the air zone PM$_{\text{2.5}}$ 24-hour
-    exceedances—the Southern Interior air zone— was due to the influence
+    exceedances---the Southern Interior air zone---was due to the influence
     of smoke from wildfires. There was not enough data to estimate PM$_{\text{2.5}}$
     levels for the Northeast air zone for this reporting period.
     Currently, there are no [air monitoring
@@ -255,7 +259,7 @@ plot(mgmt_chart)
     period, 50 stations had one or more days during the wildfire season
     (May-September) where the daily fine particulate matter
     concentration was determined to be influenced by smoke from
-    wildfires and exceeded the 24-hour standard of 28 µg/m^3^. The
+    wildfires and exceeded the 24-hour standard of \SI{28}{\micro\gram\per\metre\cubed}. The
     majority of wildfire influences occurred in 2015. Those daily
     concentrations were removed from the calculations of management
     levels, resulting in a change from red to orange for the Southern
@@ -268,9 +272,9 @@ plot(mgmt_chart)
 
 ### Methods
 
-The methods used to develop this indicator—including procedures, data
+The methods used to develop this indicator---including procedures, data
 requirements, and calculation of the Canadian Ambient Air Quality
-Standard fine particulate matter metrics—are detailed in the [Guidance
+Standard fine particulate matter metrics---are detailed in the [Guidance
 Document on Achievement Determination: Canadian Ambient Air Quality
 Standards for Fine Particulate Matter and Ozone (2012)
 (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1483_gdad_eng.pdf)
@@ -377,8 +381,8 @@ for (az in unique(pm_data$Airzone)) {
       
       cat("\\textbf{PM$_{2.5}$ 24-hour Air Quality Standard:} ",
           as.character(caaqs_data_24h$caaqs), " \\newline ")
-      cat("\\textbf{PM$_{2.5}$ 24-hour Metric:} ", caaqs_data_24h$metric_value,
-          " µg/m³ (", caaqs_data_24h$n_years,
+      cat("\\textbf{PM$_{2.5}$ 24-hour Metric:} \\SI{", caaqs_data_24h$metric_value, 
+          "}{\\micro\\gram\\per\\metre\\cubed} (", caaqs_data_24h$n_years,
           " year average) \\newline ", sep = "")
       plot(set_label_size(daily_plot, 3))
       
@@ -394,8 +398,8 @@ for (az in unique(pm_data$Airzone)) {
       
       cat("\\textbf{PM$_{2.5}$ Annual Air Quality Standard:} ",
           as.character(caaqs_data_annual$caaqs), " \\newline ")
-      cat("\\textbf{PM$_{2.5}$ Annual Metric:} ", caaqs_data_annual$metric_value,
-          " µg/m³ (", caaqs_data_annual$n_years,
+      cat("\\textbf{PM$_{2.5}$ Annual Metric:} \\SI{", caaqs_data_annual$metric_value,
+          "}{\\micro\\gram\\per\\metre\\cubed} (", caaqs_data_annual$n_years,
           " year average) \\newline ", sep = "")
       plot(set_label_size(annual_plot, 3))
       
