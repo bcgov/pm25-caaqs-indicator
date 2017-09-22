@@ -90,7 +90,10 @@ achievement_map_annual <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
   geom_point(data = pm_stats[pm_stats$metric == "pm2.5_annual", ], 
              aes(x = X, y = Y, colour = metric_value)) +
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        name = bquote(atop('Monitoring Stations:', ~PM[2.5]~ '(Annual) Metric (' *mu* 'g/'*m^{3}*')')), 
+                        name = bquote(
+                          atop('Monitoring Stations:', 
+                               ~PM[2.5]~ '(Annual) Metric (' * mu * 'g/' * m^{3} * ')')
+                          ), 
                         guide = guide_colourbar(order = 2, title.position = "top", 
                                                 barwidth = 10)) + 
 #  labs(title = bquote('Status of Annual '~PM[2.5]~ 'Levels in B.C. Air Zones (2014-2016)')) + 
@@ -217,7 +220,7 @@ mgmt_chart <- ggplot(data = pm_mgmt_stats,
 outCRS <- 4326
 
 ## Combined Management map and barchart with multiplot
-png(filename = "./out/pm_mgmt_viz.png", width = 836, height = 560, units = "px")
+png_retina(filename = "./out/pm_mgmt_viz.png", width = 836, height = 560, units = "px")
 multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
 dev.off()
 
@@ -267,11 +270,11 @@ for (i in seq_along(stnplots)) {
   daily_plot <- stnplots[[i]]$daily
   annual_plot <- stnplots[[i]]$annual
   cat("savinging plots for", emsid, "\n")
-  png(filename = paste0(line_dir, emsid, "_24h_lineplot.png"), 
+  png_retina(filename = paste0(line_dir, emsid, "_24h_lineplot.png"), 
       width = 778, height = 254, units = "px", res = 90)
   plot(daily_plot)
   dev.off()
-  png(filename = paste0(line_dir, emsid, "_annual_lineplot.png"), 
+  png_retina(filename = paste0(line_dir, emsid, "_annual_lineplot.png"), 
       width = 778, height = 254, units = "px", res = 90)
   plot(annual_plot)
   dev.off()
