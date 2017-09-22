@@ -25,7 +25,7 @@ extrafont::embed_fonts(file.path("print_ver/", outfile))
 
 ###############################################################################################
 ## copy files to web dev folder
-air_indicators_path <- "R:/indicators/air"
+air_indicators_path <- "/Volumes/envwwwd/soe/indicators/air"
 air_viz_data_path <- file.path(air_indicators_path, "pm25_viz/data/")
 air_indicators_station_plots <- file.path(air_viz_data_path, "station_plots/")
 
