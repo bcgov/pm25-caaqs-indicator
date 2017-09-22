@@ -65,7 +65,7 @@ achievement_map_24 <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
   geom_point(data = pm_stats[pm_stats$metric == "pm2.5_24h", ], 
              aes(x = X, y = Y, colour = metric_value)) +
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        name = bquote(atop('Monitoring Stations:',~PM[2.5]~ '(24-hour) Metric (µg/m³)')), 
+                        name = bquote(atop('Monitoring Stations:',~PM[2.5]~ '(24-hour) Metric (' *mu* 'g/'*m^{3}*')')), 
                         guide = guide_colourbar(order = 2, title.position = "top", 
                                                 barwidth = 10)) + 
  # labs(title = bquote('Status of 24-hour '~PM[2.5]~ 'Levels in B.C. Air Zones (2014-2016)')) + 
@@ -90,7 +90,7 @@ achievement_map_annual <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
   geom_point(data = pm_stats[pm_stats$metric == "pm2.5_annual", ], 
              aes(x = X, y = Y, colour = metric_value)) +
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        name = bquote(atop('Monitoring Stations:', ~PM[2.5]~ '(Annual) Metric (µg/m³)')), 
+                        name = bquote(atop('Monitoring Stations:', ~PM[2.5]~ '(Annual) Metric (' *mu* 'g/'*m^{3}*')')), 
                         guide = guide_colourbar(order = 2, title.position = "top", 
                                                 barwidth = 10)) + 
 #  labs(title = bquote('Status of Annual '~PM[2.5]~ 'Levels in B.C. Air Zones (2014-2016)')) + 
