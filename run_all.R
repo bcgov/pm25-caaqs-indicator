@@ -41,7 +41,7 @@ over_copy(file.path("print_ver", outfile),
           file.path(air_indicators_path, "print_ver/"))
 
 ## Copy the management viz
-over_copy("out/pm_mgmt_viz.png", 
+over_copy("out/pm_mgmt_viz.svg", 
           file.path(air_indicators_path, "images/"))
 
 ## Copy geojson files for viz

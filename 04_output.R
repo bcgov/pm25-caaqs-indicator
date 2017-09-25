@@ -22,6 +22,7 @@ library("envreportutils")
 
 library("sf")
 library("geojsonio")
+library("svglite")
 
 if (!exists("airzone_summary")) load("tmp/analysed.RData")
 
@@ -126,10 +127,10 @@ for (emsid in emsids) {
   
   # Create plots
   p_24 <- plot_ts(daily_data, caaqs_data = caaqs_data_24h, 
-                  parameter = "pm2.5_24h", rep_yr = 2016)
+                  parameter = "pm2.5_24h", rep_yr = 2016, base_size = 14)
   
   p_annual <- plot_ts(daily_data, caaqs_data = caaqs_data_annual, 
-                      parameter = "pm2.5_annual", rep_yr = 2016)
+                      parameter = "pm2.5_annual", rep_yr = 2016, base_size = 14)
   
   p_annual <- p_annual + coord_cartesian(ylim = c(0, 80))
   p_24 <- p_24 + coord_cartesian(ylim = c(0, 80))
@@ -220,7 +221,8 @@ mgmt_chart <- ggplot(data = pm_mgmt_stats,
 outCRS <- 4326
 
 ## Combined Management map and barchart with multiplot
-png_retina(filename = "./out/pm_mgmt_viz.png", width = 836, height = 560, units = "px")
+# png_retina(filename = "./out/pm_mgmt_viz.png", width = 836, height = 560, units = "px")
+svglite("./out/pm_mgmt_viz.svg", width = 836 / 72, height = 560 / 72)
 multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
 dev.off()
 
@@ -264,18 +266,25 @@ airzone_ambient_map %>%
 line_dir <- "out/station_plots/"
 dir.create(line_dir, showWarnings = FALSE, recursive = TRUE)
 lapply(list.files(line_dir, full.names = TRUE), file.remove)
+width <- 778
+height <- 254
+res <- 72
 
 for (i in seq_along(stnplots)) {
   emsid <- names(stnplots[i])
   daily_plot <- stnplots[[i]]$daily
   annual_plot <- stnplots[[i]]$annual
   cat("savinging plots for", emsid, "\n")
-  png_retina(filename = paste0(line_dir, emsid, "_24h_lineplot.png"), 
-      width = 778, height = 254, units = "px", res = 90)
+  # png_retina(filename = paste0(line_dir, emsid, "_24h_lineplot.png"), 
+  #     width = 778, height = 254, units = "px", res = res)
+  svglite(paste0(line_dir, emsid, "_24h_lineplot.svg"), 
+          width = width / res, height = height / res)
   plot(daily_plot)
   dev.off()
-  png_retina(filename = paste0(line_dir, emsid, "_annual_lineplot.png"), 
-      width = 778, height = 254, units = "px", res = 90)
+  # png_retina(filename = paste0(line_dir, emsid, "_annual_lineplot.png"), 
+  #     width = 778, height = 254, units = "px", res = res)
+  svglite(paste0(line_dir, emsid, "_annual_lineplot.svg"),
+          width = width / res, height = height / res)
   plot(annual_plot)
   dev.off()
 }
