@@ -7,3 +7,4 @@ internal.R
 data/PM25.csv
 data/bc_air_monitoring_stations.csv
 README.html
+.DS_Store
