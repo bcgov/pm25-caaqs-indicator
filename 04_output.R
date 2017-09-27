@@ -22,7 +22,6 @@ library("envreportutils")
 
 library("sf")
 library("geojsonio")
-library("svglite")
 
 if (!exists("airzone_summary")) load("tmp/analysed.RData")
 
@@ -222,7 +221,7 @@ outCRS <- 4326
 
 ## Combined Management map and barchart with multiplot
 # png_retina(filename = "./out/pm_mgmt_viz.png", width = 836, height = 560, units = "px")
-svglite("./out/pm_mgmt_viz.svg", width = 836 / 72, height = 560 / 72)
+svg_px("./out/pm_mgmt_viz.svg", width = 836, height = 560)
 multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
 dev.off()
 
@@ -268,7 +267,6 @@ dir.create(line_dir, showWarnings = FALSE, recursive = TRUE)
 lapply(list.files(line_dir, full.names = TRUE), file.remove)
 width <- 778
 height <- 254
-res <- 72
 
 for (i in seq_along(stnplots)) {
   emsid <- names(stnplots[i])
@@ -277,14 +275,14 @@ for (i in seq_along(stnplots)) {
   cat("savinging plots for", emsid, "\n")
   # png_retina(filename = paste0(line_dir, emsid, "_24h_lineplot.png"), 
   #     width = 778, height = 254, units = "px", res = res)
-  svglite(paste0(line_dir, emsid, "_24h_lineplot.svg"), 
-          width = width / res, height = height / res)
+  svg_px(paste0(line_dir, emsid, "_24h_lineplot.svg"), 
+          width = width, height = height)
   plot(daily_plot)
   dev.off()
   # png_retina(filename = paste0(line_dir, emsid, "_annual_lineplot.png"), 
   #     width = 778, height = 254, units = "px", res = res)
-  svglite(paste0(line_dir, emsid, "_annual_lineplot.svg"),
-          width = width / res, height = height / res)
+  svg_px(paste0(line_dir, emsid, "_annual_lineplot.svg"),
+          width = width, height = height)
   plot(annual_plot)
   dev.off()
 }
