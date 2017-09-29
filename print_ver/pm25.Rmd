@@ -383,7 +383,7 @@ for (az in unique(pm_data$Airzone)) {
           as.character(caaqs_data_24h$caaqs), " \\newline ")
       cat("\\textbf{PM$_{2.5}$ 24-hour Metric:} \\SI{", caaqs_data_24h$metric_value, 
           "}{\\micro\\gram\\per\\metre\\cubed} (", caaqs_data_24h$n_years,
-          " year average) \\newline ", sep = "")
+          " year average) \\newline ", "\\newline ", sep = "")
       plot(set_label_size(daily_plot, 3))
       
     } else {
@@ -400,7 +400,7 @@ for (az in unique(pm_data$Airzone)) {
           as.character(caaqs_data_annual$caaqs), " \\newline ")
       cat("\\textbf{PM$_{2.5}$ Annual Metric:} \\SI{", caaqs_data_annual$metric_value,
           "}{\\micro\\gram\\per\\metre\\cubed} (", caaqs_data_annual$n_years,
-          " year average) \\newline ", sep = "")
+          " year average) \\newline ",  "\\newline ", sep = "")
       plot(set_label_size(annual_plot, 3))
       
     } else {
