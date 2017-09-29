@@ -221,8 +221,18 @@ outCRS <- 4326
 
 ## Combined Management map and barchart with multiplot
 # png_retina(filename = "./out/pm_mgmt_viz.png", width = 836, height = 560, units = "px")
-svg_px("./out/pm_mgmt_viz.svg", width = 836, height = 560)
-multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
+# svg_px("./out/pm_mgmt_viz.svg", width = 836, height = 560)
+# multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
+# dev.off()
+
+## SVG of airzone CAAQS mgmt level map
+svg_px("out/pm_caaqs_mgmt_map.svg", width = 500, height = 500)
+plot(mgmt_map)
+dev.off()
+
+## SVG of airzone/station CAAQS mgmt achievement chart
+svg_px("out/pm_caaqs_mgmt_chart.svg", width = 500, height = 500)
+plot(mgmt_chart)
 dev.off()
 
 # write summary stats
