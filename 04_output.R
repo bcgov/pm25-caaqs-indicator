@@ -226,8 +226,11 @@ multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
 dev.off()
 
 # write summary stats
-pm_stats <- select(pm_stats, -X, -Y) 
-write_csv(st_set_geometry(pm_stats, NULL), "out/pm25_site_summary.csv")
+pm_stats <- select(pm_stats, -X, -Y)
+pm_stats %>% 
+  st_set_geometry(NULL) %>% 
+  mutate(caaq_year = max_year) %>% 
+  write_csv("out/pm25_site_summary.csv")
 
 ## Convert pm_stats back to SpatialPointsDataFrame and export as geojson
 pm_stats_wide <- reshape(st_set_geometry(pm_stats, NULL), 
