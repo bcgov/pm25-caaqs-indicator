@@ -40,8 +40,11 @@ over_copy <- function(...) {
 over_copy(file.path("print_ver", outfile), 
           file.path(air_indicators_path, "print_ver/"))
 
-## Copy the management viz
-over_copy("out/pm_mgmt_viz.svg", 
+## Copy the management viz map and bar chart plots
+over_copy("out/pm_caaqs_mgmt_map.svg", 
+          file.path(air_indicators_path, "images/"))
+
+over_copy("out/pm_caaqs_mgmt_chart.svg", 
           file.path(air_indicators_path, "images/"))
 
 ## Copy geojson files for viz
