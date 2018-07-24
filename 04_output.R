@@ -38,11 +38,8 @@ dir.create("out", showWarnings = FALSE)
 # transformthe lat-long coordinates to BC Albers
 airzone_ambient_map <- transform_bc_albers(airzone_ambient_map)
 
-## Transforming shapefile contents for use in ggplot2 
-airzone_ambient_map.df <- gg_fortify(as(airzone_ambient_map, "Spatial"))
-
-airzone_ambient_map.df$caaqs_24h[is.na(airzone_ambient_map.df$caaqs_24h)] <- "Insufficient Data"
-airzone_ambient_map.df$caaqs_annual[is.na(airzone_ambient_map.df$caaqs_annual)] <- "Insufficient Data"
+airzone_ambient_map$caaqs_24h[is.na(airzone_ambient_map$caaqs_24h)] <- "Insufficient Data"
+airzone_ambient_map$caaqs_annual[is.na(airzone_ambient_map$caaqs_annual)] <- "Insufficient Data"
 
 pm_stats <- transform_bc_albers(pm_stats)
 pm_stats <- cbind(pm_stats, st_coordinates(pm_stats))
@@ -54,14 +51,13 @@ ambient_summary_plot <- summary_plot(pm_stats, metric_val = "metric_value", stat
 
 ## @knitr achievement_map_24
 
-achievement_map_24 <- ggplot(airzone_ambient_map.df, aes(long, lat)) + 
-  geom_polygon(aes(group = group, fill = caaqs_24h)) + 
-  coord_fixed() + 
+achievement_map_24 <- ggplot(airzone_ambient_map) + 
+  geom_sf(aes(fill = caaqs_24h), colour = "white") + 
+  coord_sf(datum = NA) + 
   scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
                     drop = FALSE, 
                     name = bquote(atop('Airzones:', ~PM[2.5]~ '(24-hour) Air Quality Standard')), 
                     guide = guide_legend(order = 1, title.position = "top")) + 
-  geom_path(aes(group = group), colour = "white") + 
   geom_point(data = pm_stats[pm_stats$metric == "pm2.5_24h", ], 
              aes(x = X, y = Y, colour = metric_value)) +
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
@@ -79,14 +75,13 @@ achievement_map_24 <- ggplot(airzone_ambient_map.df, aes(long, lat)) +
 
 ## @knitr achievement_map_annual
 
-achievement_map_annual <- ggplot(airzone_ambient_map.df, aes(long, lat)) + 
-  geom_polygon(aes(group = group, fill = caaqs_annual)) + 
-  coord_fixed() + 
+achievement_map_annual <- ggplot(airzone_ambient_map) + 
+  geom_sf(aes(fill = caaqs_annual), colour = "white") + 
+  coord_sf(datum = NA) + 
   scale_fill_manual(values = get_colours("achievement", drop_na = FALSE), 
                     drop = FALSE, 
                     name = bquote(atop('Airzones:', ~PM[2.5]~ '(Annual) Air Quality Standard')), 
                     guide = guide_legend(order = 1, title.position = "top")) + 
-  geom_path(aes(group = group), colour = "white") + 
   geom_point(data = pm_stats[pm_stats$metric == "pm2.5_annual", ], 
              aes(x = X, y = Y, colour = metric_value)) +
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
@@ -149,8 +144,7 @@ for (emsid in emsids) {
 
 airzone_mgmt_map <- transform_bc_albers(airzone_mgmt_map)
 
-airzone_mgmt_map.df <- gg_fortify(as(airzone_mgmt_map, "Spatial"))
-airzone_mgmt_map.df$caaq_mgmt[is.na(airzone_mgmt_map.df$caaq_mgmt)] <- "Insufficient Data"
+airzone_mgmt_map$caaq_mgmt[is.na(airzone_mgmt_map$caaq_mgmt)] <- "Insufficient Data"
 
 colrs <- get_colours("management", drop_na = FALSE)
 
@@ -162,10 +156,9 @@ labels_df = data.frame(x = c(680000, 1150000, 780000, 1150000,
                                         "Central\nInterior", "Southern\nInterior", 
                                         "Georgia Strait", "Lower Fraser Valley"))
 
-mgmt_map <- ggplot(airzone_mgmt_map.df, aes(long, lat)) +   
-  geom_polygon(aes(group = Airzone, fill = caaq_mgmt)) + 
-  coord_fixed() + 
-  geom_path(aes(group = group), colour = "white") + 
+mgmt_map <- ggplot(airzone_mgmt_map) +   
+  geom_sf(aes(fill = caaq_mgmt), colour = "white") + 
+  coord_sf(datum = NA) + 
   theme_minimal() + 
   scale_fill_manual(values = colrs, 
                     drop = FALSE, 
@@ -176,7 +169,7 @@ mgmt_map <- ggplot(airzone_mgmt_map.df, aes(long, lat)) +
         axis.ticks = element_blank(),
         panel.grid = element_blank(),
         legend.position = "none",
-        plot.margin = unit(c(-15,0,0,0),"mm")) +
+        plot.margin = unit(c(0,0,0,0),"mm")) +
   geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
             colour = "black", size = 5)
 
