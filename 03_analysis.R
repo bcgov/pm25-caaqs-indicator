@@ -82,7 +82,7 @@ pm_stats <- bind_rows(pm_caaq_annual, pm_caaq_daily) %>%
 pm_stats <- st_as_sf(pm_stats, coords = c("longitude", "latitude"), crs = 4617, remove = FALSE)
 
 ## Load airzones map
-airzone_map <- st_as_sf(bcmaps::airzones) %>% 
+airzone_map <- st_as_sf(bcmaps::airzones()) %>% 
   st_transform(crs = st_crs(pm_stats))
 
 ## Get airzone into pm_stats
