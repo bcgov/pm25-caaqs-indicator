@@ -199,13 +199,19 @@ reset_view <- easyButton(icon = "ion-home",
 ```
 
 
+
 ```{r}
 leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)) %>% 
   addProviderTiles(providers$CartoDB) %>%
   addEasyButton(reset_view) %>%
-  htmlwidgets::onRender(JS("function(el, x){ var map = this; map._initialCenter = map.getCenter(); map._initialZoom = map.getZoom();}")) %>%
+  htmlwidgets::onRender(JS(
+    "function(el, x){ 
+      var map = this; 
+      map._initialCenter = map.getCenter(); 
+      map._initialZoom = map.getZoom();}")) %>%
+  
   # Add annual data
-  addPolygons(data = az_annual,
+  addPolygons(data = az_annual, group = "Annual",
               color = "white", weight = 2, opacity = 1, fillOpacity = 0.6,
               fillColor = ~pal_az_annual(caaqs_legend),
               label = ~tooltip, 
@@ -214,21 +220,59 @@ leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)
                                           autoPanPaddingBottomRight = c(10, 400)),
               highlightOptions = highlightOptions(bringToFront = TRUE, 
                                                   fillOpacity = 0.7)) %>%
-  addMarkers(data = stations_annual,
+  addMarkers(data = stations_annual, group = "Annual",
              icon = markers_annual, label = ~station_name, 
              popup = ~popup, options = markerOptions(riseOnHover = TRUE),
              # Stick to marker, not mouse
              labelOptions = labelOptions(sticky = FALSE, 
                                          offset = c(0, -icon_size/2))) %>%
   # Custom legends to override order
-  addLegend("bottomleft", colors = rev(station_annual_colours),
+  addLegend("bottomleft", group = "Annual",
+            colors = rev(station_annual_colours),
             className = "info legend solid",
             labels = rev(names(station_annual_colours)),
             opacity = 1,
             title = htmltools::HTML("<h3>PM<sub>2.5</sub> Monitoring Stations</h3><h4>PM<sub>2.5</sub> Metric (annual)</h4>")) %>%
-  addLegend("bottomright", colors = pal_az_annual(names(az_annual_colours)), 
+  addLegend("bottomright", group = "Annual",
+            colors = pal_az_annual(names(az_annual_colours)), 
             labels = names(az_annual_colours), 
             opacity = 1, 
-            title = htmltools::HTML("<h3>Air Zones</h3><h4>PM<sub>2.5</sub> Air Quality Standard (annual)</h4>"))
+            title = htmltools::HTML("<h3>Air Zones</h3><h4>PM<sub>2.5</sub> Air Quality Standard (annual)</h4>")) %>%
+  
+  # Add 24h data
+  addPolygons(data = az_24h, group = "24-hour",
+              color = "white", weight = 2, opacity = 1, fillOpacity = 0.6,
+              fillColor = ~pal_az_24h(caaqs_legend),
+              label = ~tooltip, 
+              popup = ~popup,
+              popupOptions = popupOptions(autoPanPaddingTopLeft = c(10, 10),
+                                          autoPanPaddingBottomRight = c(10, 400)),
+              highlightOptions = highlightOptions(bringToFront = TRUE, 
+                                                  fillOpacity = 0.7)) %>%
+  addMarkers(data = stations_24h, group = "24-hour",
+             icon = markers_24h, label = ~station_name, 
+             popup = ~popup, options = markerOptions(riseOnHover = TRUE),
+             # Stick to marker, not mouse
+             labelOptions = labelOptions(sticky = FALSE, 
+                                         offset = c(0, -icon_size/2))) %>%
+  # Custom legends to override order
+  addLegend("bottomleft", group = "24-hour",
+            colors = rev(station_24h_colours),
+            className = "info legend solid",
+            labels = rev(names(station_24h_colours)),
+            opacity = 1,
+            title = htmltools::HTML("<h3>PM<sub>2.5</sub> Monitoring Stations</h3><h4>PM<sub>2.5</sub> Metric (24h)</h4>")) %>%
+  addLegend("bottomright", group = "24-hour",
+            colors = pal_az_24h(names(az_24h_colours)), 
+            labels = names(az_24h_colours), 
+            opacity = 1, 
+            title = htmltools::HTML("<h3>Air Zones</h3><h4>PM<sub>2.5</sub> Air Quality Standard (24h)</h4>")) %>%
+  
+  # Controls to define which metric is viewed
+  addLayersControl(
+    overlayGroups = c("Annual", "24-hour"),
+    options = layersControlOptions(collapsed = FALSE)) %>%
+  
+  hideGroup("24-hour")
 
 ```
