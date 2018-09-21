@@ -270,7 +270,7 @@ leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)
   
   # Controls to define which metric is viewed
   addLayersControl(
-    overlayGroups = c("Annual", "24-hour"),
+    baseGroups = c("Annual", "24-hour"),
     options = layersControlOptions(collapsed = FALSE)) %>%
   
   hideGroup("24-hour")
