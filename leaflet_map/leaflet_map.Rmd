@@ -5,7 +5,7 @@ output:
     css: "assets/styles.css"
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include = FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
 # Allows Rmd file to be run interactively and knit 
@@ -27,6 +27,12 @@ library(htmltools) # For HTML() function
 
 # Functions to create popups
 source(here("./leaflet_map/leaflet_functions.R"))
+
+# Put plots in a folder within leaflet_map dir
+dir.create(here("leaflet_map/station_plots"), showWarnings = FALSE)
+file.copy(list.files(here("out/station_plots"), pattern = "lineplot\\.svg$", 
+                     full.names = TRUE), 
+          here("leaflet_map/station_plots"), overwrite = TRUE)
 
 # Assign colours
 az_annual_colours <- c("Not Achieved (&gt; 10 &mu;g/m&sup3;)" = "#cd7277",
@@ -204,7 +210,7 @@ reset_view <- easyButton(icon = "ion-home",
 
 ## {.tabset}
 
-```{r}
+```{r, warning=FALSE}
 m <- leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)) %>% 
   addProviderTiles(providers$CartoDB) %>%
   addEasyButton(reset_view) %>%
@@ -236,7 +242,7 @@ m <- leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom
 ```
 
 ### Annual
-```{r}
+```{r, warning=FALSE}
 m %>%
   # Add annual data
   addPolygons(data = az_annual, group = "Annual",
@@ -270,7 +276,7 @@ m %>%
 ```
 
 ### 24-hour
-```{r}
+```{r, warning=FALSE}
 m %>%
   # Add 24h data
   addPolygons(data = az_24h, group = "24-hour",
