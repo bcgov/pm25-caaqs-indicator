@@ -6,7 +6,7 @@ create_popup <- function(data, caaqs = "o3", type = "polygon") {
     title_popup(., type) %>%
     metric_popup(., caaqs) %>%
     standard_popup(., caaqs) %>%
-    mutate(popup_svg = here(paste0("./out/station_plots/", p_station_id, "_lineplot.svg")),
+    mutate(popup_svg = paste0("./station_plots/", p_station_id, "_lineplot.svg"),
     # Create the rows
     popup_row1 = paste0("<div class = 'popup-row'>\n",
                         "  <div class = 'title'>\n", popup_title, "  </div>\n",
