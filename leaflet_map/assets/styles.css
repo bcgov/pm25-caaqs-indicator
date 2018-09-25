@@ -113,14 +113,17 @@ html.lt-ie9 .info {
 /****************
 Markers
 ****************/
+
+/* Add opacity change on hover */
+
 .leaflet-marker-icon {
- opacity: 0.8;
- filter: alpha(opacity = 80); /* For IE8 and earlier */
+ /*opacity: 0.8;*/
+ /*filter: alpha(opacity = 80);*/ /* For IE8 and earlier */
 }
 
 .leaflet-marker-icon:hover {
-  opacity: 1.0;
-  filter: alpha(opacity = 100); /* For IE8 and earlier */
+  /*opacity: 1.0;*/
+  /*filter: alpha(opacity = 100);*/ /* For IE8 and earlier */
 }
 
 /****************
