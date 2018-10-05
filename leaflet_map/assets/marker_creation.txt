@@ -1,0 +1,5 @@
+Markers were created in Inkscape v.0.91 (open source software: https://inkscape.org/en/)
+
+They consist of a vector outline with a drop shadow filter. The drop shadow is the same colour as the outline, radius = 15, 0 offset, shadow type "outer".
+
+To edit, first remove the filter then reapply

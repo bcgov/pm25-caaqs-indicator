@@ -4,7 +4,8 @@
 /tmp
 /out
 internal.R
-data/PM25.csv
-data/bc_air_monitoring_stations.csv
+/data
 README.html
 .DS_Store
+leaflet_map/leaflet_map.html
+leaflet_map/station_plots

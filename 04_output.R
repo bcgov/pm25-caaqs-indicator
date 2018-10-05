@@ -268,7 +268,7 @@ airzone_ambient_map %>%
   geojson_write(file = "out/pm_airzone_summary.geojson")
 
 ## Save line plots
-line_dir <- "out/station_plots/"
+line_dir <- "leaflet_map/station_plots/"
 dir.create(line_dir, showWarnings = FALSE, recursive = TRUE)
 lapply(list.files(line_dir, full.names = TRUE), file.remove)
 width <- 778
