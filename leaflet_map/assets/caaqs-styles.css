@@ -49,15 +49,6 @@ a {
 	font-weight: 400;
 }
 
-/*.leaflet-control-layers label {
-	font-size: 13px;
-	padding-left: 10px;
-}*/
-
-.leaflet-bar-part img {
-	padding-top: 4px;
-}
-
 .no-pointer {
 	cursor: -webkit-grab;
 	cursor: -moz-grab;
@@ -117,13 +108,13 @@ Markers
 /* Add opacity change on hover */
 
 .leaflet-marker-icon {
- /*opacity: 0.8;*/
- /*filter: alpha(opacity = 80);*/ /* For IE8 and earlier */
+/* opacity: 0.8;*/
+/* filter: alpha(opacity = 80);*/ /* For IE8 and earlier */
 }
 
 .leaflet-marker-icon:hover {
   /*opacity: 1.0;*/
-  /*filter: alpha(opacity = 100);*/ /* For IE8 and earlier */
+  /*filter: alpha(opacity = 100); *//* For IE8 and earlier */
 }
 
 /****************
@@ -215,15 +206,11 @@ html.lt-ie9 .blur-overlay {
 
 
 /***************
- Modal Window
+ Popup Windows
 ***************/
 
-/*.modal {*/
+
 .leaflet-popup-content-wrapper {
-	/*position: absolute;*/
-	/*top:5%; bottom: 5%; left: 5%;*/
-	/*width: 90%;*/
-	/*z-index: 1002;*/
 	width: 800px; /* This needs to be less than the map-width (900px) */
 	margin: 50px 50px 0 50px;
   height: 100%;
@@ -235,7 +222,6 @@ html.lt-ie9 .blur-overlay {
 	border-radius: 0;
 }
 
-/*.modal a.close-btn {*/
 .leaflet-popup-close-button {
 	position: absolute;
 	font-size: 1.125em;
@@ -248,56 +234,46 @@ html.lt-ie9 .blur-overlay {
 	border: none;
 }
 
-/*.modal a.close-btn:hover {*/
 .leaflet-popup-close-button:hover {
 	color: #777;
 }
 
-/*.modal-contents {*/
 .leaflet-popup-content {
 	text-align: center;
 	width: 95% !important;
 	margin: 1.25em auto 0;
 }
 
-/*.modal-row {*/
 .popup-row {
 	overflow: auto;
 }
 
-/*.modal-row + .modal-row {*/
 .popup-row + .popup-row {
 	border-top: 1px solid #CCC;
 	margin-top: 1em;
 	padding: 1em 0;
 }
 
-/*.modal-row .title {*/
 .popup-row .title {
 	float: left;
 	text-align: left;
 	padding-bottom: 0.5em;
 }
 
-/*.modal-row h2,
-.no-photo h2*/
 .popup-row h2,
 .no-photo h2 {
 	font-size: 2.125em;
 	line-height: 1.2;
 }
 
-/*.modal-row h3 {*/
 .popup-row h3 {
 	font-size: 1.25em;
 }
 
-/*.modal-row h4 {*/
 .popup-row h4 {
 	font-size: 1em;
 }
 
-/*.modal-row .badge {*/
 .popup-row .section-standard {
 	margin-left: 8%;
 	width: 32%;
@@ -311,13 +287,11 @@ html.lt-ie9 .blur-overlay {
   box-sizing: content-box;
 }
 
-/*.modal-row span {*/
 .popup-row span {
 	font-size: 0.75em;
 	line-height: 0.75;
 }
 
-/*.modal-row .section {*/
 .popup-row .section-metric {
 	width: 32%;
 	overflow: auto;
@@ -330,13 +304,11 @@ html.lt-ie9 .blur-overlay {
   box-sizing: content-box;
 }
 
-/*.modal-row .scale {*/
 .popup-row .scale {
 	overflow: auto;
 	float: left;
 }
 
-/*.modal-row .scale img {*/
 .popup-row .scale img {
 	width: 33px;
 	height: 102px;
@@ -346,34 +318,28 @@ html.lt-ie9 .blur-overlay {
   margin-bottom: 1em;
 }
 
-/*.modal-row .section:first-child {*/
 .popup-row .section-metric:first-child {
 	margin-left: 14.5%;
 }
 
-/*.modal-row .section h3 {*/
 .popup-row .section-metric h3 {
 	line-height: 1.2;
 }
 
-/*.modal-row .badge h4 + h2 {*/
 .popup-row .section-standard h4 + h2 {
 	padding-top: 10px;
 }
 
-/*.modal-row h3 {*/
 .popup-row h3 {
 	padding-top: 10px;
 	padding-bottom: 5px;
 }
 
-/*.modal img {*/
 .leaflet-popup-content-wrapper img {
 	width: 778px;
 	height: 254px;
 }
 
-/*.modal .no-photo {*/
 .leaflet-popup-content-wrapper .no-photo {
 	display: table;
 	width: 778px;
@@ -381,7 +347,6 @@ html.lt-ie9 .blur-overlay {
 	background-color: #efefef;
 }
 
-/*.modal .no-photo h2 {*/
 .leaflet-popup-content-wrapper .no-photo h2 {
 	display: table-cell;
 	vertical-align: middle;
