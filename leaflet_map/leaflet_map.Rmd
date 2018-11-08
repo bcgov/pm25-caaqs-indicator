@@ -20,7 +20,6 @@ library(stringr)
 
 # Mapping
 library(leaflet)
-library(leaflet.extras) # For reset view button
 library(sf)
 library(geojsonio)
 library(htmltools) # For HTML() function
@@ -191,14 +190,6 @@ markers_24h <- icons( # file locations have to be relative (can't use here())
   shadowWidth = icon_size * 0.75, shadowHeight = icon_size * 0.75,
   shadowAnchorX = 1, shadowAnchorY = icon_size * 0.75)
 
-# Create Reset View button
-# (implementation adapted from leaflet.extras::addResetMapButton())
-reset_view <- easyButton(icon = "ion-home", 
-                         title = "Reset View", 
-                         onClick = JS("
-                           function(btn, map){
-                             map.setView(map._initialCenter, map._initialZoom);
-                           }"))
 ```
 
 
@@ -207,22 +198,12 @@ reset_view <- easyButton(icon = "ion-home",
 ```{r, warning=FALSE}
 m <- leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)) %>% 
   addProviderTiles(providers$CartoDB) %>%
-  addEasyButton(reset_view) %>%
-  # Get map center for home button
-  htmlwidgets::onRender(JS("
-    function(el, x){
-    var map = this;
-    map._initialCenter = map.getCenter(); map._initialZoom = map.getZoom();
-  }")) %>%
+  add_bc_home_button() %>%
+  # Java tweak to re-load popups the first time their opened to ensure correct panning 
+  # (makes it hard to inspect popup html/css, however)
+  popups_centre() %>%
   # Re-centre map on popup close
-  htmlwidgets::onRender(JS("
-    function(el, x) {
-      var map = this;
-      map.on('popupclose',
-        function (e) {
-          map.setView(map._initialCenter, map._initialZoom);
-        })
-    }"))
+  set_bc_view_on_close()
   
   # Controls to define which metric is viewed
   # Right now, but with leaflet means legends are not properly hidden
