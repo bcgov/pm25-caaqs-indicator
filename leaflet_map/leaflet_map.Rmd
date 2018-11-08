@@ -28,7 +28,7 @@ library(htmltools) # For HTML() function
 library(envreportutils)
 
 # Get css
-css_caaqs_copy(folder = here("leaflet_map"))
+css_caaqs_copy(folder = here("./leaflet_map/"))
 
 # Assign colours
 az_annual_colours <- c("Not Achieved (&gt; 10 &mu;g/m&sup3;)" = "#cd7277",
