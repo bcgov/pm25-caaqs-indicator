@@ -2,7 +2,7 @@
 title: "CAAQS Indicator: PM 2.5"
 output: 
   html_document:
-    css: "assets/styles.css"
+    css: "assets/caaqs-styles.css"
 ---
 
 ```{r setup, include = FALSE, warning=FALSE}
@@ -20,13 +20,15 @@ library(stringr)
 
 # Mapping
 library(leaflet)
-library(leaflet.extras) # For reset view button
 library(sf)
 library(geojsonio)
 library(htmltools) # For HTML() function
 
-# Functions to create popups
-source(here("./leaflet_map/leaflet_functions.R"))
+# Functions to create popups and center map
+library(envreportutils)
+
+# Get css
+css_caaqs_copy(folder = here("./leaflet_map/"))
 
 # Assign colours
 az_annual_colours <- c("Not Achieved (&gt; 10 &mu;g/m&sup3;)" = "#cd7277",
@@ -39,7 +41,7 @@ station_annual_colours <- c("&leq; 4 &mu;g/m&sup3;" = "#ffffff",
 
 
 az_24h_colours <- c("Not Achieved (&gt; 28 &mu;g/m&sup3;)" = "#cd7277",
-                    "Achieved (&lteq; 28 &mu;g/m&sup3;)" = "#72a4cd",
+                    "Achieved (&leq; 28 &mu;g/m&sup3;)" = "#72a4cd",
                     "Insufficient Data" = "#dbdbdb")
 station_24h_colours <- c("&leq; 10 &mu;g/m&sup3;" = "#ffffff", 
                      "&gt;10 &amp; &leq;19 &mu;g/m&sup3;" = "#bdbdbd", 
@@ -135,28 +137,40 @@ az_annual <- mutate(az_annual,
                     p_az = Airzone,
                     p_station = rep_station_name,
                     p_station_id = rep_station_id) %>%
-  create_popup(., caaq = "pm2.5_annual", type = "polygon") %>%
-  mutate(popup = replace(popup, n == 0, NA))
+  mutate(popup = popup_caaqs(., type = "region", 
+                             metric_name = "PM<sub>2.5</sub> Metric (annual)",
+                             units = "&mu;g/m&sup3;",
+                             standard_name = "PM<sub>2.5</sub> Air Quality Standard (annual)"),
+         popup = replace(popup, n == 0, NA))
 
 az_24h <- mutate(az_24h, 
                  p_az = Airzone,
                  p_station = rep_station_name,
                  p_station_id = rep_station_id) %>%
-  create_popup(., caaq = "pm2.5_24h", type = "polygon") %>%
-  mutate(popup = replace(popup, n == 0, NA))
+  mutate(popup = popup_caaqs(., type = "region", 
+                             metric_name = "PM<sub>2.5</sub> Metric (24h)",
+                             units = "&mu;g/m&sup3;",
+                             standard_name = "PM<sub>2.5</sub> Air Quality Standard (24h)"),
+         popup = replace(popup, n == 0, NA))
 
 # Create Stations Popups
 stations_annual <- mutate(stations_annual,
                           p_az = Airzone,
                           p_station = station_name,
                           p_station_id = paste0(ems_id, "_annual")) %>%
-  create_popup(., caaq = "pm2.5_annual", type = "markers")
+  mutate(popup = popup_caaqs(., type = "station", 
+                             metric_name = "PM<sub>2.5</sub> Metric (annual)",
+                             units = "&mu;g/m&sup3;",
+                             standard_name = "PM<sub>2.5</sub> Air Quality Standard (annual)"))
 
 stations_24h <- mutate(stations_24h,
                        p_az = Airzone,
                        p_station = station_name,
                        p_station_id = paste0(ems_id, "_24h")) %>%
-  create_popup(., caaq = "pm2.5_24h", type = "markers")
+  mutate(popup = popup_caaqs(., type = "station", 
+                             metric_name = "PM<sub>2.5</sub> Metric (24h)",
+                             units = "&mu;g/m&sup3;",
+                             standard_name = "PM<sub>2.5</sub> Air Quality Standard (24h)"))
 
 
 # Verify popup formating
@@ -191,14 +205,11 @@ markers_24h <- icons( # file locations have to be relative (can't use here())
   shadowWidth = icon_size * 0.75, shadowHeight = icon_size * 0.75,
   shadowAnchorX = 1, shadowAnchorY = icon_size * 0.75)
 
-# Create Reset View button
-# (implementation adapted from leaflet.extras::addResetMapButton())
-reset_view <- easyButton(icon = "ion-home", 
-                         title = "Reset View", 
-                         onClick = JS("
-                           function(btn, map){
-                             map.setView(map._initialCenter, map._initialZoom);
-                           }"))
+# Popup Options
+ppo <- popupOptions(autoPanPaddingTopLeft = c(10, 10),
+                    autoPanPaddingBottomRight = c(10, 400),
+                    closeOnEscapeKey = TRUE, 
+                    keepInView = TRUE)
 ```
 
 
@@ -207,22 +218,9 @@ reset_view <- easyButton(icon = "ion-home",
 ```{r, warning=FALSE}
 m <- leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)) %>% 
   addProviderTiles(providers$CartoDB) %>%
-  addEasyButton(reset_view) %>%
-  # Get map center for home button
-  htmlwidgets::onRender(JS("
-    function(el, x){
-    var map = this;
-    map._initialCenter = map.getCenter(); map._initialZoom = map.getZoom();
-  }")) %>%
+  add_bc_home_button() %>%
   # Re-centre map on popup close
-  htmlwidgets::onRender(JS("
-    function(el, x) {
-      var map = this;
-      map.on('popupclose',
-        function (e) {
-          map.setView(map._initialCenter, map._initialZoom);
-        })
-    }"))
+  set_bc_view_on_close()
   
   # Controls to define which metric is viewed
   # Right now, but with leaflet means legends are not properly hidden
@@ -244,9 +242,7 @@ m %>%
               fillColor = ~pal_az_annual(caaqs_legend),
               label = ~tooltip, 
               popup = ~popup,
-              popupOptions = popupOptions(autoPanPaddingTopLeft = c(10, 10),
-                                          autoPanPaddingBottomRight = c(10, 400),
-                                          closeOnEscapeKey = TRUE)) %>%
+              popupOptions = ppo) %>%
               # highlightOptions = highlightOptions(bringToFront = TRUE, 
               #                                     fillOpacity = 0.7)) %>%
   addMarkers(data = stations_annual, group = "Annual",
@@ -278,9 +274,7 @@ m %>%
               fillColor = ~pal_az_24h(caaqs_legend),
               label = ~tooltip, 
               popup = ~popup,
-              popupOptions = popupOptions(autoPanPaddingTopLeft = c(10, 10),
-                                          autoPanPaddingBottomRight = c(10, 400),
-                                          closeOnEscapeKey = TRUE)) %>%
+              popupOptions = ppo) %>%
               # highlightOptions = highlightOptions(bringToFront = TRUE, 
               #                                     fillOpacity = 0.7)) %>%
   addMarkers(data = stations_24h, group = "24-hour",
