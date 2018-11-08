@@ -38,7 +38,7 @@ station_annual_colours <- c("&leq; 4 &mu;g/m&sup3;" = "#ffffff",
 
 
 az_24h_colours <- c("Not Achieved (&gt; 28 &mu;g/m&sup3;)" = "#cd7277",
-                    "Achieved (&lteq; 28 &mu;g/m&sup3;)" = "#72a4cd",
+                    "Achieved (&leq; 28 &mu;g/m&sup3;)" = "#72a4cd",
                     "Insufficient Data" = "#dbdbdb")
 station_24h_colours <- c("&leq; 10 &mu;g/m&sup3;" = "#ffffff", 
                      "&gt;10 &amp; &leq;19 &mu;g/m&sup3;" = "#bdbdbd", 
