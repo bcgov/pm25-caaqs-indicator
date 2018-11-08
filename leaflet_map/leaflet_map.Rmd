@@ -205,6 +205,11 @@ markers_24h <- icons( # file locations have to be relative (can't use here())
   shadowWidth = icon_size * 0.75, shadowHeight = icon_size * 0.75,
   shadowAnchorX = 1, shadowAnchorY = icon_size * 0.75)
 
+# Popup Options
+ppo <- popupOptions(autoPanPaddingTopLeft = c(10, 10),
+                    autoPanPaddingBottomRight = c(10, 400),
+                    closeOnEscapeKey = TRUE, 
+                    keepInView = TRUE)
 ```
 
 
@@ -214,9 +219,6 @@ markers_24h <- icons( # file locations have to be relative (can't use here())
 m <- leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)) %>% 
   addProviderTiles(providers$CartoDB) %>%
   add_bc_home_button() %>%
-  # Java tweak to re-load popups the first time their opened to ensure correct panning 
-  # (makes it hard to inspect popup html/css, however)
-  popups_centre() %>%
   # Re-centre map on popup close
   set_bc_view_on_close()
   
@@ -240,9 +242,7 @@ m %>%
               fillColor = ~pal_az_annual(caaqs_legend),
               label = ~tooltip, 
               popup = ~popup,
-              popupOptions = popupOptions(autoPanPaddingTopLeft = c(10, 10),
-                                          autoPanPaddingBottomRight = c(10, 400),
-                                          closeOnEscapeKey = TRUE)) %>%
+              popupOptions = ppo) %>%
               # highlightOptions = highlightOptions(bringToFront = TRUE, 
               #                                     fillOpacity = 0.7)) %>%
   addMarkers(data = stations_annual, group = "Annual",
@@ -274,9 +274,7 @@ m %>%
               fillColor = ~pal_az_24h(caaqs_legend),
               label = ~tooltip, 
               popup = ~popup,
-              popupOptions = popupOptions(autoPanPaddingTopLeft = c(10, 10),
-                                          autoPanPaddingBottomRight = c(10, 400),
-                                          closeOnEscapeKey = TRUE)) %>%
+              popupOptions = ppo) %>%
               # highlightOptions = highlightOptions(bringToFront = TRUE, 
               #                                     fillOpacity = 0.7)) %>%
   addMarkers(data = stations_24h, group = "24-hour",
