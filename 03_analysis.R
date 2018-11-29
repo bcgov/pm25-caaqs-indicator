@@ -13,6 +13,7 @@
 library("rcaaqs")
 library("dplyr")
 library("lubridate")
+library("readr")
 
 if (!exists("pm25_clean")) load("tmp/pm25_clean.rda")
 
@@ -72,3 +73,6 @@ pm_annual_caaqs_2017 <- get_caaqs(pm25_annual_caaqs_mgmt) %>%
 airzone_caaqs_pm_annual <- airzone_metric(pm_annual_caaqs_2017)
 
 save(list = ls(), file = "tmp/analysed.RData")
+
+write_csv(pm_annual_caaqs_2017, "out/pm_annual_caaqs_2017.csv")
+write_csv(pm_24h_caaqs_2017, "out/pm_24h_caaqs_2017.csv")
