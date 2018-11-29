@@ -50,10 +50,12 @@ pm_24h_caaqs_2017 <- get_caaqs(pm25_24h_caaqs_mgmt) %>%
   group_by(ems_id) %>% 
   filter(caaqs_year == max(caaqs_year),
          n_years > 1) %>% 
-  left_join(select(stations_clean, ems_id, airzone, lat, lon), 
+  left_join(select(stations_clean, airzone, ems_id), 
             by = c("ems_id")) %>% 
   ungroup() %>% 
-  airzone_metric()
+  select(airzone, everything())
+
+airzone_caaqs_pm24h <- airzone_metric(pm_24h_caaqs_2017)
 
 
 # PM25 Annual - Airzone caaqs -----------------------------------------
@@ -62,9 +64,11 @@ pm_annual_caaqs_2017 <- get_caaqs(pm25_annual_caaqs_mgmt) %>%
   group_by(ems_id) %>% 
   filter(caaqs_year == max(caaqs_year),
          n_years > 1) %>% 
-  left_join(select(stations_clean, airzone, ems_id, lat, lon), 
+  left_join(select(stations_clean, airzone, ems_id), 
             by = c("ems_id")) %>% 
   ungroup() %>% 
-  airzone_metric()
+  select(airzone, everything())
+
+airzone_caaqs_pm_annual <- airzone_metric(pm_annual_caaqs_2017)
 
 save(list = ls(), file = "tmp/analysed.RData")
