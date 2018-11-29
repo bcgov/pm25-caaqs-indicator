@@ -13,19 +13,20 @@
 library("dplyr")
 library("lubridate")
 library("rcaaqs")
+library(bcmaps)
 
 options("rcaaqs.timezone" = "Etc/GMT+8")
 
 if (!exists("pm25_all")) load("tmp/pm25_raw.RData")
 
-min_year <- 2014
-max_year <- 2016
+min_year <- 2015
+max_year <- 2017
 
 ## Set stations to exclude from analyis (those in indsutrial settings):
 excluded_stations <- stations$EMS_ID[grepl("industr", stations$STATION_ENVIRONMENT, ignore.case = TRUE)]
 
-## Exclude Valemount due to too much missing data and Kitimat Smeltersite which is industrial but not 
-## labelled as such in the stations metadata
+## Exclude Valemount due to too much missing data and Kitimat Smeltersite 
+## which is industrial but not labelled as such in the stations metadata
 excluded_stations <- c(excluded_stations, "E234293", "E290529")
 
 ## Format dates, extract 2014-2016, set variable names
@@ -38,7 +39,13 @@ pm25 <- pm25_all %>%
   select(-DATE_PST) %>% 
   rename_all(tolower) %>% 
   rename(value = raw_value) %>% 
-  mutate(value = clean_neg(value, type = "pm25"))
+  mutate(value = clean_neg(value, type = "pm25")) %>% 
+  group_by(ems_id, station_name, instrument) %>% 
+  do(., date_fill(., date_col = "date_time",
+                  fill_cols = c("ems_id", "station_name", "instrument"),
+                  interval = "1 hour")) %>% 
+  ungroup() %>% 
+  distinct()
 
 ## Plot deployments of different instruments at each station
 plot_station_instruments(pm25)
@@ -52,35 +59,16 @@ instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>%
   summarise(min_date = min(date), 
             max_date = max(date),
             n_days = n()) %>%
-  ungroup
+  ungroup()
 
 ## Select the monitor at each station that hast the most days
 max_deployment_by_station <- group_by(instrument_deployments, ems_id, station_name) %>% 
   summarise(which_instrument = instrument[which.max(n_days)])
 
-## There are two stations for which we are using data from different instruments for 
-## different years:
-instrument_selections <- tribble(
-  ~ems_id,    ~year, ~instrument, 
-  "E249492",  2014,  "PM25_R&P_TEOM",
-  "E249492",  2015,  "PM25 SHARP5030",
-  "E249492",  2016,  "PM25 SHARP5030",
-  "0500886",  2014,  "PM25_R&P_TEOM",
-  "0500886",  2015,  "PM25 SHARP5030",
-  "0500886",  2016,  "PM25 SHARP5030",
-  "0310172",  2014,  "BAM1020",  # Slightly fewer days on FEM for Squamish but use it over TEOM
-  "0310172",  2015,  "BAM1020",
-  "0310172",  2016,  "BAM1020"
-)
-
-## Select the data for the two special cases above:
-teom_fem_pm25 <- inner_join(pm25, instrument_selections, by = c("ems_id", "year", "instrument"))
-
 ## Now select the rest based on max deployments:
-pm25_clean <- filter(pm25, !ems_id %in% unique(instrument_selections$ems_id)) %>% 
+pm25_clean <- pm25 %>% 
   inner_join(max_deployment_by_station, 
-             by = c("ems_id", "station_name", "instrument" = "which_instrument")) %>% 
-  bind_rows(teom_fem_pm25)
+             by = c("ems_id", "station_name", "instrument" = "which_instrument"))
 
 ## As a check, plot them - there should be only one monitor per station, 
 ## except for the two where they were combined (Kelowna College and Vernon Science Centre)
@@ -89,12 +77,23 @@ plot_station_instruments(pm25_clean)
 
 ## Clean station data - lowercase column names, remove pseudo-duplicates, subset to those 
 ## stations analysed
+## OLD == closed stns; 
+## _60 == meteorological stns;
+## Met == meteorological stns using Campbell loggers; 
+## BAM == Beta Attenuation Monitoring for PM measurement.
+select_pattern <- "_60$|Met$|OLD$|BAM$"
 stations_clean <- rename_all(stations, tolower) %>% 
   group_by(ems_id) %>%
   filter(n() == 1 | 
-           !grepl("_60$|Met$|OLD$", station_name)) %>% 
-  filter(ems_id %in% unique(pm25_clean$ems_id))
+          !grepl(select_pattern, station_name) | 
+           all(grepl(select_pattern, station_name))) %>% 
+  mutate(station_name = gsub(select_pattern, "", station_name)) %>% 
+  semi_join(pm25_clean, by = "ems_id") %>% 
+  top_n(1, station_name)
 
+stations_clean <- assign_airzone(stations_clean, airzones = airzones(), 
+                                 station_id = "ems_id", 
+                                 coords = c("longitude", "latitude"))
 
 save(pm25_clean, stations_clean, file = "tmp/pm25_clean.rda")
 
