@@ -58,11 +58,27 @@ pm24h_stations_caaqs_sf <- pm_24h_caaqs_2017 %>%
   transform_bc_albers()
 
 ggplot() + 
-  geom_sf(data = az, aes(fill = caaqs_ambient)) + 
+  geom_sf(data = az, aes(fill = caaqs_ambient), colour = "white") + 
   scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
                     drop = FALSE, name = "Airzones:\nOzone Air Quality Standard",
                     guide = guide_legend(order = 1, title.position = "top")) + 
-  geom_sf(data = pm24h_stations_caaqs_sf, aes(colour = caaqs_ambient))
+  geom_sf(data = pm24h_stations_caaqs_sf, inherit.aes = FALSE,
+          colour = "grey30", shape = 21, size = 4) + 
+  geom_sf(data = pm24h_stations_caaqs_sf, aes(colour = metric_value_ambient), 
+          size = 3) + 
+  scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
+                        name = "Monitoring Stations:\nPM2.5 24h Metric (ug/m3)", 
+                        guide = guide_colourbar(order = 2,
+                                                title.position = "top",
+                                                barwidth = 10)) + 
+  coord_sf(datum = NA) +
+  theme_minimal() + 
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(), 
+        legend.position = "bottom",
+        legend.box.just = "left")
 
 ## @knitr pre
 
