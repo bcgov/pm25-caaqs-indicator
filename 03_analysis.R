@@ -38,12 +38,13 @@ excludes <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28,
 # PM25 24 Hour - Management -----------------------------------------------
 
 pm25_24h_caaqs_mgmt <- caaqs_management(pm25_caaqs_24h, exclude_df = excludes, 
-                                    exclude_df_dt = "date")
+                                        exclude_df_dt = "date")
 
 
 # PM25 Annual - Management ------------------------------------------------
 
-pm25_annual_caaqs_mgmt <- caaqs_management(pm25_caaqs_annual, exclude_df = excludes, 
+pm25_annual_caaqs_mgmt <- caaqs_management(pm25_caaqs_annual, 
+                                           exclude_df = excludes, 
                                            exclude_df_dt = "date")
 # PM25 24 Hour - Airzone caaqs -----------------------------------------
 

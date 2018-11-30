@@ -17,23 +17,57 @@ library("tidyr")
 library("bcmaps")
 
 library("ggplot2")
-library("grid")
+# library("grid")
 library("envreportutils")
 
 library("sf")
-library("geojsonio")
+# library("geojsonio")
 
-if (!exists("airzone_summary")) load("tmp/analysed.RData")
+if (!exists("az_final")) load("tmp/analysed.RData")
 
 # Create output directory:
 dir.create("out", showWarnings = FALSE)
 
 # Summary plot of stations ------------------------------------------------
 
+pm_24h_summary_plot <- summary_plot(pm_24h_caaqs_2017, metric_val = "metric_value_ambient", 
+                      airzone = "airzone", station = "station_name", 
+                      parameter = "metric", pt_size = 2) + 
+  theme(strip.text.y = element_text(angle = 0))
+
+pm_annual_summary_plot <- summary_plot(pm_annual_caaqs_2017,
+                                       metric_val = "metric_value_ambient", 
+                                       airzone = "airzone", 
+                                       station = "station_name", 
+                                       parameter = "metric", pt_size = 2) + 
+  theme(strip.text.y = element_text(angle = 0))
 
 # Summary achievement map -------------------------------------------------
 
+az <- st_intersection(airzones(), st_geometry(bc_bound())) %>% 
+  group_by(Airzone) %>% 
+  summarize() %>%
+  left_join(az_final, by = c("Airzone" = "airzone")) %>% 
+  mutate_at(c("caaqs_ambient", "mgmt_level"), 
+            ~ replace_na(as.character(.x), "Insufficient Data"))
+
+pm24h_stations_caaqs_sf <- pm_24h_caaqs_2017 %>% 
+  left_join(stations_clean %>% 
+              select(ems_id, lat, lon)) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  transform_bc_albers()
+
+ggplot() + 
+  geom_sf(data = az, aes(fill = caaqs_ambient)) + 
+  scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
+                    drop = FALSE, name = "Airzones:\nOzone Air Quality Standard",
+                    guide = guide_legend(order = 1, title.position = "top")) + 
+  geom_sf(data = pm24h_stations_caaqs_sf, aes(colour = caaqs_ambient))
+
 ## @knitr pre
+
+
+
 
 # transformthe lat-long coordinates to BC Albers
 airzone_ambient_map <- transform_bc_albers(airzone_ambient_map)
