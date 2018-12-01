@@ -70,7 +70,7 @@ stations_caaqs_pm_annual_sf <- left_join(stations_sf, pm_annual_caaqs_2017)
 
 ## @knitr achievement_map_24
 (
-achievement_map_24 <- ggplot() + 
+achievement_map_24h <- ggplot() + 
   geom_sf(data = az_pm24h_sf, aes(fill = caaqs_ambient), colour = "white") + 
   scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
                     drop = FALSE, name = "Airzones:\nOzone Air Quality Standard",
@@ -95,7 +95,7 @@ achievement_map_24 <- ggplot() +
 ## @knitr achievement_map_annual
 
 (
-  achievement_map_24 <- ggplot() + 
+  achievement_map_annual <- ggplot() + 
     geom_sf(data = az_pm_annual_sf, aes(fill = caaqs_ambient), colour = "white") + 
     scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
                       drop = FALSE, name = "Airzones:\nOzone Air Quality Standard",
