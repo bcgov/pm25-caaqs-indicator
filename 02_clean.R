@@ -42,7 +42,7 @@ pm25 <- pm25_all %>%
   mutate(value = clean_neg(value, type = "pm25"),) %>% 
   group_by(ems_id, station_name, instrument) %>% 
   do(., date_fill(., date_col = "date_time",
-                  fill_cols = c("ems_id", "station_name", "instrument"),
+                  fill_cols = c("ems_id", "station_name", "instrument", "parameter"),
                   interval = "1 hour")) %>% 
   mutate(instrument_type = 
            case_when(grepl("TEOM", instrument) ~ "TEOM",
@@ -56,8 +56,8 @@ pm25 <- pm25_all %>%
 plot_station_instruments(pm25)
 plot_station_instruments(pm25, instrument = "instrument_type")
 
-## Summarise the dates that different PM2.5 monitoring instrumnets were deployed 
-## at each station so we can get the most data
+## Summarise the dates that different PM2.5 monitoring instrumnet types were 
+## deployed at each station so we can get the most data
 instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>% 
   select(ems_id, station_name, instrument_type, date) %>% 
   distinct() %>% 
