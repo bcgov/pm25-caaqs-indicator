@@ -48,7 +48,8 @@ pm25 <- pm25_all %>%
            case_when(grepl("TEOM", instrument) ~ "TEOM",
                      grepl("SHARP|BAM", instrument) ~ "FEM", 
                      is.na(instrument) ~ NA_character_,
-                     TRUE ~ "Unknown")) %>% 
+                     TRUE ~ "Unknown"), 
+         year = year(date_time)) %>% 
   ungroup() %>% 
   distinct()
 
@@ -71,10 +72,27 @@ instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>%
 max_deployment_by_station <- group_by(instrument_deployments, ems_id, station_name) %>% 
   summarise(which_instrument = instrument_type[which.max(n_days)])
 
-## Now select the rest based on max deployments:
+
+# Combine two squamish stations (both FEM, one in 2015 and the other in 2016-17)
+# for a complete record
+squamish_ems_ids <- c("0310172", "E304570")
+
+squamish <- bind_rows(
+  filter(pm25, instrument_type == "FEM", ems_id == squamish_ems_ids[1], 
+         year == 2015), 
+  filter(pm25, instrument_type == "FEM", ems_id == squamish_ems_ids[2], 
+         year %in% 2016:2017) 
+) %>% 
+  mutate(ems_id = paste(squamish_ems_ids, collapse = "-"), 
+         station_name = "Squamish")
+
+## Now select the rest based on max deployments and combine with Squamish
 pm25_clean <- pm25 %>% 
   inner_join(max_deployment_by_station, 
-             by = c("ems_id", "station_name", "instrument_type" = "which_instrument"))
+             by = c("ems_id", "station_name", 
+                    "instrument_type" = "which_instrument")) %>% 
+  filter(!ems_id %in% squamish_ems_ids) %>% 
+  bind_rows(squamish)
 
 ## As a check, plot them - there should be only one monitor per station, 
 ## except for Kamloops Federal Building, where two types of FEMs were combined
