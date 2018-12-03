@@ -39,23 +39,29 @@ pm25 <- pm25_all %>%
   select(-DATE_PST) %>% 
   rename_all(tolower) %>% 
   rename(value = raw_value) %>% 
-  mutate(value = clean_neg(value, type = "pm25")) %>% 
+  mutate(value = clean_neg(value, type = "pm25"),) %>% 
   group_by(ems_id, station_name, instrument) %>% 
   do(., date_fill(., date_col = "date_time",
                   fill_cols = c("ems_id", "station_name", "instrument"),
                   interval = "1 hour")) %>% 
+  mutate(instrument_type = 
+           case_when(grepl("TEOM", instrument) ~ "TEOM",
+                     grepl("SHARP|BAM", instrument) ~ "FEM", 
+                     is.na(instrument) ~ NA_character_,
+                     TRUE ~ "Unknown")) %>% 
   ungroup() %>% 
   distinct()
 
 ## Plot deployments of different instruments at each station
 plot_station_instruments(pm25)
+plot_station_instruments(pm25, instrument = "instrument_type")
 
 ## Summarise the dates that different PM2.5 monitoring instrumnets were deployed 
 ## at each station so we can get the most data
 instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>% 
-  select(ems_id, station_name, instrument, date) %>% 
+  select(ems_id, station_name, instrument_type, date) %>% 
   distinct() %>% 
-  group_by(ems_id, station_name, instrument) %>% 
+  group_by(ems_id, station_name, instrument_type) %>% 
   summarise(min_date = min(date), 
             max_date = max(date),
             n_days = n()) %>%
@@ -63,17 +69,17 @@ instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>%
 
 ## Select the monitor at each station that hast the most days
 max_deployment_by_station <- group_by(instrument_deployments, ems_id, station_name) %>% 
-  summarise(which_instrument = instrument[which.max(n_days)])
+  summarise(which_instrument = instrument_type[which.max(n_days)])
 
 ## Now select the rest based on max deployments:
 pm25_clean <- pm25 %>% 
   inner_join(max_deployment_by_station, 
-             by = c("ems_id", "station_name", "instrument" = "which_instrument"))
+             by = c("ems_id", "station_name", "instrument_type" = "which_instrument"))
 
 ## As a check, plot them - there should be only one monitor per station, 
-## except for the two where they were combined (Kelowna College and Vernon Science Centre)
-## and these should not overlap
+## except for Kamloops Federal Building, where two types of FEMs were combined
 plot_station_instruments(pm25_clean)
+plot_station_instruments(pm25_clean, instrument = "instrument_type")
 
 ## Clean station data - lowercase column names, remove pseudo-duplicates, subset to those 
 ## stations analysed
