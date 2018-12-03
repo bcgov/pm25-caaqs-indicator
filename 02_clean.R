@@ -76,6 +76,7 @@ max_deployment_by_station <- group_by(instrument_deployments, ems_id, station_na
 # Combine two squamish stations (both FEM, one in 2015 and the other in 2016-17)
 # for a complete record
 squamish_ems_ids <- c("0310172", "E304570")
+combo_squamish_id <- paste(squamish_ems_ids, collapse = "-")
 
 squamish <- bind_rows(
   filter(pm25, instrument_type == "FEM", ems_id == squamish_ems_ids[1], 
@@ -83,7 +84,7 @@ squamish <- bind_rows(
   filter(pm25, instrument_type == "FEM", ems_id == squamish_ems_ids[2], 
          year %in% 2016:2017) 
 ) %>% 
-  mutate(ems_id = paste(squamish_ems_ids, collapse = "-"), 
+  mutate(ems_id = combo_squamish_id, 
          station_name = "Squamish")
 
 ## Now select the rest based on max deployments and combine with Squamish
@@ -105,13 +106,16 @@ plot_station_instruments(pm25_clean, instrument = "instrument_type")
 ## _60 == meteorological stns;
 ## Met == meteorological stns using Campbell loggers; 
 ## BAM == Beta Attenuation Monitoring for PM measurement.
-select_pattern <- "_60$|Met$|OLD$|BAM$"
+select_pattern <- "_60$|Met$|OLD$|BAM$|Squamish Gov't Bldg"
 stations_clean <- rename_all(stations, tolower) %>% 
+  mutate(ems_id = case_when(ems_id %in% squamish_ems_ids ~ combo_squamish_id, 
+                            TRUE ~ ems_id)) %>% 
   group_by(ems_id) %>%
   filter(n() == 1 | 
           !grepl(select_pattern, station_name) | 
            all(grepl(select_pattern, station_name))) %>% 
-  mutate(station_name = gsub(select_pattern, "", station_name)) %>% 
+  mutate(station_name = gsub(select_pattern, "", station_name), 
+         station_name = gsub("(Squamish).+", "\\1", station_name)) %>% 
   semi_join(pm25_clean, by = "ems_id") %>% 
   top_n(1, station_name)
 
