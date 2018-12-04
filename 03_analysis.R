@@ -17,7 +17,7 @@ library("readr")
 
 if (!exists("pm25_clean")) load("tmp/pm25_clean.rda")
 
-site_group_vars <- c("ems_id", "station_name", "instrument")
+site_group_vars <- c("ems_id", "station_name", "instrument_type")
 
 # PM25 Annual -------------------------------------------------------------
 pm25_caaqs_annual <- pm_annual_caaqs(pm25_clean, by = site_group_vars)
