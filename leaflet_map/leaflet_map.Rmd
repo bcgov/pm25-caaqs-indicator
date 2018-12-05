@@ -48,93 +48,88 @@ station_24h_colours <- c("&leq; 10 &mu;g/m&sup3;" = "#ffffff",
                      "&gt;19 &amp; &leq;28 &mu;g/m&sup3;" = "#737373", 
                      "&gt;28 &mu;g/m&sup3;" = "#000000")
 
-# Load and prep data
-stations <- st_read(here("./out/pm_site_summary.geojson"), stringsAsFactors = FALSE)
+# # Load and prep data
+stations_annual <- read_sf(here("out/pm_caaqs_annual.geojson"))
+stations_24h <- read_sf(here("out/pm_caaqs_24h.geojson"))
 
 # Count stations before removing for insufficient data
-az_n <- stations %>%
-  group_by(Airzone) %>%
+az_n <- stations_annual %>%
+  group_by(airzone) %>%
   count() %>%
   st_set_geometry(NULL)
 
-# Separate into distinct metrics
-stations_annual <- select(stations, -contains("24")) %>%
-  rename_all(.funs = funs(str_remove(., "_annual")))
-
-stations_24h <- select(stations, -contains("annual")) %>%
-  rename_all(.funs = funs(str_remove(., "_24h")))
-
 # Deal with insufficient data
 stations_annual <- stations_annual %>%
-  mutate(caaqs = replace(caaqs, is.na(caaqs), "Insufficient Data"),
-         caaqs_legend = rcaaqs::cut_management(metric_value, 
+  mutate(caaqs_ambient = replace(caaqs_ambient, is.na(caaqs_ambient), "Insufficient Data"),
+         caaqs_legend = rcaaqs:::cut_management(metric_value_ambient, 
                                                "pm2.5_annual", "breaks_h")) %>%
-  filter(caaqs != "Insufficient Data") %>%
+  filter(caaqs_ambient != "Insufficient Data") %>% 
   mutate(caaqs_legend = factor(caaqs_legend,
-                               levels = c("&leq; 4&mu;g/m&sup3;", 
-                                          "&gt; 4&mu;g/m&sup3; &amp; &leq; 6.4&mu;g/m&sup3;",
-                                          "&gt; 6.4&mu;g/m&sup3; &amp; &leq; 10&mu;g/m&sup3;",
+                               levels = c("&lteq; 4&mu;g/m&sup3;", 
+                                          "&gt; 4&mu;g/m&sup3; &amp; &lteq; 6.4&mu;g/m&sup3;", 
+                                          "&gt; 6.4&mu;g/m&sup3; &amp; &lteq; 10&mu;g/m&sup3;", 
                                           "&gt; 10&mu;g/m&sup3;"),
                                labels = names(station_annual_colours)))
 
 stations_24h <- stations_24h %>%
-  mutate(caaqs = replace(caaqs, is.na(caaqs), "Insufficient Data"),
-         caaqs_legend = rcaaqs::cut_management(metric_value, 
+  mutate(caaqs_ambient = replace(caaqs_ambient, is.na(caaqs_ambient), "Insufficient Data"),
+         caaqs_legend = rcaaqs:::cut_management(metric_value_ambient, 
                                                "pm2.5_24h", "breaks_h")) %>%
-  filter(caaqs != "Insufficient Data") %>%
+  filter(caaqs_ambient != "Insufficient Data") %>%
   mutate(caaqs_legend = factor(caaqs_legend,
-                               levels = c("&leq; 10&mu;g/m&sup3;", 
-                                          "&gt; 10&mu;g/m&sup3; &amp; &leq; 19&mu;g/m&sup3;",
-                                          "&gt; 19&mu;g/m&sup3; &amp; &leq; 28&mu;g/m&sup3;",
-                                          "&gt; 28&mu;g/m&sup3;"),
+                               levels = c("&lteq; 10&mu;g/m&sup3;", 
+                                         "&gt; 10&mu;g/m&sup3; &amp; &lteq; 19&mu;g/m&sup3;", 
+                                         "&gt; 19&mu;g/m&sup3; &amp; &lteq; 28&mu;g/m&sup3;", 
+                                         "&gt; 28&mu;g/m&sup3;"),
                                labels = names(station_24h_colours)))
 
 # Load airzones
-az <- st_read(here("./out/pm_airzone_summary.geojson"), stringsAsFactors = FALSE) %>%
-  left_join(az_n, by = "Airzone")# Join only data, not by spatial
+az_annual <- st_read(here("./out/pm_airzone_annual.geojson"), stringsAsFactors = FALSE) %>%
+  left_join(az_n, by = "airzone")# Join only data, not by spatial
+
+az_24h <- st_read(here("./out/pm_airzone_24h.geojson"), stringsAsFactors = FALSE) %>%
+  left_join(az_n, by = "airzone")# Join only data, not by spatial
 
 # Separate into distinct metrics and assign Insufficient data
-az_annual <- select(az, -contains("24")) %>%
-  rename_all(.funs = funs(str_remove(., "_annual"))) %>% 
-  rename(rep_station_name = rep_stn,
-         rep_station_id = rep_id,
-         metric_value = pm2.5_metric) %>%
+az_annual <- az_annual %>% 
+  rename(rep_station_name = station_name_ambient,
+         rep_station_id = rep_stn_id_ambient, 
+         n_years = n_years_ambient) %>%
   mutate(rep_station_id = paste0(rep_station_id, "_annual"),
-         caaqs = replace(caaqs, is.na(caaqs), "Insufficient Data"),
-         caaqs_legend = factor(caaqs, 
+         caaqs_ambient = replace(caaqs_ambient, is.na(caaqs_ambient), "Insufficient Data"),
+         caaqs_legend = factor(caaqs_ambient, 
                                levels = c("Not Achieved", "Achieved", 
                                           "Insufficient Data"),
                                labels = names(az_annual_colours)),
-         metric_value = as.numeric(metric_value))
+         metric_value_ambient = as.numeric(metric_value_ambient))
 
-az_24h <- select(az, -contains("annual")) %>%
-  rename_all(.funs = funs(str_remove(., "_24h"))) %>%
-  rename(rep_station_name = rep_stn,
-         rep_station_id = rep_id,
-         metric_value = pm2.5_metric) %>%
+az_24h <- az_24h %>%
+  rename(rep_station_name = station_name_ambient,
+         rep_station_id = rep_stn_id_ambient,
+         n_years = n_years_ambient) %>%
   mutate(rep_station_id = paste0(rep_station_id, "_24h"),
-         caaqs = replace(caaqs, is.na(caaqs), "Insufficient Data"),
-         caaqs_legend = factor(caaqs, 
+         caaqs_ambient = replace(caaqs_ambient, is.na(caaqs_ambient), "Insufficient Data"),
+         caaqs_legend = factor(caaqs_ambient, 
                                levels = c("Not Achieved", "Achieved", 
                                           "Insufficient Data"),
                                labels = names(az_24h_colours)),
-         metric_value = as.numeric(metric_value))
+         metric_value_ambient = as.numeric(metric_value_ambient))
 
 # Calculate/Create Airzone tooltips
 az_annual <- mutate(az_annual, n = replace(n, is.na(n), 0),
-                    tooltip = map2(Airzone, n, 
+                    tooltip = map2(airzone, n, 
                                    ~HTML(paste0(.x, "<br>", .y, 
                                                 " Monitoring Station", 
                                                 if_else(.y == 1, "", "s")))))
 
 az_24h <- mutate(az_24h, n = replace(n, is.na(n), 0),
-                 tooltip = map2(Airzone, n, 
+                 tooltip = map2(airzone, n, 
                                 ~HTML(paste0(.x, "<br>", .y, 
                                              " Monitoring Station", 
                                              if_else(.y == 1, "", "s")))))
 # Create Airzone Popups
 az_annual <- mutate(az_annual, 
-                    p_az = Airzone,
+                    p_az = airzone,
                     p_station = rep_station_name,
                     p_station_id = rep_station_id) %>%
   mutate(popup = popup_caaqs(., type = "region", 
@@ -144,7 +139,7 @@ az_annual <- mutate(az_annual,
          popup = replace(popup, n == 0, NA))
 
 az_24h <- mutate(az_24h, 
-                 p_az = Airzone,
+                 p_az = airzone,
                  p_station = rep_station_name,
                  p_station_id = rep_station_id) %>%
   mutate(popup = popup_caaqs(., type = "region", 
@@ -155,7 +150,7 @@ az_24h <- mutate(az_24h,
 
 # Create Stations Popups
 stations_annual <- mutate(stations_annual,
-                          p_az = Airzone,
+                          p_az = airzone,
                           p_station = station_name,
                           p_station_id = paste0(ems_id, "_annual")) %>%
   mutate(popup = popup_caaqs(., type = "station", 
@@ -164,7 +159,7 @@ stations_annual <- mutate(stations_annual,
                              standard_name = "PM<sub>2.5</sub> Air Quality Standard (annual)"))
 
 stations_24h <- mutate(stations_24h,
-                       p_az = Airzone,
+                       p_az = airzone,
                        p_station = station_name,
                        p_station_id = paste0(ems_id, "_24h")) %>%
   mutate(popup = popup_caaqs(., type = "station", 
