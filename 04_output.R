@@ -216,13 +216,17 @@ mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017),
 
 # Output data, maps, and charts ------------------------------------------------
 
-outCRS <- 4326
+st_transform(stations_caaqs_pm_24h_sf, 4326) %>% 
+  st_write("out/pm_caaqs_24h.geojson", delete_dsn = TRUE)
 
-## Combined Management map and barchart with multiplot
-# png_retina(filename = "./out/pm_mgmt_viz.png", width = 836, height = 560, units = "px")
-# svg_px("./out/pm_mgmt_viz.svg", width = 836, height = 560)
-# multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
-# dev.off()
+st_transform(stations_caaqs_pm_annual_sf, 4326) %>% 
+  st_write("out/pm_caaqs_annual.geojson", delete_dsn = TRUE)
+
+st_transform(az_pm24h_sf, 4326) %>% 
+  st_write("out/pm_airzone_24h.geojson", delete_dsn = TRUE)
+
+st_transform(az_pm_annual_sf, 4326) %>% 
+  st_write("out/pm_airzone_annual.geojson", delete_dsn = TRUE)
 
 ## SVG of airzone CAAQS mgmt level map
 svg_px("out/pm_caaqs_mgmt_map.svg", width = 500, height = 500)
@@ -234,44 +238,7 @@ svg_px("out/pm_caaqs_mgmt_chart.svg", width = 500, height = 500)
 plot(mgmt_chart)
 dev.off()
 
-# write summary stats
-pm_stats <- select(pm_stats, -X, -Y)
-pm_stats %>% 
-  st_set_geometry(NULL) %>% 
-  mutate(caaq_year = max_year) %>% 
-  write_csv(paste0("out/pm25_site_summary_", max_year, ".csv"))
-
-## Convert pm_stats back to SpatialPointsDataFrame and export as geojson
-pm_stats_wide <- reshape(st_set_geometry(pm_stats, NULL), 
-                         v.names = c("min_year", "max_year", 
-                                     "n_years", "metric_value", "caaqs"), 
-                         idvar = "ems_id", timevar = "metric", 
-                         direction = "wide", sep = "_")
-names(pm_stats_wide) <- gsub("_pm2.5", "", names(pm_stats_wide))
-
-st_as_sf(pm_stats_wide, coords = c("longitude", "latitude"), 
-                          crs = 4617) %>% 
-  st_transform(outCRS) %>% 
-  ## Can't currently use geojson_write because it turns NA into "NA" in the geojson rather than
-  ## null - issue opened here: https://github.com/ropensci/geojsonio/issues/109
-  # geojson_write(file = "out/pm_site_summary.geojson")
-  geojson_list %>% unclass() %>% 
-  jsonlite::toJSON(pretty = FALSE, auto_unbox = TRUE, na = "null") %>% 
-  cat(file = "out/pm_site_summary.geojson")
-
-## Export airzone_map as geojson
-# Replace NAs in caaq status and management levels in airzone_map
-replace_na <- function(x, text) {
-  x[is.na(x)] <- text
-  x
-}
-
-airzone_ambient_map$caaqs_annual <- replace_na(airzone_ambient_map$caaqs_annual, "Insufficient Data")
-airzone_ambient_map$caaqs_24h <- replace_na(airzone_ambient_map$caaqs_24h, "Insufficient Data")
-
-airzone_ambient_map %>%
-  st_transform(outCRS) %>% 
-  geojson_write(file = "out/pm_airzone_summary.geojson")
+pm_summary <- select(pm_24h_caaqs_2017, ems_id, station_name, airzone, )
 
 ## Save line plots
 line_dir <- "leaflet_map/station_plots/"
@@ -302,8 +269,8 @@ graphics.off() # Kill any hanging graphics processes
 
 ## Need to do two airzone summary csvs - one for ambient, one for management
 
-st_set_geometry(airzone_ambient_map, NULL) %>% 
-  write_csv("out/pm25_ambient_airzone_caaqs_summary.csv")
-
-st_set_geometry(airzone_mgmt_map, NULL) %>% 
-  write_csv("out/pm25_mgmt_airzone_caaqs_summary.csv")
+# st_set_geometry(airzone_ambient_map, NULL) %>% 
+#   write_csv("out/pm25_ambient_airzone_caaqs_summary.csv")
+# 
+# st_set_geometry(airzone_mgmt_map, NULL) %>% 
+#   write_csv("out/pm25_mgmt_airzone_caaqs_summary.csv")
