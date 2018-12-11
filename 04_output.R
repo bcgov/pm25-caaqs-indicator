@@ -135,7 +135,7 @@ for (emsid in emsids) {
                       base_size = 14)
   
   p_annual <- p_annual + coord_cartesian(ylim = c(0, 80))
-  p_24 <- p_24 + coord_cartesian(ylim = c(0, 80))
+  p_24 <- p_24 + coord_cartesian(ylim = c(0, 100))
   
   
   stnplots[[emsid]]$daily <- p_24
