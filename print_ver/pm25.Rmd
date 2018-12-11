@@ -1,11 +1,14 @@
 ---
 topic: "air"
-title: "Status of Fine Particulate Matter in B.C. (2014-2016)"
 header-includes:
   - \usepackage[utf8]{inputenc}
   - \usepackage{siunitx}
   - \sisetup{detect-all,per-mode=symbol}
 output: envreportutils.internal::print_ver
+params:
+  min_year: 2015
+  max_year: 2017
+title: "Status of Fine Particulate Matter in B.C. (2015-2017)"
 ---
 <!--
 Copyright 2018 Province of British Columbia
@@ -20,9 +23,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and limitations under the License.
 -->
-
-
-
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, 
@@ -51,6 +51,8 @@ knitr_latex_char <- function(x) {
   y <- gsub("~", "\\\\textasciitilde{}", y)
   return(y)
 }
+
+year_range <- paste(params$min_year, params$max_year, sep = "-")
 ```
 
 ```{r pre}
@@ -60,7 +62,7 @@ knitr_latex_char <- function(x) {
 
 British Columbia operates a network of air monitoring stations that
 measure fine particulate matter and other air pollutants. This indicator
-reports on the concentration of fine particulate matter from 2014-2016
+reports on the concentration of fine particulate matter from `r year_range`
 and compares it to the [Canadian Ambient Air Quality
 Standards](http://www.ccme.ca/en/resources/air/aqms.html#anchor1)
 established by the [Canadian Council of Ministers of the
@@ -127,14 +129,17 @@ Environment](http://www.ccme.ca/index.html).
     `r n_stations_achieved_24h` of the `r n_stations_24h` stations (
     `r percent_achieved_24h`%) with sufficient data for analysis.
 -   **Fine particulate matter levels met both of the Canadian Ambient
-    Air Quality Standards in two of B.C.'s seven air zones.** All air
-    zones met the PM$_{\text{2.5}}$ annual standard, and three air zones exceeded
-    the PM$_{\text{2.5}}$ 24-hour standard. One of the air zone PM$_{\text{2.5}}$ 24-hour
-    exceedances---the Southern Interior air zone---was due to the influence
-    of smoke from wildfires. There was not enough data to estimate PM$_{\text{2.5}}$
-    levels for the Northeast air zone for this reporting period.
-    Currently, there are no [air monitoring
-    stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
+    Air Quality Standards in two of B.C.'s seven air zones.** The Coastal, 
+    Northeast, and Georgia Strait air zones met the PM$_{\text{2.5}}$ annual
+    standard, while the Central Interior and Southern Interior air zones 
+    exceeded it. The Coastal and Northeast air zones met the PM$_{\text{2.5}}$ 
+    24-hour standard, while the Central Interior Southern Interior, and Georgia
+    Strait air zones exceeded it. 
+    Many of the exceedances were due to the influence of smoke from wildfires, 
+    especially during the summer of 2017. 
+-   There was not enough data to estimate PM$_{\text{2.5}}$ levels for the
+    Northeast air zone for this reporting period. mCurrently, there are no 
+    [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
 -   **Fine particulate matter levels are used to set management levels
     for each air zone.** Four management levels (green, yellow, orange,
@@ -146,9 +151,9 @@ The maps and chart below summarise the Canadian Ambient Air Quality Standard
 achievement status for fine particulate matter in B.C. air zones, as
 well as both the annual and 24-hour PM$_{\text{2.5}}$ levels at individual
 monitoring stations. Summaries are given for each monitoring station where
-sufficient data was available for the 2014-2016 reporting period.
+sufficient data was available for the `r year_range` reporting period.
 
-# Status of 24-hour PM$_{\text{2.5}}$ Levels in B.C. Air Zones (2014-2016)
+# Status of 24-hour PM$_{\text{2.5}}$ Levels in B.C. Air Zones (`r year_range`)
 
 ```{r achievement_map_24}
 ```
@@ -159,7 +164,7 @@ plot(achievement_map_24)
 
 \newpage
 
-# Status of Annual PM$_{\text{2.5}}$ Levels in B.C. Air Zones (2014-2016)
+# Status of Annual PM$_{\text{2.5}}$ Levels in B.C. Air Zones (`r year_range`)
 
 ```{r achievement_map_annual}
 ```
@@ -170,7 +175,7 @@ plot(achievement_map_annual)
 
 \newpage
 
-# PM$_{\text{2.5}}$ Metrics for Air Monitoring Statons within B.C. Air Zones (2014-2016)
+# PM$_{\text{2.5}}$ Metrics for Air Monitoring Statons within B.C. Air Zones (`r year_range`)
 
 ```{r summary_plot}
 ```
@@ -194,7 +199,7 @@ plot(ambient_summary_plot)
     data when there are no available three-year reporting stations in
     the air zone.
 -   Only air monitoring stations with sufficient data on fine
-    particulate matter concentrations for the 2014-2016 reporting period
+    particulate matter concentrations for the `r year_range` reporting period
     were included in this indicator. Visit [Current Air Quality
     Data](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     for a complete list of air monitoring stations across B.C.
@@ -338,7 +343,7 @@ each file, as indicated in parentheses below.
 
 -   [Indicator data: BC Fine Particulate Matter Canadian Ambient Air
     Quality Standards
-    2014-2016](https://catalogue.data.gov.bc.ca/dataset/699be99e-a9ba-403e-b0fe-3d13f84f45ab) (`r get_data_license("ogl-bc")`)
+    `r year_range`](https://catalogue.data.gov.bc.ca/dataset/699be99e-a9ba-403e-b0fe-3d13f84f45ab) (`r get_data_license("ogl-bc")`)
 -   [BC PM$_{\text{2.5}}$ Hourly Data & Air Monitoring Station
     locations](https://catalogue.data.gov.bc.ca/dataset/77eeadf4-0c19-48bf-a47a-fa9eef01f409) (`r get_data_license("ogl-bc")`)
 -   [BC Air
