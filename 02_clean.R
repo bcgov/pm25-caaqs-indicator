@@ -25,9 +25,9 @@ max_year <- 2017
 ## Set stations to exclude from analyis (those in indsutrial settings):
 excluded_stations <- stations$EMS_ID[grepl("industr", stations$STATION_ENVIRONMENT, ignore.case = TRUE)]
 
-## Exclude Valemount due to too much missing data and Kitimat Smeltersite 
-## which is industrial but not labelled as such in the stations metadata
-excluded_stations <- c(excluded_stations, "E234293", "E290529")
+## Exclude Kitimat Smeltersite which is industrial but not labelled as such in 
+## the stations metadata
+excluded_stations <- unique(c(excluded_stations, "E290529"))
 
 ## Format dates, extract 2014-2016, set variable names
 
