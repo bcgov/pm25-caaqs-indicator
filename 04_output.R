@@ -58,18 +58,16 @@ stations_caaqs_pm_annual_sf <- left_join(stations_sf, pm_annual_caaqs_2017)
 
 ## @knitr summary_plot
 
-(
-  ambient_summary_plot <- summary_plot(
-    bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017), 
-    metric_val = "metric_value_ambient", 
-    airzone = "airzone", station = "station_name", 
-    parameter = "metric", pt_size = 2
-  ) + 
-    theme(strip.text.y = element_text(angle = 0))
-)
+ambient_summary_plot <- summary_plot(
+  bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017), 
+  metric_val = "metric_value_ambient", 
+  airzone = "airzone", station = "station_name", 
+  parameter = "metric", pt_size = 2
+) + 
+  theme(strip.text.y = element_text(angle = 0))
 
 ## @knitr achievement_map_24
-(
+
 achievement_map_24h <- ggplot() + 
   geom_sf(data = az_pm24h_sf, aes(fill = caaqs_ambient), colour = "white") + 
   scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
@@ -90,32 +88,32 @@ achievement_map_24h <- ggplot() +
         panel.grid = element_blank(), 
         legend.position = "bottom",
         legend.box.just = "left")
-)
+
 
 ## @knitr achievement_map_annual
 
-(
-  achievement_map_annual <- ggplot() + 
-    geom_sf(data = az_pm_annual_sf, aes(fill = caaqs_ambient), colour = "white") + 
-    scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
-                      drop = FALSE, name = "Airzones:\nOzone Air Quality Standard",
-                      guide = guide_legend(order = 1, title.position = "top")) + 
-    geom_sf(data = stations_caaqs_pm_annual_sf, aes(colour = metric_value_ambient), 
-            size = 3) + 
-    scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                          name = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)", 
-                          guide = guide_colourbar(order = 2,
-                                                  title.position = "top",
-                                                  barwidth = 10)) + 
-    coord_sf(datum = NA) +
-    theme_minimal() + 
-    theme(axis.title = element_blank(),
-          axis.text = element_blank(), 
-          axis.ticks = element_blank(),
-          panel.grid = element_blank(), 
-          legend.position = "bottom",
-          legend.box.just = "left")
-)
+
+achievement_map_annual <- ggplot() + 
+  geom_sf(data = az_pm_annual_sf, aes(fill = caaqs_ambient), colour = "white") + 
+  scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
+                    drop = FALSE, name = "Airzones:\nOzone Air Quality Standard",
+                    guide = guide_legend(order = 1, title.position = "top")) + 
+  geom_sf(data = stations_caaqs_pm_annual_sf, aes(colour = metric_value_ambient), 
+          size = 3) + 
+  scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
+                        name = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)", 
+                        guide = guide_colourbar(order = 2,
+                                                title.position = "top",
+                                                barwidth = 10)) + 
+  coord_sf(datum = NA) +
+  theme_minimal() + 
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(), 
+        legend.position = "bottom",
+        legend.box.just = "left")
+
 
 # Individual Station Plots ------------------------------------------------
 
@@ -207,12 +205,7 @@ mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017),
         plot.margin = unit(c(15,0,5,0),"mm"),
         strip.text = element_text(size = 12))
 
-# multiplot of bar chart and mgmt map
-## multiplot(mgmt_chart, mgmt_map, cols = 2, widths = c(1, 1.4))
-
 ## @knitr end
-
-####### Updated to here for 2017 analysis
 
 # Output data, maps, and charts ------------------------------------------------
 
@@ -255,22 +248,14 @@ for (i in seq_along(stnplots)) {
   # png_retina(filename = paste0(line_dir, emsid, "_24h_lineplot.png"), 
   #     width = 778, height = 254, units = "px", res = res)
   svg_px(paste0(line_dir, emsid, "_24h_lineplot.svg"), 
-          width = width, height = height)
+         width = width, height = height)
   plot(daily_plot)
   dev.off()
   # png_retina(filename = paste0(line_dir, emsid, "_annual_lineplot.png"), 
   #     width = 778, height = 254, units = "px", res = res)
   svg_px(paste0(line_dir, emsid, "_annual_lineplot.svg"),
-          width = width, height = height)
+         width = width, height = height)
   plot(annual_plot)
   dev.off()
 }
 graphics.off() # Kill any hanging graphics processes
-
-## Need to do two airzone summary csvs - one for ambient, one for management
-
-# st_set_geometry(airzone_ambient_map, NULL) %>% 
-#   write_csv("out/pm25_ambient_airzone_caaqs_summary.csv")
-# 
-# st_set_geometry(airzone_mgmt_map, NULL) %>% 
-#   write_csv("out/pm25_mgmt_airzone_caaqs_summary.csv")
