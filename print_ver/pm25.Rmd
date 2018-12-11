@@ -118,12 +118,14 @@ Environment](http://www.ccme.ca/index.html).
     short-term (24-hour) and longer-term (a year or more) exposure to
     fine particulate matter can have negative effects on human health.
 -   **Fine particulate matter levels met the Canadian Ambient Air
-    Quality Standards at 86 percent of assessed monitoring stations in
-    B.C.** There are two standards for PM$_{\text{2.5}}$---an annual standard and a
-    24-hour standard (see sidebar). The annual standard was met at all
-    of the 48 stations for which valid data was obtained, while the
-    24-hour standard was met at 42 of the 49 stations (86%) with
-    sufficient data for analysis.
+    Quality Standards at `r max(percent_achieved_annual, percent_achieved_24h)`
+    percent of assessed monitoring stations in B.C.** There are two standards 
+    for PM$_{\text{2.5}}$---an annual standard and a
+    24-hour standard (see sidebar). The annual standard was met at 
+    `r n_stations_achieved_annual` of the `r n_stations_annual` stations for 
+    which valid data was obtained, while the 24-hour standard was met at 
+    `r n_stations_achieved_24h` of the `r n_stations_24h` stations (
+    `r percent_achieved_24h`%) with sufficient data for analysis.
 -   **Fine particulate matter levels met both of the Canadian Ambient
     Air Quality Standards in two of B.C.'s seven air zones.** All air
     zones met the PM$_{\text{2.5}}$ annual standard, and three air zones exceeded
