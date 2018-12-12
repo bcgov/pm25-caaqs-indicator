@@ -10,23 +10,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
+
 library("rcaaqs")
 library("readr")
 library("dplyr")
 library("tidyr")
 library("bcmaps")
-
 library("ggplot2")
-# library("grid")
 library("envreportutils")
-
 library("sf")
-# library("geojsonio")
 
 if (!exists("az_final")) load("tmp/analysed.RData")
 
 # Create output directory:
 dir.create("out", showWarnings = FALSE)
+
+## @knitr pre
 
 az <- st_intersection(airzones(), st_geometry(bc_bound())) %>% 
   group_by(airzone = Airzone) %>% 
@@ -53,13 +52,20 @@ stations_caaqs_pm_24h_sf <- left_join(stations_sf, pm_24h_caaqs_2017)
 
 stations_caaqs_pm_annual_sf <- left_join(stations_sf, pm_annual_caaqs_2017)
 
-## @knitr pre
+summary_pipe <- . %>% 
+  summarise(n = length(ems_id), 
+            n_achieved = length(.$ems_id[.$caaqs_ambient == "Achieved"]), 
+            percent_achieved = round(n_achieved / n() * 100))
 
+station_summary_annual <- summary_pipe(pm_annual_caaqs_2017)
+station_summary_24h <- summary_pipe(pm_24h_caaqs_2017)
+
+pm_caaqs_stations_all <- bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017)
 
 ## @knitr summary_plot
 
 ambient_summary_plot <- summary_plot(
-  bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017), 
+  pm_caaqs_stations_all, 
   metric_val = "metric_value_ambient", 
   airzone = "airzone", station = "station_name", 
   parameter = "metric", pt_size = 2
@@ -67,7 +73,7 @@ ambient_summary_plot <- summary_plot(
   theme(strip.text.y = element_text(angle = 0))
 
 ## @knitr achievement_map_24
-
+(
 achievement_map_24h <- ggplot() + 
   geom_sf(data = az_pm24h_sf, aes(fill = caaqs_ambient), colour = "white") + 
   scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
@@ -88,11 +94,10 @@ achievement_map_24h <- ggplot() +
         panel.grid = element_blank(), 
         legend.position = "bottom",
         legend.box.just = "left")
-
+)
 
 ## @knitr achievement_map_annual
-
-
+(
 achievement_map_annual <- ggplot() + 
   geom_sf(data = az_pm_annual_sf, aes(fill = caaqs_ambient), colour = "white") + 
   scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
@@ -113,7 +118,7 @@ achievement_map_annual <- ggplot() +
         panel.grid = element_blank(), 
         legend.position = "bottom",
         legend.box.just = "left")
-
+)
 
 # Individual Station Plots ------------------------------------------------
 
@@ -160,6 +165,7 @@ labels_df = data.frame(x = c(680000, 1150000, 780000, 1150000,
                                         "Central\nInterior", "Southern\nInterior", 
                                         "Georgia Strait", "Lower Fraser Valley"))
 
+(
 mgmt_map <- ggplot(az_mgmt_sf) +   
   geom_sf(aes(fill = mgmt_level), colour = "white") + 
   coord_sf(datum = NA) + 
@@ -176,11 +182,12 @@ mgmt_map <- ggplot(az_mgmt_sf) +
         plot.margin = unit(c(0,0,0,0),"mm")) +
   geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
             colour = "black", size = 5)
+)
 
 ## Management Bar Chart
 
 ## @knitr mgmt_chart
-
+(
 mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017),
                      aes(x = metric, fill = mgmt_level)) + 
   geom_bar(alpha = 1, width = 0.8) +
@@ -204,6 +211,7 @@ mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017),
         legend.spacing = unit(5,"mm"),
         plot.margin = unit(c(15,0,5,0),"mm"),
         strip.text = element_text(size = 12))
+)
 
 ## @knitr end
 
