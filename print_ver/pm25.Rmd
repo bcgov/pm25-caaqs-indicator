@@ -56,7 +56,7 @@ year_range <- paste(params$min_year, params$max_year, sep = "-")
 ```
 
 ```{r pre}
-
+# run the @knitr pre chunk in ../04_output.R
 ```
 
 
@@ -157,8 +157,12 @@ sufficient data was available for the `r year_range` reporting period.
 
 # Status of 24-hour PM$_{\text{2.5}}$ Levels in B.C. Air Zones (`r year_range`)
 
+```{r achievement_map_24h}
+# run the @knitr achievement_map_24h chunk in ../04_output.R
+```
 
-```{r achievement_map_24, fig.height=8}
+```{r, fig.height=8}
+achievement_map_24h
 ```
 
 
@@ -166,7 +170,11 @@ sufficient data was available for the `r year_range` reporting period.
 
 # Status of Annual PM$_{\text{2.5}}$ Levels in B.C. Air Zones (`r year_range`)
 
-```{r achievement_map_annual, fig.height=8}
+```{r achievement_map_annual}
+# run the @knitr achievement_map_annual chunk in ../04_output.R
+```
+
+```{r, fig.height=8}
 achievement_map_annual
 ```
 
@@ -174,7 +182,10 @@ achievement_map_annual
 
 # PM$_{\text{2.5}}$ Metrics for Air Monitoring Statons within B.C. Air Zones (`r year_range`)
 
-```{r summary_plot, fig.height=9}
+```{r ambient_summary_plot}
+# run the @knitr ambient_summary_plot chunk in ../04_output.R
+```
+```{r, fig.height=9}
 ambient_summary_plot
 ```
 
@@ -239,7 +250,11 @@ pollutants below the Canadian Ambient Air Quality Standards.
     
 # Air Quality Management Levels in B.C. Air Zones   
 
-```{r mgmt_map, fig.height=9}
+```{r mgmt_map}
+# run the @knitr mgmt_map chunk in ../04_output.R
+```
+
+```{r, fig.height=9}
 mgmt_map + 
   theme(legend.position = "bottom", legend.direction = "vertical")
 ```
@@ -248,8 +263,12 @@ mgmt_map +
 
 # Station-Level Air Quality Management Levels Within Air Zones
 
-```{r mgmt_chart, fig.height=8}
-plot(mgmt_chart) 
+```{r mgmt_chart}
+# run the @knitr mgmt_map chunk in ../04_output.R
+```
+
+```{r, fig.height=8}
+mgmt_chart
 ```
 
 #### More about the Air Quality Management System management levels:
@@ -338,6 +357,7 @@ Email correspondence to: envreportbc@gov.bc.ca
 # Appendix: Detailed fine particulate matter Candadian Ambient Air Quality Standard results for each monitoring station within air zones in B.C.
 
 ```{r stn_plots}
+# run the @knitr stn_plots chunk in ../04_output.R
 ```
 
 
@@ -375,8 +395,8 @@ for (az in unique(pm_data$airzone)) {
     site <- pm_data$station_name[pm_data$ems_id == emsid][1]
     
     ## Subset daily, caaqs, and annual data
-    daily_plot <- stnplots[[emsid]]$daily
-    annual_plot <- stnplots[[emsid]]$annual
+    daily_plot <- stn_plots[[emsid]]$daily
+    annual_plot <- stn_plots[[emsid]]$annual
     
     cat("\\subsubsection*{\\underline{", knitr_latex_char(site), " monitoring station}}", sep = "")
     

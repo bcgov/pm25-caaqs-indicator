@@ -62,7 +62,7 @@ station_summary_24h <- summary_pipe(pm_24h_caaqs_2017)
 
 pm_caaqs_stations_all <- bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017)
 
-## @knitr summary_plot
+## @knitr ambient_summary_plot
 
 ambient_summary_plot <- summary_plot(
   pm_caaqs_stations_all, 
@@ -72,8 +72,7 @@ ambient_summary_plot <- summary_plot(
 ) + 
   theme(strip.text.y = element_text(angle = 0))
 
-## @knitr achievement_map_24
-(
+## @knitr achievement_map_24h
 achievement_map_24h <- ggplot() + 
   geom_sf(data = az_pm24h_sf, aes(fill = caaqs_ambient), colour = "white") + 
   scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
@@ -94,10 +93,8 @@ achievement_map_24h <- ggplot() +
         panel.grid = element_blank(), 
         legend.position = "bottom",
         legend.box.just = "left")
-)
 
 ## @knitr achievement_map_annual
-(
 achievement_map_annual <- ggplot() + 
   geom_sf(data = az_pm_annual_sf, aes(fill = caaqs_ambient), colour = "white") + 
   scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
@@ -118,15 +115,14 @@ achievement_map_annual <- ggplot() +
         panel.grid = element_blank(), 
         legend.position = "bottom",
         legend.box.just = "left")
-)
 
 # Individual Station Plots ------------------------------------------------
 
 ## @knitr stn_plots
 
 emsids <- unique(pm_24h_caaqs_2017$ems_id)
-stnplots <- vector("list", length(emsids))
-names(stnplots) <- emsids
+stn_plots <- vector("list", length(emsids))
+names(stn_plots) <- emsids
 
 for (emsid in emsids) {
   
@@ -143,8 +139,8 @@ for (emsid in emsids) {
   p_24 <- p_24 + coord_cartesian(ylim = c(0, 100))
   
   
-  stnplots[[emsid]]$daily <- p_24
-  stnplots[[emsid]]$annual <- p_annual
+  stn_plots[[emsid]]$daily <- p_24
+  stn_plots[[emsid]]$annual <- p_annual
   message("creating plots for ", emsid, "\n")
 }
 
@@ -165,7 +161,6 @@ labels_df = data.frame(x = c(680000, 1150000, 780000, 1150000,
                                         "Central\nInterior", "Southern\nInterior", 
                                         "Georgia Strait", "Lower Fraser Valley"))
 
-(
 mgmt_map <- ggplot(az_mgmt_sf) +   
   geom_sf(aes(fill = mgmt_level), colour = "white") + 
   coord_sf(datum = NA) + 
@@ -182,12 +177,10 @@ mgmt_map <- ggplot(az_mgmt_sf) +
         plot.margin = unit(c(0,0,0,0),"mm")) +
   geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
             colour = "black", size = 5)
-)
 
 ## Management Bar Chart
 
 ## @knitr mgmt_chart
-(
 mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017),
                      aes(x = metric, fill = mgmt_level)) + 
   geom_bar(alpha = 1, width = 0.8) +
@@ -211,7 +204,6 @@ mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017),
         legend.spacing = unit(5,"mm"),
         plot.margin = unit(c(15,0,5,0),"mm"),
         strip.text = element_text(size = 12))
-)
 
 ## @knitr end
 
@@ -248,10 +240,10 @@ lapply(list.files(line_dir, full.names = TRUE), file.remove)
 width <- 778
 height <- 254
 
-for (i in seq_along(stnplots)) {
-  emsid <- names(stnplots[i])
-  daily_plot <- stnplots[[i]]$daily
-  annual_plot <- stnplots[[i]]$annual
+for (i in seq_along(stn_plots)) {
+  emsid <- names(stn_plots[i])
+  daily_plot <- stn_plots[[i]]$daily
+  annual_plot <- stn_plots[[i]]$annual
   cat("savinging plots for", emsid, "\n")
   # png_retina(filename = paste0(line_dir, emsid, "_24h_lineplot.png"), 
   #     width = 778, height = 254, units = "px", res = res)
