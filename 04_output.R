@@ -68,7 +68,8 @@ ambient_summary_plot <- summary_plot(
   pm_caaqs_stations_all, 
   metric_val = "metric_value_ambient", 
   airzone = "airzone", station = "station_name", 
-  parameter = "metric", pt_size = 2
+  parameter = "metric", pt_size = 2, 
+  az_labeller = label_wrap_gen(10)
 ) + 
   theme(strip.text.y = element_text(angle = 0))
 
