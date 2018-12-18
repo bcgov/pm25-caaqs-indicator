@@ -4,7 +4,6 @@
 /tmp
 /out
 internal.R
-/data
 README.html
 .DS_Store
 leaflet_map/leaflet_map.html
