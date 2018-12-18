@@ -132,15 +132,14 @@ Environment](http://www.ccme.ca/index.html).
     `r station_summary_24h$percent_achieved`%) with sufficient data for analysis.
 -   **Fine particulate matter levels met both of the Canadian Ambient
     Air Quality Standards in two of B.C.'s seven air zones.** The Coastal, 
-    Northeast, and Georgia Strait air zones met the PM$_{\text{2.5}}$ annual
-    standard, while the Central Interior and Southern Interior air zones 
-    exceeded it. The Coastal and Northeast air zones met the PM$_{\text{2.5}}$ 
-    24-hour standard, while the Central Interior Southern Interior, and Georgia
-    Strait air zones exceeded it. 
-    Many of the exceedances were due to the influence of smoke from wildfires, 
-    especially during the summer of 2017. 
--   There was not enough data to estimate PM$_{\text{2.5}}$ levels for the
-    Northeast air zone for this reporting period. Currently, there are no 
+    Northeast, Lower Fraser Valley, and Georgia Strait air zones met the
+    PM$_{\text{2.5}}$ annual standard, while the Central Interior and
+    Southern Interior air zones exceeded it. The Coastal and Northeast 
+    air zones met the PM$_{\text{2.5}}$ 24-hour standard, while the 
+    Central Interior, Southern Interior, Lower Fraser Valley, and Georgia
+    Strait air zones exceeded it. Many of the exceedances were due to the
+    influence of smoke from wildfires, especially during the summer of 2017. 
+-   Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
 -   **Fine particulate matter levels are used to set management levels
@@ -240,9 +239,9 @@ pollutants below the Canadian Ambient Air Quality Standards.
     Document on Air Zone Management (2012)
     (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1481_gdazm_e.pdf).
 -   The Central Interior and Georgia Strait air zones were assigned to a
-    red management level, the Lower Fraser Valley, Coastal, and Northeast air zones
-    were assigned to a yellow management level, and the Southern
-    Interior to an orange management level. There are currently no 
+    red management level, the Southern Interior to an orange management
+    level, and the Lower Fraser Valley, Coastal, and Northeast air zones
+    were assigned to a yellow management level. There are currently no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
     
@@ -291,7 +290,8 @@ mgmt_chart
     majority of wildfire influences occurred in 2017. Those daily
     concentrations were removed from the calculations of management
     levels, resulting in a change from red to orange for the Southern
-    Interior management level.
+    Interior management level, and a change from red to yellow in the 
+    Lower Fraser Valley air zone.
 
 ### Methods
 
