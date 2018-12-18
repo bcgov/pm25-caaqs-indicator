@@ -38,19 +38,18 @@ stations_sf <- stations_clean %>%
 
 az_mgmt_sf <- az %>%
   left_join(az_mgmt) %>% 
-  mutate_at("mgmt_level", ~ replace_na(as.character(.x), "Insufficient Data"))
+  mutate_at("mgmt_level", ~ replace_na(.x, "Insufficient Data"))
 
 az_pm24h_sf <- az %>% 
   left_join(airzone_caaqs_pm24h) %>% 
-  mutate_at("caaqs_ambient", ~ replace_na(as.character(.x), "Insufficient Data"))
+  mutate_at("caaqs_ambient", ~ replace_na(.x, "Insufficient Data"))
 
 az_pm_annual_sf <- az %>% 
   left_join(airzone_caaqs_pm_annual) %>% 
-  mutate_at("caaqs_ambient", ~ replace_na(as.character(.x), "Insufficient Data"))
+  mutate_at("caaqs_ambient", ~ replace_na(.x, "Insufficient Data"))
 
-stations_caaqs_pm_24h_sf <- left_join(stations_sf, pm_24h_caaqs_2017)
-
-stations_caaqs_pm_annual_sf <- left_join(stations_sf, pm_annual_caaqs_2017)
+stations_caaqs_pm_24h_sf <- right_join(stations_sf, pm_24h_caaqs_2017)
+stations_caaqs_pm_annual_sf <- right_join(stations_sf, pm_annual_caaqs_2017)
 
 summary_pipe <- . %>% 
   summarise(n = length(ems_id), 
@@ -77,16 +76,17 @@ ambient_summary_plot <- summary_plot(
 achievement_map_24h <- ggplot() + 
   geom_sf(data = az_pm24h_sf, aes(fill = caaqs_ambient), colour = "white") + 
   scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
-                    drop = FALSE, name = "Airzones:\nOzone Air Quality Standard",
+                    drop = FALSE, 
                     guide = guide_legend(order = 1, title.position = "top")) + 
   geom_sf(data = stations_caaqs_pm_24h_sf, aes(colour = metric_value_ambient), 
           size = 3) + 
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        name = "Monitoring Stations:\nPM2.5 24h Metric (ug/m3)", 
                         guide = guide_colourbar(order = 2,
                                                 title.position = "top",
                                                 barwidth = 10)) + 
   coord_sf(datum = NA) +
+  labs(colour = "Monitoring Stations:\nPM2.5 24h Metric (ug/m3)",
+       fill = "Airzones:\nPM2.5 24h Air Quality Standard") + 
   theme_minimal() + 
   theme(axis.title = element_blank(),
         axis.text = element_blank(), 
@@ -99,16 +99,17 @@ achievement_map_24h <- ggplot() +
 achievement_map_annual <- ggplot() + 
   geom_sf(data = az_pm_annual_sf, aes(fill = caaqs_ambient), colour = "white") + 
   scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
-                    drop = FALSE, name = "Airzones:\nOzone Air Quality Standard",
+                    drop = FALSE, 
                     guide = guide_legend(order = 1, title.position = "top")) + 
   geom_sf(data = stations_caaqs_pm_annual_sf, aes(colour = metric_value_ambient), 
           size = 3) + 
   scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        name = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)", 
                         guide = guide_colourbar(order = 2,
                                                 title.position = "top",
                                                 barwidth = 10)) + 
   coord_sf(datum = NA) +
+  labs(colour = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)",
+       fill = "Airzones:\nPM2.5 Annual Air Quality Standard") + 
   theme_minimal() + 
   theme(axis.title = element_blank(),
         axis.text = element_blank(), 
