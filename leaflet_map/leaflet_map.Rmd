@@ -1,5 +1,4 @@
 ---
-title: "CAAQS Indicator: PM 2.5"
 output: 
   html_document:
     css: "assets/caaqs-styles.css"
