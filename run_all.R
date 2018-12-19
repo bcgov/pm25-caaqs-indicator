@@ -15,7 +15,7 @@ source("02_clean.R")
 source("03_analysis.R")
 source("04_output.R")
 
-mon_year <- format(Sys.Date(), "%B%Y")
+mon_year <- "January2019" # format(Sys.Date(), "%B%Y")
 outfile <- paste0("envreportbc_pm25_", mon_year, ".pdf")
 
 rmarkdown::render("print_ver/pm25.Rmd", output_file = outfile)
@@ -25,12 +25,11 @@ extrafont::embed_fonts(file.path("print_ver/", outfile))
 
 ###############################################################################################
 ## copy files to web dev folder
-air_indicators_path <- "/Volumes/envwwwd/soe/indicators/air"
-air_viz_data_path <- file.path(air_indicators_path, "pm25_viz/data/")
-air_indicators_station_plots <- file.path(air_viz_data_path, "station_plots/")
+air_indicators_path <- "~/soe_wwwd/indicators/air"
+air_viz_path <- file.path(air_indicators_path, "pm25_viz/")
+air_indicators_station_plots <- file.path(air_viz_path, "station_plots/")
 
-web_data_files <- list.files("out", "*.geojson", full.names = TRUE)
-web_viz_plots <- list.files("out/station_plots/", full.names = TRUE)
+web_viz_plots <- list.files("leaflet_map/station_plots", full.names = TRUE)
 
 over_copy <- function(...) {
   file.copy(..., overwrite = TRUE)
@@ -47,8 +46,8 @@ over_copy("out/pm_caaqs_mgmt_map.svg",
 over_copy("out/pm_caaqs_mgmt_chart.svg", 
           file.path(air_indicators_path, "images/"))
 
-## Copy geojson files for viz
-lapply(web_data_files, over_copy, to = air_viz_data_path)
+## Copy leaflet map
+over_copy("leaflet_map/leaflet_map.html", air_viz_path)
 
 ## Copy dataviz plots
 lapply(list.files(air_indicators_station_plots, full.names = TRUE), file.remove)
