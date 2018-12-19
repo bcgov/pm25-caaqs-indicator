@@ -13,11 +13,14 @@
 library("dplyr")
 library("lubridate")
 library("rcaaqs")
-library(bcmaps)
+library("readr")
+library("bcmaps")
 
 options("rcaaqs.timezone" = "Etc/GMT+8")
 
 if (!exists("pm25_all")) load("tmp/pm25_raw.RData")
+
+station_reporting_name <- read_csv("data/stn_names_reporting.csv")
 
 min_year <- 2015
 max_year <- 2017
@@ -109,7 +112,7 @@ plot_station_instruments(pm25_clean, instrument = "instrument_type")
 select_pattern <- "_60$|Met$|OLD$|BAM$|Squamish Gov't Bldg"
 stations_clean <- rename_all(stations, tolower) %>% 
   mutate(ems_id = case_when(ems_id %in% squamish_ems_ids ~ combo_squamish_id, 
-                            TRUE ~ ems_id)) %>% 
+                            TRUE ~ gsub("_.+$", "", ems_id))) %>% 
   group_by(ems_id) %>%
   filter(n() == 1 | 
           !grepl(select_pattern, station_name) | 
@@ -122,6 +125,14 @@ stations_clean <- rename_all(stations, tolower) %>%
 stations_clean <- assign_airzone(stations_clean, airzones = airzones(), 
                                  station_id = "ems_id", 
                                  coords = c("longitude", "latitude"))
+
+stations_clean <- left_join(stations_clean, 
+                            select(station_reporting_name, 
+                                   ems_id, reporting_name), 
+                            by = "ems_id") %>% 
+  mutate(bcgov_station_name = station_name,
+         station_name = case_when(is.na(reporting_name) ~ station_name,
+                                  TRUE ~ reporting_name))
 
 save(pm25_clean, stations_clean, file = "tmp/pm25_clean.rda")
 

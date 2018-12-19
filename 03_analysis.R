@@ -52,10 +52,11 @@ pm_24h_caaqs_2017 <- get_caaqs(pm25_24h_caaqs_mgmt) %>%
   group_by(ems_id) %>% 
   filter(caaqs_year == max(caaqs_year),
          n_years > 1) %>% 
-  left_join(select(stations_clean, airzone, ems_id), 
+  select(-station_name) %>% 
+  left_join(select(stations_clean, airzone, ems_id, station_name), 
             by = c("ems_id")) %>% 
   ungroup() %>% 
-  select(airzone, everything())
+  select(airzone, ems_id, station_name, everything())
 
 airzone_caaqs_pm24h <- airzone_metric(pm_24h_caaqs_2017, 
                                       keep = "station_name") %>% 
@@ -68,10 +69,11 @@ pm_annual_caaqs_2017 <- get_caaqs(pm25_annual_caaqs_mgmt) %>%
   group_by(ems_id) %>% 
   filter(caaqs_year == max(caaqs_year),
          n_years > 1) %>% 
-  left_join(select(stations_clean, airzone, ems_id), 
+  select(-station_name) %>% 
+  left_join(select(stations_clean, airzone, ems_id, station_name), 
             by = c("ems_id")) %>% 
   ungroup() %>% 
-  select(airzone, everything())
+  select(airzone, ems_id, station_name, everything())
 
 airzone_caaqs_pm_annual <- airzone_metric(pm_annual_caaqs_2017, 
                                           keep = "station_name") %>% 
