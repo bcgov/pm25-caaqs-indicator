@@ -178,7 +178,7 @@ mgmt_map <- ggplot(az_mgmt_sf) +
         legend.position = "none",
         plot.margin = unit(c(0,0,0,0),"mm")) +
   geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
-            colour = "black", size = 5)
+            colour = "black", size = 6)
 
 ## Management Bar Chart
 
@@ -197,15 +197,16 @@ mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017),
   scale_x_discrete(labels = c("pm2.5_24h" = "24-hour", "pm2.5_annual" = "Annual")) +
   theme_soe_facet() +
   theme(panel.grid.major.y = (element_blank()),
-        axis.text = element_text(size = 12),
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14),
         legend.position = "bottom",
         legend.direction = "vertical",
         legend.box.just = "left",
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14),
+        legend.text = element_text(size = 14),
         legend.spacing = unit(5,"mm"),
-        plot.margin = unit(c(15,0,5,0),"mm"),
-        strip.text = element_text(size = 12))
+        plot.margin = unit(c(10,0,1,0),"mm"),
+        strip.text = element_text(size = 13))
 
 ## @knitr end
 
