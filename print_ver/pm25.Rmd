@@ -290,8 +290,8 @@ mgmt_chart
     majority of wildfire influences occurred in 2017. Those daily
     concentrations were removed from the calculations of management
     levels, resulting in a change from red to orange for the Southern
-    Interior management level, and a change from red to yellow in the 
-    Lower Fraser Valley air zone.
+    Interior management level, and a change from red to yellow for the 
+    Lower Fraser Valley management level for fine particulate matter.
 
 ### Methods
 
