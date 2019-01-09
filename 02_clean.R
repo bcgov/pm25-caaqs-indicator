@@ -32,7 +32,7 @@ excluded_stations <- stations$EMS_ID[grepl("industr", stations$STATION_ENVIRONME
 ## the stations metadata
 excluded_stations <- unique(c(excluded_stations, "E290529"))
 
-## Format dates, extract 2014-2016, set variable names
+## Format dates, extract 2014-2016, set variable names.
 
 pm25 <- pm25_all %>% 
   filter(!EMS_ID %in% excluded_stations) %>% 
@@ -54,13 +54,21 @@ pm25 <- pm25_all %>%
                      TRUE ~ "Unknown"), 
          year = year(date_time)) %>% 
   ungroup() %>% 
+  # Filter NAs out of Kamloops Fed building from two overlapping monitors
+  filter(!(ems_id == "0605008" & 
+             instrument == "BAM1020" & 
+             date_time > as.POSIXct("2017/06/19 14:59:59")) & 
+           !(ems_id == "0605008" & 
+               instrument == "PM25 SHARP5030" & 
+               date_time <= as.POSIXct("2017/06/19 14:59:59"))
+  ) %>% 
   distinct()
 
 ## Plot deployments of different instruments at each station
 plot_station_instruments(pm25)
 plot_station_instruments(pm25, instrument = "instrument_type")
 
-## Summarise the dates that different PM2.5 monitoring instrumnet types were 
+## Summarise the dates that different PM2.5 monitoring instrument types were 
 ## deployed at each station so we can get the most data
 instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>% 
   select(ems_id, station_name, instrument_type, date) %>% 
