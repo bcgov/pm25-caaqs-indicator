@@ -42,7 +42,8 @@ pm25 <- pm25_all %>%
   select(-DATE_PST) %>% 
   rename_all(tolower) %>% 
   rename(value = raw_value) %>% 
-  mutate(value = clean_neg(value, type = "pm25"),) %>% 
+  mutate(ems_id = gsub("_1$", "", ems_id), # remove _1 from ems_id (Smithers St Josephs)
+         value = clean_neg(value, type = "pm25"),) %>% 
   group_by(ems_id, station_name, instrument) %>% 
   do(., date_fill(., date_col = "date_time",
                   fill_cols = c("ems_id", "station_name", "instrument", "parameter"),
