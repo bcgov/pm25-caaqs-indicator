@@ -46,38 +46,43 @@ pm25_24h_caaqs_mgmt <- caaqs_management(pm25_caaqs_24h, exclude_df = excludes,
 pm25_annual_caaqs_mgmt <- caaqs_management(pm25_caaqs_annual, 
                                            exclude_df = excludes, 
                                            exclude_df_dt = "date")
-# PM25 24 Hour - Airzone caaqs -----------------------------------------
 
-pm_24h_caaqs_2017 <- get_caaqs(pm25_24h_caaqs_mgmt) %>% 
+## Station results -----------------------------------------
+station_results_pipeline <- . %>% 
+  get_caaqs() %>% 
   group_by(ems_id) %>% 
   filter(caaqs_year == max(caaqs_year),
          n_years > 1) %>% 
-  select(-station_name) %>% 
-  left_join(select(stations_clean, airzone, ems_id, station_name), 
+  ungroup() %>% 
+  select(ems_id, everything())
+
+# PM25 24 Hour
+
+pm_24h_caaqs_2017 <- station_results_pipeline(pm25_24h_caaqs_mgmt)
+
+# PM25 Annual
+
+pm_annual_caaqs_2017 <- station_results_pipeline(pm25_annual_caaqs_mgmt)
+
+# Combo reporting df of annual and 24h caaqs results
+pm_caaqs_2017 <- bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017) %>% 
+  select(-station_name, -starts_with("flag")) %>% 
+  left_join(select(stations_clean, airzone, ems_id, station_name, city, lat, lon), 
             by = c("ems_id")) %>% 
   ungroup() %>% 
-  select(airzone, ems_id, station_name, everything())
-
-airzone_caaqs_pm24h <- airzone_metric(pm_24h_caaqs_2017, 
-                                      keep = "station_name") %>% 
-  mutate(metric = "pm2.5_24h")
+  select(airzone, ems_id, station_name, city, latitude = lat, longitude = lon, 
+         everything())
 
 
-# PM25 Annual - Airzone caaqs -----------------------------------------
+# Airzone results ---------------------------------------------------------
 
-pm_annual_caaqs_2017 <- get_caaqs(pm25_annual_caaqs_mgmt) %>% 
-  group_by(ems_id) %>% 
-  filter(caaqs_year == max(caaqs_year),
-         n_years > 1) %>% 
-  select(-station_name) %>% 
-  left_join(select(stations_clean, airzone, ems_id, station_name), 
-            by = c("ems_id")) %>% 
-  ungroup() %>% 
-  select(airzone, ems_id, station_name, everything())
-
-airzone_caaqs_pm_annual <- airzone_metric(pm_annual_caaqs_2017, 
-                                          keep = "station_name") %>% 
+airzone_caaqs_pm_annual <- filter(pm_caaqs_2017, metric == "pm2.5_annual") %>% 
+  airzone_metric(keep = c("station_name")) %>% 
   mutate(metric = "pm2.5_annual")
+
+airzone_caaqs_pm24h <- filter(pm_caaqs_2017, metric == "pm2.5_24h") %>% 
+  airzone_metric(keep = "station_name") %>% 
+  mutate(metric = "pm2.5_24h")
 
 az_mgmt <- bind_rows(airzone_caaqs_pm24h, airzone_caaqs_pm_annual) %>% 
   group_by(airzone) %>% 
