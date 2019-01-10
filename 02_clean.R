@@ -126,9 +126,10 @@ stations_clean <- rename_all(stations, tolower) %>%
   filter(n() == 1 | 
           !grepl(select_pattern, station_name) | 
            all(grepl(select_pattern, station_name))) %>% 
+  filter(!is.na(latitude), !is.na(longitude)) %>% 
   mutate(station_name = gsub(select_pattern, "", station_name), 
          station_name = gsub("(Squamish).+", "\\1", station_name)) %>% 
-  semi_join(pm25_clean, by = "ems_id") %>% 
+  # semi_join(pm25_clean, by = "ems_id") %>% 
   top_n(1, station_name)
 
 stations_clean <- assign_airzone(stations_clean, airzones = airzones(), 
