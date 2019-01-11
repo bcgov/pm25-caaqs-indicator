@@ -283,10 +283,10 @@ pm_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_s
   mutate(caaqs_year = 2016L) %>% 
   rename(metric_value_ambient = metric_value, caaqs_ambient = caaqs)
 
-station_caaqs_all <- bind_rows(pm_2013, pm_2016, 
+station_caaqs_combined <- bind_rows(pm_2013, pm_2016, 
                                select(pm_caaqs_combined_results, -starts_with("flag")))
 
-write_csv(station_caaqs_all, "out/databc/pm25sitesummary.csv")
+write_csv(station_caaqs_combined, "out/databc/pm25sitesummary.csv", na = "")
 
 # Ambient airzone caaqs
 az_ambient_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_ambient_airzone_caaqs_summary.csv")) %>% 
@@ -314,7 +314,7 @@ az_ambient_combined <- az_ambient %>%
   select(airzone, metric, caaqs_year, everything()) %>% 
   arrange(caaqs_year, airzone, metric)
 
-write_csv(az_ambient_combined, "out/databc/pm25-airzone-caaqs.csv")
+write_csv(az_ambient_combined, "out/databc/pm25-airzone-caaqs.csv", na = "")
 
 # Airzone management levels
 az_mgmt_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_mgmt_airzone_caaqs_summary.csv")) %>% 
@@ -329,4 +329,4 @@ az_mgmt_combined <- st_set_geometry(az_mgmt_sf, NULL) %>%
   arrange(caaqs_year) %>% 
   replace_na(list(mgmt_level = "Insufficient Data"))
 
-write_csv(az_mgmt_combined, "out/databc/pm25-caaqs-management-levels.csv")
+write_csv(az_mgmt_combined, "out/databc/pm25-caaqs-management-levels.csv", na = "")
