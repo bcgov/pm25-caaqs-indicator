@@ -84,10 +84,10 @@ airzone_caaqs_pm24h <- filter(pm_caaqs_combined_results, metric == "pm2.5_24h") 
   airzone_metric(keep = "station_name") %>% 
   mutate(metric = "pm2.5_24h")
 
-az_ambient_combined <- bind_rows(airzone_caaqs_pm24h, airzone_caaqs_pm_annual) %>% 
+az_ambient <- bind_rows(airzone_caaqs_pm24h, airzone_caaqs_pm_annual) %>% 
   select(airzone, metric, everything())
 
-az_mgmt <- az_ambient_combined %>% 
+az_mgmt <- az_ambient %>% 
   group_by(airzone) %>% 
   slice(which.max(mgmt_level)) %>% 
   mutate(caaqs_year = 2017L) %>% 
@@ -97,6 +97,6 @@ az_mgmt <- az_ambient_combined %>%
 
 save(list = ls(), file = "tmp/analysed.RData")
 
-write_csv(az_ambient_combined, "out/pm2.5_airzone_results_2017.csv")
+write_csv(az_ambient, "out/pm2.5_airzone_results_2017.csv")
 write_csv(pm_caaqs_combined_results, "out/pm2.5_caaqs_combined_results_2017.csv")
 write_csv(az_mgmt, "out/pm2.5_airzone_management_levels_2017.csv")

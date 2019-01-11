@@ -292,6 +292,30 @@ write_csv(station_caaqs_all, "out/databc/pm25sitesummary.csv")
 az_ambient_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_ambient_airzone_caaqs_summary.csv")) %>% 
   rename_all(tolower)
 
+az_ambient_2016_tidy <- select(az_ambient_2016, airzone, contains("annual")) %>% 
+  mutate(metric = "pm2.5_annual") %>% 
+  rename_all(function(x) gsub("_annual", "", x)) %>% 
+  bind_rows(select(az_ambient_2016, airzone, contains("24")) %>% 
+              mutate(metric = "pm2.5_24h") %>% 
+              rename_all(function(x) gsub("_24h", "", x))) %>% 
+  mutate(caaqs_year = 2016L) %>% 
+  select(airzone, metric, caaqs_year, metric_value = pm2.5_metric, 
+         caaqs, rep_stn_id = rep_id, rep_stn_name = rep_stn, n_years)
+
+az_ambient_combined <- az_ambient %>% 
+  select(airzone, metric, contains("ambient")) %>% 
+  rename_all(function(x) gsub("_ambient", "", x)) %>% 
+  rename(rep_stn_name = station_name) %>% 
+  # join to fill out airzones with missing values (e.g., NW)
+  right_join(select(az_ambient_2016_tidy, airzone, metric)) %>% 
+  mutate(caaqs_year = 2017L) %>% 
+  bind_rows(az_ambient_2016_tidy) %>% 
+  replace_na(list(caaqs = "Insufficient Data")) %>% 
+  select(airzone, metric, caaqs_year, everything()) %>% 
+  arrange(caaqs_year, airzone, metric)
+
+write_csv(az_ambient_combined, "out/databc/pm25-airzone-caaqs.csv")
+
 # Airzone management levels
 az_mgmt_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_mgmt_airzone_caaqs_summary.csv")) %>% 
   rename_all(tolower) %>% 
