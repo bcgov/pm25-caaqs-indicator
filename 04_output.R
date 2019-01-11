@@ -10,7 +10,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-
 library("rcaaqs")
 library("readr")
 library("dplyr")
@@ -33,6 +32,7 @@ az <- st_intersection(airzones(), st_geometry(bc_bound())) %>%
 
 stations_sf <- stations_clean %>% 
   select(ems_id, lat, lon) %>% 
+  semi_join(pm25_clean, by = "ems_id") %>% 
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
   transform_bc_albers()
 
@@ -48,18 +48,18 @@ az_pm_annual_sf <- az %>%
   left_join(airzone_caaqs_pm_annual) %>% 
   mutate_at("caaqs_ambient", ~ replace_na(.x, "Insufficient Data"))
 
-stations_caaqs_pm_24h_sf <- right_join(stations_sf, pm_24h_caaqs_2017)
-stations_caaqs_pm_annual_sf <- right_join(stations_sf, pm_annual_caaqs_2017)
+stations_caaqs_pm_24h_sf <- right_join(stations_sf, pm_24h_caaqs_results)
+stations_caaqs_pm_annual_sf <- right_join(stations_sf, pm_annual_caaqs_results)
 
 summary_pipe <- . %>% 
   summarise(n = length(ems_id), 
             n_achieved = length(.$ems_id[.$caaqs_ambient == "Achieved"]), 
             percent_achieved = round(n_achieved / n() * 100))
 
-station_summary_annual <- summary_pipe(pm_annual_caaqs_2017)
-station_summary_24h <- summary_pipe(pm_24h_caaqs_2017)
+station_summary_annual <- summary_pipe(pm_annual_caaqs_results)
+station_summary_24h <- summary_pipe(pm_24h_caaqs_results)
 
-pm_caaqs_stations_all <- bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017)
+pm_caaqs_stations_all <- bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_results)
 
 ## @knitr ambient_summary_plot
 
@@ -122,7 +122,7 @@ achievement_map_annual <- ggplot() +
 
 ## @knitr stn_plots
 
-emsids <- unique(pm_24h_caaqs_2017$ems_id)
+emsids <- unique(pm_24h_caaqs_results$ems_id)
 stn_plots <- vector("list", length(emsids))
 names(stn_plots) <- emsids
 
@@ -183,7 +183,7 @@ mgmt_map <- ggplot(az_mgmt_sf) +
 ## Management Bar Chart
 
 ## @knitr mgmt_chart
-mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_2017, pm_24h_caaqs_2017),
+mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_results),
                      aes(x = metric, fill = mgmt_level)) + 
   geom_bar(alpha = 1, width = 0.8) +
   facet_wrap(~airzone, ncol = 1) +
@@ -234,7 +234,7 @@ svg_px("out/pm_caaqs_mgmt_chart.svg", width = 500, height = 500)
 plot(mgmt_chart)
 dev.off()
 
-pm_summary <- select(pm_24h_caaqs_2017, ems_id, station_name, airzone, )
+pm_summary <- select(pm_24h_caaqs_results, ems_id, station_name, airzone, )
 
 ## Save line plots
 line_dir <- "leaflet_map/station_plots/"
@@ -262,3 +262,47 @@ for (i in seq_along(stn_plots)) {
   dev.off()
 }
 graphics.off() # Kill any hanging graphics processes
+
+
+# DataBC ------------------------------------------------------------------
+## Create output files for databc, combining with previous years' data:
+
+dir.create("out/databc", showWarnings = FALSE)
+
+# Station-level results
+pm_2013 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2015/pm25_site_summary.csv")) %>% 
+  select(-regional_district) %>% 
+  rename_all(tolower) %>% 
+  rename(station_name = display_name, instrument_type = monitor, 
+         caaqs_year = caaq_year, metric_value_ambient = metric_value,
+         caaqs_ambient = caaqs, mgmt_level = mgmt) %>% 
+  left_join(select(stations_clean, ems_id, city))
+
+pm_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_site_summary.csv")) %>% 
+  rename_all(tolower) %>% 
+  mutate(caaqs_year = 2016L) %>% 
+  rename(metric_value_ambient = metric_value, caaqs_ambient = caaqs)
+
+station_caaqs_all <- bind_rows(pm_2013, pm_2016, 
+                               select(pm_caaqs_combined_results, -starts_with("flag")))
+
+write_csv(station_caaqs_all, "out/databc/pm25sitesummary.csv")
+
+# Ambient airzone caaqs
+az_ambient_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_ambient_airzone_caaqs_summary.csv")) %>% 
+  rename_all(tolower)
+
+# Airzone management levels
+az_mgmt_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_mgmt_airzone_caaqs_summary.csv")) %>% 
+  rename_all(tolower) %>% 
+  rename_all(function(x) gsub("^caaq_mgmt_", "", x)) %>% 
+  rename(mgmt_level = caaq_mgmt, rep_metric = metric) %>% 
+  mutate(caaqs_year = 2016L)
+
+az_mgmt_combined <- st_set_geometry(az_mgmt_sf, NULL) %>% 
+  mutate(caaqs_year = 2017L) %>% 
+  bind_rows(az_mgmt_2016) %>% 
+  arrange(caaqs_year) %>% 
+  replace_na(list(mgmt_level = "Insufficient Data"))
+
+write_csv(az_mgmt_combined, "out/databc/pm25-caaqs-management-levels.csv")
