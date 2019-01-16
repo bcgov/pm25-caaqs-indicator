@@ -105,6 +105,7 @@ Environment](http://www.ccme.ca/index.html).
   \end{minipage}
 }
 \end{center}
+\vspace{2mm}
 
 -   **Fine particulate matter is an air pollutant.** Solid or liquid
     particles floating in the air are called particulate matter. The
@@ -139,7 +140,7 @@ Environment](http://www.ccme.ca/index.html).
     Central Interior, Southern Interior, Lower Fraser Valley, and Georgia
     Strait air zones exceeded it. Many of the exceedances were due to the
     influence of smoke from wildfires, especially during the summer of 2017. 
--   Currently, there are no 
+    Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
 -   **Fine particulate matter levels are used to set management levels
@@ -349,7 +350,7 @@ each file, as indicated in parentheses below.
 -   [BC Air
     Zones](https://catalogue.data.gov.bc.ca/dataset/e8eeefc4-2826-47bc-8430-85703d328516) (`r get_data_license("ogl-bc")`)
 
-Published and Available On-Line at Environmental Reporting BC (October 2017):
+Published and Available On-Line at Environmental Reporting BC (February 2019):
 <http://www.env.gov.bc.ca/soe/indicators/air/fine_pm.html>
 
 Email correspondence to: envreportbc@gov.bc.ca
