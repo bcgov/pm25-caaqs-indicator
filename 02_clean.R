@@ -90,12 +90,15 @@ max_deployment_by_station <- group_by(instrument_deployments, ems_id, station_na
 squamish_ems_ids <- c("0310172", "E304570")
 combo_squamish_id <- paste(squamish_ems_ids, collapse = "-")
 
-squamish <- bind_rows(
-  filter(pm25, instrument_type == "FEM", ems_id == squamish_ems_ids[1], 
-         year == 2015), 
-  filter(pm25, instrument_type == "FEM", ems_id == squamish_ems_ids[2], 
-         year %in% 2016:2017) 
-) %>% 
+squamish <- filter(
+  pm25, instrument_type == "FEM", 
+  (ems_id == squamish_ems_ids[1] & year == 2015) | 
+    (ems_id == squamish_ems_ids[2] & year %in% 2016:2017)
+) %>%
+  # If BAM and SHARP were running in concert - take BAM
+  group_by(date_time) %>%
+  filter(if (n() == 2) grepl("BAM", instrument) else TRUE) %>% 
+  ungroup() %>% 
   mutate(ems_id = combo_squamish_id, 
          station_name = "Squamish")
 
