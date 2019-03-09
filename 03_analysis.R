@@ -51,15 +51,14 @@ pm25_annual_caaqs_mgmt <- caaqs_management(pm25_caaqs_annual,
 station_results_pipeline <- . %>% 
   get_caaqs() %>% 
   group_by(ems_id) %>% 
-  filter(caaqs_year == max(caaqs_year),
-         n_years > 1) %>% 
+  filter(caaqs_year == !!max_year, n_years > 1) %>% 
   ungroup() %>% 
   select(ems_id, everything()) %>% 
   select(-station_name) %>% 
-  left_join(select(stations_clean, airzone, ems_id, station_name, city, lat, lon), 
+  left_join(select(stations_clean, airzone, ems_id, station_name, city, latitude, longitude), 
             by = c("ems_id")) %>% 
   ungroup() %>% 
-  select(airzone, ems_id, station_name, city, latitude = lat, longitude = lon, 
+  select(airzone, ems_id, station_name, city, latitude, longitude, 
          everything())
 
 # PM25 24 Hour
