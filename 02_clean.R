@@ -152,5 +152,5 @@ pm25_clean <- pm25 %>%
 plot_station_instruments(pm25_clean)
 plot_station_instruments(pm25_clean, instrument = "instrument_type")
 
-save(pm25_clean, stations_clean, file = "tmp/pm25_clean.rda")
+save(pm25_clean, stations_clean, max_year, file = "tmp/pm25_clean.rda")
 
