@@ -96,6 +96,7 @@ az_mgmt <- az_ambient %>%
 
 save(list = ls(), file = "tmp/analysed.RData")
 
+dir.create("out", showWarnings = FALSE)
 write_csv(az_ambient, "out/pm2.5_airzone_results_2017.csv", na = "")
 write_csv(pm_caaqs_combined_results, "out/pm2.5_caaqs_combined_results_2017.csv", na = "")
 write_csv(az_mgmt, "out/pm2.5_airzone_management_levels_2017.csv", na = "")
