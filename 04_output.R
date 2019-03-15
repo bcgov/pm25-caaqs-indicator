@@ -247,7 +247,7 @@ for (i in seq_along(stn_plots)) {
   emsid <- names(stn_plots[i])
   daily_plot <- stn_plots[[i]]$daily
   annual_plot <- stn_plots[[i]]$annual
-  cat("savinging plots for", emsid, "\n")
+  cat("saving plots for", emsid, "\n")
   # png_retina(filename = paste0(line_dir, emsid, "_24h_lineplot.png"), 
   #     width = 778, height = 254, units = "px", res = res)
   svg_px(paste0(line_dir, emsid, "_24h_lineplot.svg"), 
