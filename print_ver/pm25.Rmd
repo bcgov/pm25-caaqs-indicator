@@ -182,11 +182,11 @@ achievement_map_annual
 
 # PM~2.5~ Metrics for Air Monitoring Statons within B.C. Air Zones (`r year_range`)
 
-```{r ambient_summary_plot}
-# run the @knitr ambient_summary_plot chunk in ../04_output.R
+```{r pm_ambient_summary_plot}
+# run the @knitr pm_ambient_summary_plot chunk in ../04_output.R
 ```
 ```{r, fig.height=9}
-ambient_summary_plot
+pm_ambient_summary_plot
 ```
 
 \hyperdef{}{metric-info}{}
@@ -250,12 +250,12 @@ pollutants below the Canadian Ambient Air Quality Standards.
     
 # Air Quality Management Levels in B.C. Air Zones   
 
-```{r mgmt_map}
-# run the @knitr mgmt_map chunk in ../04_output.R
+```{r pm_mgmt_map}
+# run the @knitr pm_mgmt_map chunk in ../04_output.R
 ```
 
 ```{r, fig.height=9}
-mgmt_map + 
+pm_mgmt_map + 
   theme(legend.position = "bottom", legend.direction = "vertical")
 ```
 
@@ -263,12 +263,12 @@ mgmt_map +
 
 # Station-Level Air Quality Management Levels Within Air Zones
 
-```{r mgmt_chart}
-# run the @knitr mgmt_map chunk in ../04_output.R
+```{r pm_mgmt_chart}
+# run the @knitr pm_mgmt_chart chunk in ../04_output.R
 ```
 
 ```{r, fig.height=8}
-mgmt_chart
+pm_mgmt_chart
 ```
 
 #### More about the Air Quality Management System management levels:

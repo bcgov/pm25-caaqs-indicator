@@ -61,9 +61,9 @@ station_summary_24h <- summary_pipe(pm_24h_caaqs_results)
 
 pm_caaqs_stations_all <- bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_results)
 
-## @knitr ambient_summary_plot
+## @knitr pm_ambient_summary_plot
 
-ambient_summary_plot <- summary_plot(
+pm_ambient_summary_plot <- summary_plot(
   pm_caaqs_stations_all, 
   metric_val = "metric_value_ambient", 
   airzone = "airzone", station = "station_name", 
@@ -151,7 +151,7 @@ for (emsid in emsids) {
 
 ## Management Air Zone Map
 
-## @knitr mgmt_map
+## @knitr pm_mgmt_map
 
 colrs <- get_colours("management", drop_na = FALSE)
 
@@ -163,7 +163,7 @@ labels_df = data.frame(x = c(680000, 1150000, 780000, 1150000,
                                         "Central\nInterior", "Southern\nInterior", 
                                         "Georgia Strait", "Lower Fraser Valley"))
 
-mgmt_map <- ggplot(az_mgmt_sf) +   
+pm_mgmt_map <- ggplot(az_mgmt_sf) +   
   geom_sf(aes(fill = mgmt_level), colour = "white") + 
   coord_sf(datum = NA) + 
   theme_minimal() + 
@@ -182,8 +182,8 @@ mgmt_map <- ggplot(az_mgmt_sf) +
 
 ## Management Bar Chart
 
-## @knitr mgmt_chart
-mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_results),
+## @knitr pm_mgmt_chart
+pm_mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_results),
                      aes(x = metric, fill = mgmt_level)) + 
   geom_bar(alpha = 1, width = 0.8) +
   facet_wrap(~airzone, ncol = 1) +
@@ -226,12 +226,12 @@ st_transform(az_pm_annual_sf, 4326) %>%
 
 ## SVG of airzone CAAQS mgmt level map
 svg_px("out/pm_caaqs_mgmt_map.svg", width = 500, height = 500)
-plot(mgmt_map)
+plot(pm_mgmt_map)
 dev.off()
 
 ## SVG of airzone/station CAAQS mgmt achievement chart
 svg_px("out/pm_caaqs_mgmt_chart.svg", width = 500, height = 500)
-plot(mgmt_chart)
+plot(pm_mgmt_chart)
 dev.off()
 
 pm_summary <- select(pm_24h_caaqs_results, ems_id, station_name, airzone, )
@@ -263,12 +263,7 @@ for (i in seq_along(stn_plots)) {
 }
 graphics.off() # Kill any hanging graphics processes
 
-## Save plot objects (giving them different names so that they are easier to
-## disambiguate from ozone map/chart in air zone reports)
-pm_ambient_summary_plot <- ambient_summary_plot
-pm_mgmt_map <- mgmt_map
-pm_mgmt_chart <- mgmt_chart
-
+## Save plot objects 
 save(
   pm_ambient_summary_plot,
   pm_mgmt_map,
