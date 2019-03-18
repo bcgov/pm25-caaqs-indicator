@@ -262,3 +262,16 @@ for (i in seq_along(stn_plots)) {
   dev.off()
 }
 graphics.off() # Kill any hanging graphics processes
+
+## Save plot objects (giving them different names so that they are easier to
+## disambiguate from ozone map/chart in air zone reports)
+pm_ambient_summary_plot <- ambient_summary_plot
+pm_mgmt_map <- mgmt_map
+pm_mgmt_chart <- mgmt_chart
+
+save(
+  pm_ambient_summary_plot,
+  pm_mgmt_map,
+  pm_mgmt_chart,
+  file = "tmp/plots.RData"
+)
