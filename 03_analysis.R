@@ -55,10 +55,10 @@ station_results_pipeline <- . %>%
   ungroup() %>% 
   select(ems_id, everything()) %>% 
   select(-station_name) %>% 
-  left_join(select(stations_clean, airzone, ems_id, station_name, city, latitude, longitude), 
+  left_join(select(stations_clean, airzone, ems_id, station_name, city, lat, lon), 
             by = c("ems_id")) %>% 
   ungroup() %>% 
-  select(airzone, ems_id, station_name, city, latitude, longitude, 
+  select(airzone, ems_id, station_name, city, lat, lon, 
          everything())
 
 # PM25 24 Hour
@@ -100,3 +100,4 @@ dir.create("out", showWarnings = FALSE)
 write_csv(az_ambient, "out/pm2.5_airzone_results_2017.csv", na = "")
 write_csv(pm_caaqs_combined_results, "out/pm2.5_caaqs_combined_results_2017.csv", na = "")
 write_csv(az_mgmt, "out/pm2.5_airzone_management_levels_2017.csv", na = "")
+

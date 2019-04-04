@@ -60,9 +60,12 @@ stations_clean <- rename_all(stations, tolower) %>%
   # semi_join(pm25_clean, by = "ems_id") %>% 
   top_n(1, station_name) %>% 
   ungroup() %>% 
-  left_join(stn_names, by = "ems_id") %>% 
+  left_join(select(stn_names, -airzone), by = "ems_id") %>% 
   mutate(station_name = case_when(is.na(reporting_name) ~ station_name,
-                                  TRUE ~ reporting_name))
+                                  TRUE ~ reporting_name)) %>% 
+  assign_airzone(airzones = airzones(), 
+                 station_id = "ems_id", 
+                 coords = c("longitude", "latitude"))
 
 ## Format dates, extract 2014-2016, set variable names.
 
@@ -95,15 +98,26 @@ pm25 <- pm25_all %>%
                instrument == "PM25 SHARP5030" & 
                date_time <= as.POSIXct("2017/06/19 14:59:59"))
   ) %>% 
+  # Remove TEOM from Grand forks in 2017, as there was also FEM running at the 
+  # same time, and combine TEOM and FEM for that station
+  filter(!(ems_id == "E263701" & 
+           instrument_type == "TEOM" & 
+           date_time >= as.POSIXct("2016-12-31 23:59:59")
+           )) %>% 
+  mutate(
+    instrument_type = ifelse(ems_id == "E263701", "TEOM (2017 FEM)", instrument_type)
+  ) %>% 
   distinct()
 
 ## Plot deployments of different instruments at each station
 plot_station_instruments(pm25)
 plot_station_instruments(pm25, instrument = "instrument_type")
 
-## Summarise the dates that different PM2.5 monitoring instrument types were 
-## deployed at each station so we can get the most data
+## Summarise the dates during the most recent three years (caaqs timeframe)
+## that different PM2.5 monitoring instrument types were deployed at each 
+## station so we can get the most data
 instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>% 
+  filter(between(year(date_time), max_year - 2L, max_year)) %>% 
   select(ems_id, instrument_type, date) %>% 
   distinct() %>% 
   group_by(ems_id, instrument_type) %>% 

@@ -31,9 +31,9 @@ az <- st_intersection(airzones(), st_geometry(bc_bound())) %>%
   summarize()
 
 stations_sf <- stations_clean %>% 
-  select(ems_id, latitude, longitude) %>%
+  select(ems_id, lat, lon) %>%
   semi_join(pm25_clean, by = "ems_id") %>% 
-  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   transform_bc_albers()
 
 az_mgmt_sf <- az %>%
