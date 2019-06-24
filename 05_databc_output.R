@@ -91,4 +91,5 @@ az_mgmt_combined <- st_set_geometry(az_mgmt_sf, NULL) %>%
 
 write_csv(station_caaqs_combined, "out/databc/pm25sitesummary.csv", na = "")
 write_csv(az_ambient_combined, "out/databc/pm25-airzone-caaqs.csv", na = "")
-write_csv(az_mgmt_combined, "out/databc/pm25-caaqs-management-levels.csv", na = "")
+write_csv(az_mgmt_combined, "out/databc/pm25-airzone-management-levels.csv", na = "")
+
