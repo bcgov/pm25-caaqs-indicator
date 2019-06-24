@@ -47,8 +47,15 @@ pm_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_s
   mutate(caaqs_year = 2016L) %>% 
   rename(metric_value_ambient = metric_value, caaqs_ambient = caaqs)
 
-station_caaqs_combined <- bind_rows(pm_2013, pm_2016, 
-                                    select(pm_caaqs_combined_results, -starts_with("flag")))
+station_caaqs_combined <- pm_caaqs_combined_results %>% 
+  select(-starts_with("flag")) %>% 
+  rename(latitude = lat, longitude = lon) %>% 
+  bind_rows(pm_2016, pm_2013) %>% 
+  arrange(caaqs_year) %>% 
+  select(ems_id, station_name, city, longitude, latitude, instrument_type, 
+         airzone, metric, caaqs_year, min_year, max_year, n_years, 
+         metric_value_ambient, caaqs_ambient, excluded, metric_value_mgmt, 
+         mgmt_level)
 
 # Ambient airzone caaqs
 az_ambient_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_ambient_airzone_caaqs_summary.csv")) %>% 
