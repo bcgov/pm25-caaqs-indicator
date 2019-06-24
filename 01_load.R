@@ -27,7 +27,12 @@ download.file(databc_stations, destfile = file.path(path, stn_file))
 
 ## Load stations and data from files
 stations <- read_csv(file.path(path, stn_file), na = c("", "N/A"))
-pm25_all <- read_csv(file.path(path, pm25_file), col_types = "Tccccdcd")
+pm25_all <- read_csv(file.path(path, pm25_file), 
+                     col_types = cols_only(DATE_PST = col_datetime(), 
+                                           EMS_ID = col_character(), 
+                                           STATION_NAME = col_character(),
+                                           INSTRUMENT = col_character(),
+                                           RAW_VALUE = col_double()))
 
 ## store data in local repository
 dir.create("tmp", showWarnings = FALSE)

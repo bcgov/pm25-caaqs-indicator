@@ -1,11 +1,14 @@
 ---
 topic: "air"
-title: "Status of Fine Particulate Matter in B.C. (2014-2016)"
 header-includes:
   - \usepackage[utf8]{inputenc}
   - \usepackage{siunitx}
   - \sisetup{detect-all,per-mode=symbol}
 output: envreportutils.internal::print_ver
+params:
+  min_year: 2015
+  max_year: 2017
+title: "Status of Fine Particulate Matter in B.C. (2015-2017)"
 ---
 <!--
 Copyright 2018 Province of British Columbia
@@ -21,12 +24,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and limitations under the License.
 -->
 
-
-
-
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::opts_chunk$set(echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, 
-                      error = FALSE, fig.width = 7)
+knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE, 
+                      warning = FALSE, error = FALSE, fig.width = 7)
 
 library("rcaaqs")
 library("readr")
@@ -51,16 +51,18 @@ knitr_latex_char <- function(x) {
   y <- gsub("~", "\\\\textasciitilde{}", y)
   return(y)
 }
+
+year_range <- paste(params$min_year, params$max_year, sep = "-")
 ```
 
 ```{r pre}
-
+# run the @knitr pre chunk in ../04_output.R
 ```
 
 
 British Columbia operates a network of air monitoring stations that
 measure fine particulate matter and other air pollutants. This indicator
-reports on the concentration of fine particulate matter from 2014-2016
+reports on the concentration of fine particulate matter from `r year_range`
 and compares it to the [Canadian Ambient Air Quality
 Standards](http://www.ccme.ca/en/resources/air/aqms.html#anchor1)
 established by the [Canadian Council of Ministers of the
@@ -103,12 +105,13 @@ Environment](http://www.ccme.ca/index.html).
   \end{minipage}
 }
 \end{center}
+\vspace{2mm}
 
 -   **Fine particulate matter is an air pollutant.** Solid or liquid
     particles floating in the air are called particulate matter. The
     smallest of these particles---those that are 2.5 microns or less in
     diameter, or less than 1/20th the width of a human hair---are called
-    fine particulate matter (PM$_{\text{2.5}}$). Fine particulate matter comes from
+    fine particulate matter (PM~2.5~). Fine particulate matter comes from
     many natural and human activities, including wildfires and emissions
     from prescribed burning, forestry operations, residential
     woodstoves, and transportation.^[1](#fn1)^
@@ -118,21 +121,27 @@ Environment](http://www.ccme.ca/index.html).
     short-term (24-hour) and longer-term (a year or more) exposure to
     fine particulate matter can have negative effects on human health.
 -   **Fine particulate matter levels met the Canadian Ambient Air
-    Quality Standards at 86 percent of assessed monitoring stations in
-    B.C.** There are two standards for PM$_{\text{2.5}}$---an annual standard and a
-    24-hour standard (see sidebar). The annual standard was met at all
-    of the 48 stations for which valid data was obtained, while the
-    24-hour standard was met at 42 of the 49 stations (86%) with
-    sufficient data for analysis.
+    Quality Standards at `r min(station_summary_annual$percent_achieved, station_summary_24h$percent_achieved)`
+    percent of assessed monitoring stations in B.C.** There are two standards 
+    for PM~2.5~---an annual standard and a
+    24-hour standard (see sidebar). The annual standard was met at 
+    `r station_summary_annual$n_achieved` of the `r station_summary_annual$n`
+    stations (
+    `r station_summary_annual$percent_achieved`%) for 
+    which valid data was obtained, while the 24-hour standard was met at 
+    `r station_summary_24h$n_achieved` of the `r station_summary_24h$n` stations (
+    `r station_summary_24h$percent_achieved`%) with sufficient data for analysis.
 -   **Fine particulate matter levels met both of the Canadian Ambient
-    Air Quality Standards in two of B.C.'s seven air zones.** All air
-    zones met the PM$_{\text{2.5}}$ annual standard, and three air zones exceeded
-    the PM$_{\text{2.5}}$ 24-hour standard. One of the air zone PM$_{\text{2.5}}$ 24-hour
-    exceedances---the Southern Interior air zone---was due to the influence
-    of smoke from wildfires. There was not enough data to estimate PM$_{\text{2.5}}$
-    levels for the Northeast air zone for this reporting period.
-    Currently, there are no [air monitoring
-    stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
+    Air Quality Standards in two of B.C.'s seven air zones.** The Coastal, 
+    Northeast, Lower Fraser Valley, and Georgia Strait air zones met the
+    PM~2.5~ annual standard, while the Central Interior and
+    Southern Interior air zones exceeded it. The Coastal and Northeast 
+    air zones met the PM~2.5~ 24-hour standard, while the 
+    Central Interior, Southern Interior, Lower Fraser Valley, and Georgia
+    Strait air zones exceeded it. Many of the exceedances were due to the
+    influence of smoke from wildfires, especially during the summer of 2017. 
+    Currently, there are no 
+    [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
 -   **Fine particulate matter levels are used to set management levels
     for each air zone.** Four management levels (green, yellow, orange,
@@ -142,61 +151,64 @@ Environment](http://www.ccme.ca/index.html).
 
 The maps and chart below summarise the Canadian Ambient Air Quality Standard 
 achievement status for fine particulate matter in B.C. air zones, as
-well as both the annual and 24-hour PM$_{\text{2.5}}$ levels at individual
+well as both the annual and 24-hour PM~2.5~ levels at individual
 monitoring stations. Summaries are given for each monitoring station where
-sufficient data was available for the 2014-2016 reporting period.
+sufficient data was available for the `r year_range` reporting period.
 
-# Status of 24-hour PM$_{\text{2.5}}$ Levels in B.C. Air Zones (2014-2016)
+# Status of 24-hour PM~2.5~ Levels in B.C. Air Zones (`r year_range`)
 
-```{r achievement_map_24}
+```{r achievement_map_24h}
+# run the @knitr achievement_map_24h chunk in ../04_output.R
 ```
 
-```{r fig.height=8}
-plot(achievement_map_24)
+```{r, fig.height=8}
+achievement_map_24h
 ```
+
 
 \newpage
 
-# Status of Annual PM$_{\text{2.5}}$ Levels in B.C. Air Zones (2014-2016)
+# Status of Annual PM~2.5~ Levels in B.C. Air Zones (`r year_range`)
 
 ```{r achievement_map_annual}
+# run the @knitr achievement_map_annual chunk in ../04_output.R
 ```
 
-```{r fig.height=8}
-plot(achievement_map_annual)
+```{r, fig.height=8}
+achievement_map_annual
 ```
 
 \newpage
 
-# PM$_{\text{2.5}}$ Metrics for Air Monitoring Statons within B.C. Air Zones (2014-2016)
+# PM~2.5~ Metrics for Air Monitoring Statons within B.C. Air Zones (`r year_range`)
 
-```{r summary_plot}
+```{r pm_ambient_summary_plot}
+# run the @knitr pm_ambient_summary_plot chunk in ../04_output.R
 ```
-
-```{r fig.height=9}
-plot(ambient_summary_plot)
+```{r, fig.height=9}
+pm_ambient_summary_plot
 ```
 
 \hyperdef{}{metric-info}{}
 ### More about the Canadian Ambient Air Quality Standard fine particulate matter metrics:
 
 -   There are two Canadian Ambient Air Quality Standards for fine
-    particulate matter (PM$_{\text{2.5}}$). The statistical form of the PM$_{\text{2.5}}$ annual
+    particulate matter (PM~2.5~). The statistical form of the PM~2.5~ annual
     metric is the 3-year average of the annual average concentration of
-    PM$_{\text{2.5}}$. The statistical form of the PM$_{\text{2.5}}$ 24-hour metric is the
+    PM~2.5~. The statistical form of the PM~2.5~ 24-hour metric is the
     3-year average of the annual 98th percentile of the daily average
-    concentrations of PM$_{\text{2.5}}$.
--   The PM$_{\text{2.5}}$ metric for an air zone is the highest PM$_{\text{2.5}}$ metric value
+    concentrations of PM~2.5~.
+-   The PM~2.5~ metric for an air zone is the highest PM~2.5~ metric value
     reported from monitoring stations within the air zone. Air zone
     metric values are only taken from stations reporting on two years of
     data when there are no available three-year reporting stations in
     the air zone.
 -   Only air monitoring stations with sufficient data on fine
-    particulate matter concentrations for the 2014-2016 reporting period
+    particulate matter concentrations for the `r year_range` reporting period
     were included in this indicator. Visit [Current Air Quality
     Data](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     for a complete list of air monitoring stations across B.C.
--   Data completeness and sufficiency criteria for the two PM$_{\text{2.5}}$ metrics
+-   Data completeness and sufficiency criteria for the two PM~2.5~ metrics
     are described in the [Guidance Document on Achievement
     Determination: Canadian Ambient Air Quality Standards for Fine
     Particulate Matter and Ozone (2012)
@@ -228,23 +240,22 @@ pollutants below the Canadian Ambient Air Quality Standards.
     Document on Air Zone Management (2012)
     (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1481_gdazm_e.pdf).
 -   The Central Interior and Georgia Strait air zones were assigned to a
-    red management level, the Lower Fraser Valley and Coastal air zones
-    were assigned to a yellow management level, and the Southern
-    Interior to an orange management level. There was not enough data to
-    estimate the management level for the Northeast air zone for this
-    reporting period, and currently there are no [air monitoring
-    stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
+    red management level, the Southern Interior to an orange management
+    level, and the Lower Fraser Valley, Coastal, and Northeast air zones
+    were assigned to a yellow management level. There are currently no 
+    [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
     
 \newpage
     
 # Air Quality Management Levels in B.C. Air Zones   
-    
-```{r mgmt_map}
+
+```{r pm_mgmt_map}
+# run the @knitr pm_mgmt_map chunk in ../04_output.R
 ```
 
-```{r fig.height=9}
-mgmt_map + 
+```{r, fig.height=9}
+pm_mgmt_map + 
   theme(legend.position = "bottom", legend.direction = "vertical")
 ```
 
@@ -252,11 +263,12 @@ mgmt_map +
 
 # Station-Level Air Quality Management Levels Within Air Zones
 
-```{r mgmt_chart}
+```{r pm_mgmt_chart}
+# run the @knitr pm_mgmt_chart chunk in ../04_output.R
 ```
 
-```{r fig.height=8}
-plot(mgmt_chart) 
+```{r, fig.height=8}
+pm_mgmt_chart
 ```
 
 #### More about the Air Quality Management System management levels:
@@ -271,20 +283,16 @@ plot(mgmt_chart)
     jurisdictions are responsible for managing only the emissions
     sources they can control.
 -   Wildfires are generally the largest contributor to transboundary
-    flows and exceptional events in B.C. Over the 2014-16 reporting
-    period, 50 stations had one or more days during the wildfire season
+    flows and exceptional events in B.C. Over the `r year_range` reporting
+    period, 59 stations had one or more days during the wildfire season
     (May-September) where the daily fine particulate matter
     concentration was determined to be influenced by smoke from
     wildfires and exceeded the 24-hour standard of \SI{28}{\micro\gram\per\metre\cubed}. The
-    majority of wildfire influences occurred in 2015. Those daily
+    majority of wildfire influences occurred in 2017. Those daily
     concentrations were removed from the calculations of management
     levels, resulting in a change from red to orange for the Southern
-    Interior management level.
--   Note that while the Kitimat Haisla Village station in the Coastal
-    air zone had an annual level that would indicate an 'orange'
-    management level, it was excluded from consideration because the
-    level was based on only two years of data, with three-year reporting
-    stations available in the air zone.
+    Interior management level, and a change from red to yellow for the 
+    Lower Fraser Valley management level for fine particulate matter.
 
 ### Methods
 
@@ -336,25 +344,28 @@ each file, as indicated in parentheses below.
 
 -   [Indicator data: BC Fine Particulate Matter Canadian Ambient Air
     Quality Standards
-    2014-2016](https://catalogue.data.gov.bc.ca/dataset/699be99e-a9ba-403e-b0fe-3d13f84f45ab) (`r get_data_license("ogl-bc")`)
--   [BC PM$_{\text{2.5}}$ Hourly Data & Air Monitoring Station
+    `r year_range`](https://catalogue.data.gov.bc.ca/dataset/699be99e-a9ba-403e-b0fe-3d13f84f45ab) (`r get_data_license("ogl-bc")`)
+-   [BC PM~2.5~ Hourly Data & Air Monitoring Station
     locations](https://catalogue.data.gov.bc.ca/dataset/77eeadf4-0c19-48bf-a47a-fa9eef01f409) (`r get_data_license("ogl-bc")`)
 -   [BC Air
     Zones](https://catalogue.data.gov.bc.ca/dataset/e8eeefc4-2826-47bc-8430-85703d328516) (`r get_data_license("ogl-bc")`)
 
-Published and Available On-Line at Environmental Reporting BC (October 2017):
+Published and Available On-Line at Environmental Reporting BC (June 2019):
 <http://www.env.gov.bc.ca/soe/indicators/air/fine_pm.html>
 
 Email correspondence to: envreportbc@gov.bc.ca
 
+*Suggested Citation*:  
+Environmental Reporting BC. 2019. Status of Fine Particulate Matter in B.C. (`r year_range`). State of Environment Reporting, Ministry of Environment and Climate Change Strategy, British Columbia, Canada.
+
 # Appendix: Detailed fine particulate matter Candadian Ambient Air Quality Standard results for each monitoring station within air zones in B.C.
 
-```{r stn_plots, message=FALSE}
-
+```{r stn_plots}
+# run the @knitr stn_plots chunk in ../04_output.R
 ```
 
 
-```{r appendix, results='asis', fig.height=3}
+```{r message=FALSE, results='asis', fig.height=3}
 
 ## Function to identify the layers in the plot that are labels ("annotations")
 label_layers <- function(plot) {
@@ -374,10 +385,10 @@ set_label_size <- function(plot, size) {
   plot
 }
 
-pm_data <- sf::st_set_geometry(pm_stats, NULL)
+pm_data <- pm_caaqs_stations_all
 
-for (az in unique(pm_data$Airzone)) {
-  emsids <- unique(pm_data$ems_id[pm_stats$Airzone == az])
+for (az in unique(pm_data$airzone)) {
+  emsids <- unique(pm_data$ems_id[pm_data$airzone == az])
   cat("\\subsection{", az, " Air Zone}", sep = "")
   
   for (emsid in emsids) {
@@ -385,19 +396,19 @@ for (az in unique(pm_data$Airzone)) {
     caaqs_data_24h <- filter(pm_data, ems_id == !!emsid, metric == "pm2.5_24h")
     caaqs_data_annual <- filter(pm_data, ems_id == !!emsid, metric == "pm2.5_annual")
     
-    site <- pm_stats$station_name[pm_data$ems_id == emsid][1]
+    site <- pm_data$station_name[pm_data$ems_id == emsid][1]
     
     ## Subset daily, caaqs, and annual data
-    daily_plot <- stnplots[[emsid]]$daily
-    annual_plot <- stnplots[[emsid]]$annual
+    daily_plot <- stn_plots[[emsid]]$daily
+    annual_plot <- stn_plots[[emsid]]$annual
     
     cat("\\subsubsection*{\\underline{", knitr_latex_char(site), " monitoring station}}", sep = "")
     
     if (nrow(caaqs_data_24h)) {
       
       cat("\\textbf{PM$_{2.5}$ 24-hour Air Quality Standard:} ",
-          as.character(caaqs_data_24h$caaqs), " \\newline ")
-      cat("\\textbf{PM$_{2.5}$ 24-hour Metric:} \\SI{", caaqs_data_24h$metric_value, 
+          as.character(caaqs_data_24h$caaqs_ambient), " \\newline ")
+      cat("\\textbf{PM$_{2.5}$ 24-hour Metric:} \\SI{", caaqs_data_24h$metric_value_ambient, 
           "}{\\micro\\gram\\per\\metre\\cubed} (", caaqs_data_24h$n_years,
           " year average) \\newline ", "\\newline ", sep = "")
       plot(set_label_size(daily_plot, 3))
@@ -413,8 +424,8 @@ for (az in unique(pm_data$Airzone)) {
     if (nrow(caaqs_data_annual)) {
       
       cat("\\textbf{PM$_{2.5}$ Annual Air Quality Standard:} ",
-          as.character(caaqs_data_annual$caaqs), " \\newline ")
-      cat("\\textbf{PM$_{2.5}$ Annual Metric:} \\SI{", caaqs_data_annual$metric_value,
+          as.character(caaqs_data_annual$caaqs_ambient), " \\newline ")
+      cat("\\textbf{PM$_{2.5}$ Annual Metric:} \\SI{", caaqs_data_annual$metric_value_ambient,
           "}{\\micro\\gram\\per\\metre\\cubed} (", caaqs_data_annual$n_years,
           " year average) \\newline ",  "\\newline ", sep = "")
       plot(set_label_size(annual_plot, 3))
