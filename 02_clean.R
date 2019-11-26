@@ -26,7 +26,7 @@ stn_names <- read_csv("data/stn_names_reporting.csv") %>%
   mutate(ems_id = str_pad(ems_id, 7, "left", "0")) %>% 
   rename(orig_stn_name = station_name)
 
-max_year <- 2017
+max_year <- 2018
 
 ## Set stations to exclude from analyis (those in indsutrial settings):
 excluded_stations <- stations$EMS_ID[grepl("industr", stations$STATION_ENVIRONMENT, ignore.case = TRUE)]
@@ -67,7 +67,7 @@ stations_clean <- rename_all(stations, tolower) %>%
                  station_id = "ems_id", 
                  coords = c("longitude", "latitude"))
 
-## Format dates, extract 2014-2016, set variable names.
+## Format dates, extract time period , set variable names.
 
 pm25 <- pm25_all %>% 
   filter(!EMS_ID %in% excluded_stations) %>% 
@@ -110,8 +110,48 @@ pm25 <- pm25_all %>%
   distinct()
 
 ## Plot deployments of different instruments at each station
+
+
 plot_station_instruments(pm25)
 plot_station_instruments(pm25, instrument = "instrument_type")
+
+library(ggplot2)
+# Temporary check outputs -------------------------------------------------
+# follow up with checks on instrument type. 
+st_nms <- unique(pm25$station_name)
+st_nms <- st_nms[1:25]
+pm25a <- pm25 %>%
+  filter(station_name %in% st_nms)
+p1_25 <- plot_station_instruments(pm25a)
+p1_25
+ggsave( "tmp/pm25_p1_25.jpg", plot = last_plot())
+
+st_nms <- unique(pm25$station_name)
+st_nms <- st_nms[26:50]
+pm25a <- pm25 %>%
+  filter(station_name %in% st_nms)
+p26_50 <- plot_station_instruments(pm25a)
+p26_50 
+ggsave( "tmp/pm25_p26_50.jpg", plot = last_plot())
+
+st_nms <- unique(pm25$station_name)
+st_nms <- st_nms[51:75]
+pm25a <- pm25 %>%
+  filter(station_name %in% st_nms)
+p51_75 <- plot_station_instruments(pm25a)
+p51_75
+ggsave( "tmp/pm25_p51_75.jpg", plot = last_plot())
+
+st_nms <- unique(pm25$station_name)
+st_nms <- st_nms[76:100]
+pm25a <- pm25 %>%
+  filter(station_name %in% st_nms)
+p76_100 <- plot_station_instruments(pm25a)
+p76_100
+ggsave( "tmp/pm25_p76_100.jpg", plot = last_plot())
+
+
+##------------------------------------------------------------------------
 
 ## Summarise the dates during the most recent three years (caaqs timeframe)
 ## that different PM2.5 monitoring instrument types were deployed at each 
@@ -126,7 +166,7 @@ instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>%
             n_days = n()) %>%
   ungroup()
 
-## Select the monitor at each station that hast the most days
+## Select the monitor at each station that has the most days
 max_deployment_by_station <- group_by(instrument_deployments, ems_id) %>% 
   summarise(which_instrument = instrument_type[which.max(n_days)])
 
@@ -153,7 +193,7 @@ pm25_clean <- pm25 %>%
   inner_join(select(stations_clean, ems_id, station_name), 
              by = "ems_id") %>% 
   # tsibble time series package to make sure hourly data
-  as_tsibble(key = id(ems_id, station_name, instrument, instrument_type), 
+  as_tsibble(key = c(ems_id, station_name, instrument, instrument_type), 
              regular = FALSE) %>% 
   group_by(ems_id, station_name, instrument, instrument_type) %>% 
   index_by(date_hr = ceiling_date(date_time, "hour") - 1) %>% 
