@@ -24,6 +24,8 @@ if (!exists("az_final")) load("tmp/analysed.RData")
 # Create output directory:
 dir.create("out", showWarnings = FALSE)
 
+rep_year <- 2018 # reporting year 
+
 ## @knitr pre
 
 az <- st_intersection(airzones(), st_geometry(bc_bound())) %>% 
@@ -129,12 +131,12 @@ names(stn_plots) <- emsids
 for (emsid in emsids) {
   
   # Create plots
-  p_24 <- plot_ts(pm25_caaqs_24h, id = emsid, , id_col = "ems_id", 
-                  rep_yr = 2017, plot_caaqs = TRUE, plot_exceedances = FALSE, 
+  p_24 <- plot_ts(pm25_caaqs_24h, id = emsid, id_col = "ems_id", 
+                  rep_yr = max_year, plot_caaqs = TRUE, plot_exceedances = FALSE, 
                   base_size = 14)
   
-  p_annual <- plot_ts(pm25_caaqs_annual, id = emsid, , id_col = "ems_id", 
-                      rep_yr = 2017, plot_caaqs = TRUE, plot_exceedances = FALSE, 
+  p_annual <- plot_ts(pm25_caaqs_annual, id = emsid, ,  id_col = "ems_id", 
+                      rep_yr = max_year, plot_caaqs = TRUE, plot_exceedances = FALSE, 
                       base_size = 14)
   
   p_annual <- p_annual + coord_cartesian(ylim = c(0, 80))
