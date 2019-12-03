@@ -6,8 +6,8 @@ header-includes:
   - \sisetup{detect-all,per-mode=symbol}
 output: envreportutils.internal::print_ver
 params:
-  min_year: 2015
-  max_year: 2017
+  min_year: 2016
+  max_year: 2018
 title: "Status of Fine Particulate Matter in B.C. (2015-2017)"
 ---
 <!--
