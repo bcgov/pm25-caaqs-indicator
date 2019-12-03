@@ -109,47 +109,55 @@ pm25 <- pm25_all %>%
   ) %>% 
   distinct()
 
-## Plot deployments of different instruments at each station
 
+# temp : check stations with NA's for instrument type 
+na_stations <- pm25 %>% 
+  filter(is.na(instrument_type)) %>%
+  group_by(station_name, year)%>%
+  summarise(count = n())
+na_stations 
+
+## Plot deployments of different instruments at each station
 
 plot_station_instruments(pm25)
 plot_station_instruments(pm25, instrument = "instrument_type")
 
 library(ggplot2)
+
 # Temporary check outputs -------------------------------------------------
 # follow up with checks on instrument type. 
-st_nms <- unique(pm25$station_name)
-st_nms <- st_nms[1:25]
-pm25a <- pm25 %>%
-  filter(station_name %in% st_nms)
-p1_25 <- plot_station_instruments(pm25a)
-p1_25
-ggsave( "tmp/pm25_p1_25.jpg", plot = last_plot())
-
-st_nms <- unique(pm25$station_name)
-st_nms <- st_nms[26:50]
-pm25a <- pm25 %>%
-  filter(station_name %in% st_nms)
-p26_50 <- plot_station_instruments(pm25a)
-p26_50 
-ggsave( "tmp/pm25_p26_50.jpg", plot = last_plot())
-
-st_nms <- unique(pm25$station_name)
-st_nms <- st_nms[51:75]
-pm25a <- pm25 %>%
-  filter(station_name %in% st_nms)
-p51_75 <- plot_station_instruments(pm25a)
-p51_75
-ggsave( "tmp/pm25_p51_75.jpg", plot = last_plot())
-
-st_nms <- unique(pm25$station_name)
-st_nms <- st_nms[76:100]
-pm25a <- pm25 %>%
-  filter(station_name %in% st_nms)
-p76_100 <- plot_station_instruments(pm25a)
-p76_100
-ggsave( "tmp/pm25_p76_100.jpg", plot = last_plot())
-
+# st_nms <- unique(pm25$station_name)
+# st_nms <- st_nms[1:25]
+# pm25a <- pm25 %>%
+#   filter(station_name %in% st_nms)
+# p1_25 <- plot_station_instruments(pm25a)
+# p1_25
+# ggsave( "tmp/pm25_p1_25.jpg", plot = last_plot())
+# 
+# st_nms <- unique(pm25$station_name)
+# st_nms <- st_nms[26:50]
+# pm25a <- pm25 %>%
+#   filter(station_name %in% st_nms)
+# p26_50 <- plot_station_instruments(pm25a)
+# p26_50 
+# ggsave( "tmp/pm25_p26_50.jpg", plot = last_plot())
+# 
+# st_nms <- unique(pm25$station_name)
+# st_nms <- st_nms[51:75]
+# pm25a <- pm25 %>%
+#   filter(station_name %in% st_nms)
+# p51_75 <- plot_station_instruments(pm25a)
+# p51_75
+# ggsave( "tmp/pm25_p51_75.jpg", plot = last_plot())
+# 
+# st_nms <- unique(pm25$station_name)
+# st_nms <- st_nms[76:100]
+# pm25a <- pm25 %>%
+#   filter(station_name %in% st_nms)
+# p76_100 <- plot_station_instruments(pm25a)
+# p76_100
+# ggsave( "tmp/pm25_p76_100.jpg", plot = last_plot())
+# 
 
 ##------------------------------------------------------------------------
 
@@ -207,4 +215,47 @@ plot_station_instruments(pm25_clean)
 plot_station_instruments(pm25_clean, instrument = "instrument_type")
 
 save(pm25_clean, stations_clean, max_year, file = "tmp/pm25_clean.rda")
+
+
+
+
+# Temporary check outputs -------------------------------------------------
+# follow up with checks on instrument type. 
+ st_nms <- unique(pm25_clean$station_name)
+ st_nms <- st_nms[1:25]
+ pm25a <- pm25_clean %>%
+   filter(station_name %in% st_nms)
+ p1_25 <- plot_station_instruments(pm25a)
+ p1_25
+ ggsave( "tmp/pm25c_p1_25.jpg", plot = last_plot())
+
+ st_nms <- unique(pm25_clean$station_name)
+ st_nms <- st_nms[26:50]
+ pm25a <- pm25_clean %>%
+   filter(station_name %in% st_nms)
+ p26_50 <- plot_station_instruments(pm25a)
+ p26_50 
+ ggsave( "tmp/pm25c_p26_50.jpg", plot = last_plot())
+ 
+ st_nms <- unique(pm25_clean$station_name)
+ st_nms <- st_nms[51:75]
+ pm25a <- pm25_clean %>%
+   filter(station_name %in% st_nms)
+ p51_75 <- plot_station_instruments(pm25a)
+ p51_75
+ ggsave( "tmp/pm25c_p51_75.jpg", plot = last_plot())
+ 
+ st_nms <- unique(pm25_clean$station_name)
+ st_nms <- st_nms[76:100]
+ pm25a <- pm25_clean%>%
+   filter(station_name %in% st_nms)
+ p76_100 <- plot_station_instruments(pm25a)
+ p76_100
+ ggsave( "tmp/pm25c_p76_100.jpg", plot = last_plot())
+ 
+
+##------------------------------------------------------------------------
+
+
+
 
