@@ -81,9 +81,13 @@ airzone_caaqs_pm_annual <- filter(pm_caaqs_combined_results, metric == "pm2.5_an
   airzone_metric(keep = c("station_name")) %>% 
   mutate(metric = "pm2.5_annual")
 
+# warning message - may need to specify all params in the dataset
+
 airzone_caaqs_pm24h <- filter(pm_caaqs_combined_results, metric == "pm2.5_24h") %>% 
   airzone_metric(keep = "station_name") %>% 
   mutate(metric = "pm2.5_24h")
+
+# warning message - may need to specify all params in the dataset
 
 az_ambient <- bind_rows(airzone_caaqs_pm24h, airzone_caaqs_pm_annual) %>% 
   select(airzone, metric, everything())
