@@ -30,8 +30,6 @@ pm25_caaqs_24h <- pm_24h_caaqs(pm25_clean, by = site_group_vars)
 ## All May-September daily concentrations >28 ug/m3 were  associated with wildfire 
 ## influences and were therefore excluded from the calculation of management levels
 
-# check if this is may (5) to September (9)
-
 ## Find the days that exceeded 28 ug/m3 and create a data frame of the grouping vars and dates
 excludes <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28, 
                    between(month(date), 5, 9)) %>% 
@@ -74,14 +72,11 @@ pm_annual_caaqs_results <- station_results_pipeline(pm25_annual_caaqs_mgmt)
 # Combo reporting df of annual and 24h caaqs results
 pm_caaqs_combined_results <- bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_results)
 
-
 # Airzone results ---------------------------------------------------------
-
+options(warn= 2)
 airzone_caaqs_pm_annual <- filter(pm_caaqs_combined_results, metric == "pm2.5_annual") %>% 
   airzone_metric(keep = c("station_name")) %>% 
   mutate(metric = "pm2.5_annual")
-
-# warning message - may need to specify all params in the dataset
 
 airzone_caaqs_pm24h <- filter(pm_caaqs_combined_results, metric == "pm2.5_24h") %>% 
   airzone_metric(keep = "station_name") %>% 
