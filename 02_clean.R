@@ -256,7 +256,12 @@ save(pm25_clean, stations_clean, max_year, file = "tmp/pm25_clean.rda")
  
 
 ##------------------------------------------------------------------------
-
+# names check for 
+ 
+ x1 <- pm25_clean %>% 
+   group_by(station_name)
+   summarise(count = n(.))
+   
 
 
 
