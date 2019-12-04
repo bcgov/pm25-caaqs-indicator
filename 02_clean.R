@@ -47,6 +47,7 @@ combo_squamish_id <- paste(squamish_ems_ids, collapse = "-")
 ## Met == meteorological stns using Campbell loggers; 
 ## BAM == Beta Attenuation Monitoring for PM measurement.
 select_pattern <- "_60$|Met$|OLD$|BAM$|Squamish Gov't Bldg"
+
 stations_clean <- rename_all(stations, tolower) %>% 
   mutate(ems_id = case_when(ems_id %in% squamish_ems_ids ~ combo_squamish_id, 
                             TRUE ~ gsub("_.+$", "", ems_id))) %>% 
@@ -181,7 +182,7 @@ max_deployment_by_station <- group_by(instrument_deployments, ems_id) %>%
 squamish <- filter(
   pm25, instrument_type == "FEM", 
   (ems_id == squamish_ems_ids[1] & year == 2015) | 
-    (ems_id == squamish_ems_ids[2] & year %in% 2016:2017)
+    (ems_id == squamish_ems_ids[2] & year %in% 2016:2018)
 ) %>%
   # If BAM and SHARP were running in concert - take BAM
   group_by(date_time) %>%
