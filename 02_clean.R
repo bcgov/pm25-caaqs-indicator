@@ -218,8 +218,6 @@ plot_station_instruments(pm25_clean, instrument = "instrument_type")
 save(pm25_clean, stations_clean, max_year, file = "tmp/pm25_clean.rda")
 
 
-
-
 # Temporary check outputs -------------------------------------------------
 # follow up with checks on instrument type. 
  st_nms <- unique(pm25_clean$station_name)
@@ -246,21 +244,13 @@ save(pm25_clean, stations_clean, max_year, file = "tmp/pm25_clean.rda")
  p51_75
  ggsave( "tmp/pm25c_p51_75.jpg", plot = last_plot())
  
- st_nms <- unique(pm25_clean$station_name)
- st_nms <- st_nms[76:100]
- pm25a <- pm25_clean%>%
-   filter(station_name %in% st_nms)
- p76_100 <- plot_station_instruments(pm25a)
- p76_100
- ggsave( "tmp/pm25c_p76_100.jpg", plot = last_plot())
- 
 
 ##------------------------------------------------------------------------
 # names check for 
  
- x1 <- pm25_clean %>% 
-   group_by(station_name)
-   summarise(count = n(.))
+#x1 <- pm25_clean %>% 
+#   group_by(station_name)
+#   summarise(count = n(.))
    
 
 
