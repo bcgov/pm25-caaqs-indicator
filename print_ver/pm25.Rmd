@@ -139,7 +139,7 @@ Environment](http://www.ccme.ca/index.html).
     air zones met the PM~2.5~ 24-hour standard, while the 
     Central Interior, Southern Interior, Lower Fraser Valley, and Georgia
     Strait air zones exceeded it. Many of the exceedances were due to the
-    influence of smoke from wildfires, especially during the summer of 2017. 
+    influence of smoke from wildfires, especially during the summer of 2017 and 2018. 
     Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
