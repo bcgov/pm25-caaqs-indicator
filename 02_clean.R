@@ -31,6 +31,10 @@ max_year <- 2018
 ## Set stations to exclude from analyis (those in indsutrial settings):
 excluded_stations <- stations$EMS_ID[grepl("industr", stations$STATION_ENVIRONMENT, ignore.case = TRUE)]
 
+# remove bc_hydro stations (fort st James) as not reported 
+bchydro_stations <- unique(stations$EMS_ID[grepl("INDUSTRY-BCH", stations$STATION_OWNER, ignore.case = TRUE)])
+excluded_stations <- unique(c(excluded_stations, bchydro_stations))
+
 ## Exclude Kitimat Smeltersite which is industrial but not labelled as such in 
 ## the stations metadata
 excluded_stations <- unique(c(excluded_stations, "E290529"))
@@ -127,37 +131,37 @@ library(ggplot2)
 
 # Temporary check outputs -------------------------------------------------
 # follow up with checks on instrument type. 
-# st_nms <- unique(pm25$station_name)
-# st_nms <- st_nms[1:25]
-# pm25a <- pm25 %>%
-#   filter(station_name %in% st_nms)
-# p1_25 <- plot_station_instruments(pm25a)
-# p1_25
-# ggsave( "tmp/pm25_p1_25.jpg", plot = last_plot())
+ st_nms <- unique(pm25$station_name)
+ st_nms <- st_nms[1:25]
+ pm25a <- pm25 %>%
+   filter(station_name %in% st_nms)
+ p1_25 <- plot_station_instruments(pm25a)
+ p1_25
+ ggsave( "tmp/pm25_p1_25.jpg", plot = last_plot())
+ 
+ st_nms <- unique(pm25$station_name)
+ st_nms <- st_nms[26:50]
+ pm25a <- pm25 %>%
+   filter(station_name %in% st_nms)
+ p26_50 <- plot_station_instruments(pm25a)
+p26_50 
+ ggsave( "tmp/pm25_p26_50.jpg", plot = last_plot())
 # 
-# st_nms <- unique(pm25$station_name)
-# st_nms <- st_nms[26:50]
-# pm25a <- pm25 %>%
-#   filter(station_name %in% st_nms)
-# p26_50 <- plot_station_instruments(pm25a)
-# p26_50 
-# ggsave( "tmp/pm25_p26_50.jpg", plot = last_plot())
+ st_nms <- unique(pm25$station_name)
+ st_nms <- st_nms[51:75]
+ pm25a <- pm25 %>%
+   filter(station_name %in% st_nms)
+ p51_75 <- plot_station_instruments(pm25a)
+ p51_75
+ ggsave( "tmp/pm25_p51_75.jpg", plot = last_plot())
 # 
-# st_nms <- unique(pm25$station_name)
-# st_nms <- st_nms[51:75]
-# pm25a <- pm25 %>%
-#   filter(station_name %in% st_nms)
-# p51_75 <- plot_station_instruments(pm25a)
-# p51_75
-# ggsave( "tmp/pm25_p51_75.jpg", plot = last_plot())
-# 
-# st_nms <- unique(pm25$station_name)
-# st_nms <- st_nms[76:100]
-# pm25a <- pm25 %>%
-#   filter(station_name %in% st_nms)
-# p76_100 <- plot_station_instruments(pm25a)
-# p76_100
-# ggsave( "tmp/pm25_p76_100.jpg", plot = last_plot())
+ st_nms <- unique(pm25$station_name)
+ st_nms <- st_nms[76:100]
+ pm25a <- pm25 %>%
+   filter(station_name %in% st_nms)
+ p76_100 <- plot_station_instruments(pm25a)
+ p76_100
+ ggsave( "tmp/pm25_p76_100.jpg", plot = last_plot())
 # 
 
 ##------------------------------------------------------------------------
