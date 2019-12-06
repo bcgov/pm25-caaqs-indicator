@@ -35,6 +35,14 @@ excludes <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28,
                    between(month(date), 5, 9)) %>% 
   select(site_group_vars, date)
 
+
+#site.effected.by.fire <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28, 
+#                   between(month(date), 5, 9), 
+#                   between(year(date),2016,2018))%>% 
+#  select(site_group_vars, date) %>%
+#  group_by(ems_id)%>%
+#  summarise(count = n())
+
 # PM25 24 Hour - Management -----------------------------------------------
 
 pm25_24h_caaqs_mgmt <- caaqs_management(pm25_caaqs_24h, exclude_df = excludes, 
