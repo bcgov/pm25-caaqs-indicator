@@ -135,7 +135,7 @@ for (emsid in emsids) {
                   rep_yr = max_year, plot_caaqs = TRUE, plot_exceedances = FALSE, 
                   base_size = 14)
   
-  p_annual <- plot_ts(pm25_caaqs_annual, id = emsid, ,  id_col = "ems_id", 
+  p_annual <- plot_ts(pm25_caaqs_annual, id = emsid, id_col = "ems_id", 
                       rep_yr = max_year, plot_caaqs = TRUE, plot_exceedances = FALSE, 
                       base_size = 14)
   
@@ -246,6 +246,7 @@ width <- 778
 height <- 254
 
 for (i in seq_along(stn_plots)) {
+  #i = 1
   emsid <- names(stn_plots[i])
   daily_plot <- stn_plots[[i]]$daily
   annual_plot <- stn_plots[[i]]$annual
