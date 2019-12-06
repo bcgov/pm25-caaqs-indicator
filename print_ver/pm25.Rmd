@@ -139,7 +139,7 @@ Environment](http://www.ccme.ca/index.html).
     air zones met the PM~2.5~ 24-hour standard, while the 
     Central Interior, Southern Interior, Lower Fraser Valley, and Georgia
     Strait air zones exceeded it. Many of the exceedances were due to the
-    influence of smoke from wildfires, especially during the summer of 2017 and 2018. 
+    influence of smoke from wildfires, especially during the summers of 2017 and 2018. 
     Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -240,8 +240,8 @@ pollutants below the Canadian Ambient Air Quality Standards.
     Document on Air Zone Management (2012)
     (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1481_gdazm_e.pdf).
 -   The Central Interior and Georgia Strait air zones were assigned to a
-    red management level, the Southern Interior to an orange management
-    level, and the Lower Fraser Valley, Coastal, and Northeast air zones
+    red management level, the Southern Interior and Lower Fraser Valley to an orange management
+    level, and the Coastal, and Northeast air zones
     were assigned to a yellow management level. There are currently no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -284,7 +284,7 @@ pm_mgmt_chart
     sources they can control.
 -   Wildfires are generally the largest contributor to transboundary
     flows and exceptional events in B.C. Over the `r year_range` reporting
-    period, 59 stations had one or more days during the wildfire season
+    period, **59** stations had one or more days during the wildfire season
     (May-September) where the daily fine particulate matter
     concentration was determined to be influenced by smoke from
     wildfires and exceeded the 24-hour standard of \SI{28}{\micro\gram\per\metre\cubed}. The
