@@ -241,7 +241,7 @@ pollutants below the Canadian Ambient Air Quality Standards.
     (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1481_gdazm_e.pdf).
 -   The Central Interior and Georgia Strait air zones were assigned to a
     red management level, the Southern Interior and Lower Fraser Valley to an orange management
-    level, and the Coastal, and Northeast air zones
+    level, and the Coastal and Northeast air zones
     were assigned to a yellow management level. There are currently no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
