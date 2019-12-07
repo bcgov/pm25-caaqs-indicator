@@ -139,7 +139,9 @@ Environment](http://www.ccme.ca/index.html).
     air zones met the PM~2.5~ 24-hour standard, while the 
     Central Interior, Southern Interior, Lower Fraser Valley, and Georgia
     Strait air zones exceeded it. Many of the exceedances were due to the
-    influence of smoke from wildfires, especially during the summers of 2017 and 2018. 
+    influence of smoke from wildfires, especially during the summers of 2017. 
+    Some monitoring sites (e.g. Burns Lake, Vanderhoof and Fort St John) were 
+    strongly influenced by wildfires in 2018. 
     Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -236,9 +238,8 @@ pollutants below the Canadian Ambient Air Quality Standards.
     air zone Canadian Ambient Air Quality Standard). Each management
     level is associated with a suite of actions that become more
     rigorous as fine particulate matter levels approach the standard.
-    Actions for each management level are detailed in the [Guidance
-    Document on Air Zone Management (2012)
-    (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1481_gdazm_e.pdf).
+    Actions for each management level are detailed in the [Guidance Document on Air Zone Management (2019)
+    (PDF)](https://www.ccme.ca/files/Resources/air/Guidance%20Document%20on%20Air%20Zone%20Management.pdf).
 -   The Central Interior and Georgia Strait air zones were assigned to a
     red management level, the Southern Interior and Lower Fraser Valley to an orange management
     level, and the Coastal and Northeast air zones
@@ -291,8 +292,8 @@ pm_mgmt_chart
     majority of wildfire influences occurred in 2017. Those daily
     concentrations were removed from the calculations of management
     levels, resulting in a change from red to orange for the Southern
-    Interior management level, and a change from red to yellow for the 
-    Lower Fraser Valley management level for fine particulate matter.
+    Interior management level and Lower Fraser Valley management 
+    level for fine particulate matter.
 
 ### Methods
 
