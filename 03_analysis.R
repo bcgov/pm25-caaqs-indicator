@@ -35,13 +35,18 @@ excludes <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28,
                    between(month(date), 5, 9)) %>% 
   select(site_group_vars, date)
 
+# this needs to be fixed still : 
+no.site.with.extreme.fire <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28, 
+                   between(month(date), 5, 9), 
+                   between(year(date),2016,2018)) %>% 
+  select(site_group_vars, date) %>%
+  ungroup() %>%
+  select(ems_id) %>%
+  distinct
 
-#site.effected.by.fire <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28, 
-#                   between(month(date), 5, 9), 
-#                   between(year(date),2016,2018))%>% 
-#  select(site_group_vars, date) %>%
-#  group_by(ems_id)%>%
-#  summarise(count = n())
+length(no.site.with.extreme.fire$ems_id)
+
+
 
 # PM25 24 Hour - Management -----------------------------------------------
 
