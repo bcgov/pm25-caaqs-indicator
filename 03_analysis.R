@@ -35,6 +35,7 @@ excludes <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28,
                    between(month(date), 5, 9)) %>% 
   select(site_group_vars, date)
 
+
 # this needs to be fixed still : 
 no.site.with.extreme.fire <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28, 
                    between(month(date), 5, 9), 
@@ -42,9 +43,13 @@ no.site.with.extreme.fire <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28,
   select(site_group_vars, date) %>%
   ungroup() %>%
   select(ems_id) %>%
-  distinct
+  distinct %>%
+  pull
 
-length(no.site.with.extreme.fire$ems_id)
+#ggplot(no.site.with.extreme.fire , aes(x = ems_id, y = date)) + 
+#  geom_bar(stat = "identity") + 
+#  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
 
 
 
@@ -105,6 +110,16 @@ az_mgmt <- az_ambient %>%
   select(caaqs_year, airzone, mgmt_level, rep_metric = metric, 
          metric_value = metric_value_mgmt, rep_stn_id = rep_stn_id_mgmt, 
          rep_stn_name = station_name_mgmt)
+
+
+stations.with.exlusion <- pm_caaqs_combined_results %>%
+  filter(ems_id %in% no.site.with.extreme.fire) %>%
+  select(ems_id) %>%
+  distinct()
+
+
+no.stations.with.exclusion = length(stations.with.exlusion$ems_id)
+
 
 save(list = ls(), file = "tmp/analysed.RData")
 
