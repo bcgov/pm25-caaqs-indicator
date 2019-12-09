@@ -285,7 +285,7 @@ pm_mgmt_chart
     sources they can control.
 -   Wildfires are generally the largest contributor to transboundary
     flows and exceptional events in B.C. Over the `r year_range` reporting
-    period, **59** stations had one or more days during the wildfire season
+    period, `r no.stations.with.exclusion` stations had one or more days during the wildfire season
     (May-September) where the daily fine particulate matter
     concentration was determined to be influenced by smoke from
     wildfires and exceeded the 24-hour standard of \SI{28}{\micro\gram\per\metre\cubed}. The
