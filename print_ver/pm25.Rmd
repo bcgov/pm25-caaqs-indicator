@@ -139,9 +139,7 @@ Environment](http://www.ccme.ca/index.html).
     air zones met the PM~2.5~ 24-hour standard, while the 
     Central Interior, Southern Interior, Lower Fraser Valley, and Georgia
     Strait air zones exceeded it. Many of the exceedances were due to the
-    influence of smoke from wildfires, especially during the summers of 2017. 
-    Some monitoring sites (e.g. Burns Lake, Vanderhoof and Fort St John) were 
-    strongly influenced by wildfires in 2018. 
+    influence of smoke from wildfires, especially during the summers of 2017 and 2018.
     Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -182,7 +180,7 @@ achievement_map_annual
 
 \newpage
 
-# PM~2.5~ Metrics for Air Monitoring Statons within B.C. Air Zones (`r year_range`)
+# PM~2.5~ Metrics for Air Monitoring Stations within B.C. Air Zones (`r year_range`)
 
 ```{r pm_ambient_summary_plot}
 # run the @knitr pm_ambient_summary_plot chunk in ../04_output.R
@@ -289,7 +287,7 @@ pm_mgmt_chart
     (May-September) where the daily fine particulate matter
     concentration was determined to be influenced by smoke from
     wildfires and exceeded the 24-hour standard of \SI{28}{\micro\gram\per\metre\cubed}. The
-    majority of wildfire influences occurred in 2017. Those daily
+    majority of wildfire influences occurred in 2017 and 2018. Those daily
     concentrations were removed from the calculations of management
     levels, resulting in a change from red to orange for the Southern
     Interior management level and Lower Fraser Valley management 
