@@ -100,7 +100,7 @@ az_ambient <- bind_rows(airzone_caaqs_pm24h, airzone_caaqs_pm_annual) %>%
 az_mgmt <- az_ambient %>% 
   group_by(airzone) %>% 
   slice(which.max(mgmt_level)) %>% 
-  mutate(caaqs_year = 2017L) %>% 
+  mutate(caaqs_year = max_year) %>% 
   select(caaqs_year, airzone, mgmt_level, rep_metric = metric, 
          metric_value = metric_value_mgmt, rep_stn_id = rep_stn_id_mgmt, 
          rep_stn_name = station_name_mgmt)
@@ -111,14 +111,13 @@ stations.with.exlusion <- pm_24h_caaqs_results %>%
   select(ems_id) %>%
   distinct()
 
-
 no.stations.with.exclusion = length(stations.with.exlusion$ems_id)
 
 
 save(list = ls(), file = "tmp/analysed.RData")
 
 dir.create("out", showWarnings = FALSE)
-write_csv(az_ambient, paste0("out/pm2.5_airzone_results_", max_year, ".csv"), na = "")
-write_csv(pm_caaqs_combined_results, paste0("out/pm2.5_caaqs_combined_results_", max_year, ".csv"), na = "")
-write_csv(az_mgmt, paste0("out/pm2.5_airzone_management_levels_", max_year, ".csv"), na = "")
+write_csv(az_ambient, "out/pm2.5_airzone_results.csv" , na = "")
+write_csv(pm_caaqs_combined_results, "out/pm2.5_caaqs_combined_results.csv", na = "")
+write_csv(az_mgmt, "out/pm2.5_airzone_management_levels.csv", na = "")
 
