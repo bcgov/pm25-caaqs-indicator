@@ -24,7 +24,7 @@ if (!exists("az_final")) load("tmp/analysed.RData")
 # Create output directory:
 dir.create("out", showWarnings = FALSE)
 
-rep_year <- 2018 # reporting year 
+rep_year <- max_year 
 
 ## @knitr pre
 
@@ -273,3 +273,7 @@ save(
   pm_mgmt_chart,
   file = "tmp/plots.RData"
 )
+
+
+save(list = ls(), file = "tmp/analysed.RData")
+
