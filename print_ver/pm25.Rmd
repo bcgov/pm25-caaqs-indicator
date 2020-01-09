@@ -349,13 +349,13 @@ each file, as indicated in parentheses below.
 -   [BC Air
     Zones](https://catalogue.data.gov.bc.ca/dataset/e8eeefc4-2826-47bc-8430-85703d328516) (`r get_data_license("ogl-bc")`)
 
-Published and Available On-Line at Environmental Reporting BC (December 2019):
+Published and Available On-Line at Environmental Reporting BC (January 2020):
 <http://www.env.gov.bc.ca/soe/indicators/air/fine_pm.html>
 
 Email correspondence to: envreportbc@gov.bc.ca
 
 *Suggested Citation*:  
-Environmental Reporting BC. 2019. Status of Fine Particulate Matter in B.C. (`r year_range`). State of Environment Reporting, Ministry of Environment and Climate Change Strategy, British Columbia, Canada.
+Environmental Reporting BC. 2020. Status of Fine Particulate Matter in B.C. (`r year_range`). State of Environment Reporting, Ministry of Environment and Climate Change Strategy, British Columbia, Canada.
 
 # Appendix: Detailed fine particulate matter Candadian Ambient Air Quality Standard results for each monitoring station within air zones in B.C.
 
