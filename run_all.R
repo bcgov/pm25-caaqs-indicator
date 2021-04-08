@@ -15,7 +15,7 @@ source("02_clean.R")
 source("03_analysis.R")
 source("04_output.R")
 
-mon_year <- "Dec2019" # format(Sys.Date(), "%B%Y")
+mon_year <- format(Sys.Date(), "%B%Y")
 outfile <- paste0("envreportbc_pm25_", mon_year, ".pdf")
 
 rmarkdown::render("print_ver/pm25.Rmd", output_file = outfile)
