@@ -64,9 +64,9 @@ British Columbia operates a network of air monitoring stations that
 measure fine particulate matter and other air pollutants. This indicator
 reports on the concentration of fine particulate matter from `r year_range`
 and compares it to the [Canadian Ambient Air Quality
-Standards](http://www.ccme.ca/en/resources/air/aqms.html#anchor1)
+Standards](https://www.ccme.ca/en/air-quality-report#slide-7)
 established by the [Canadian Council of Ministers of the
-Environment](http://www.ccme.ca/index.html).
+Environment](http://www.ccme.ca).
 
 \begin{center}
 
@@ -211,8 +211,7 @@ pm_ambient_summary_plot
 -   Data completeness and sufficiency criteria for the two PM~2.5~ metrics
     are described in the [Guidance Document on Achievement
     Determination: Canadian Ambient Air Quality Standards for Fine
-    Particulate Matter and Ozone (2012)
-    (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1483_gdad_eng.pdf).
+    Particulate Matter and Ozone (2012)](http://publications.gc.ca/pub?id=9.697756&sl=0).
     
 ### Canada-wide Air Quality Management System
 
@@ -237,7 +236,7 @@ pollutants below the Canadian Ambient Air Quality Standards.
     level is associated with a suite of actions that become more
     rigorous as fine particulate matter levels approach the standard.
     Actions for each management level are detailed in the [Guidance Document on Air Zone Management (2019)
-    (PDF)](https://www.ccme.ca/files/Resources/air/Guidance%20Document%20on%20Air%20Zone%20Management.pdf).
+    (PDF)](https://ccme.ca/en/res/guidancedocumentonairzonemanagement_secured.pdf).
 -   The Central Interior and Georgia Strait air zones were assigned to a
     red management level, the Southern Interior and Lower Fraser Valley to an orange management
     level, and the Coastal and Northeast air zones
@@ -300,14 +299,14 @@ requirements, and calculation of the Canadian Ambient Air Quality
 Standard fine particulate matter metrics---are detailed in the [Guidance
 Document on Achievement Determination: Canadian Ambient Air Quality
 Standards for Fine Particulate Matter and Ozone (2012)
-(PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1483_gdad_eng.pdf)
+](http://publications.gc.ca/pub?id=9.697756&sl=0)
 published by the [Canadian Council of Ministers of the
-Environment](http://www.ccme.ca/index.html).
+Environment](http://www.ccme.ca).
 
 **R package and code:** We have developed an
 [**R**](http://www.r-project.org) package to facilitate the calculation
 of air quality metrics according to the [Canadian Ambient Air Quality
-Standards](http://www.ccme.ca/en/resources/air/aqms.html#anchor1).
+Standards](https://www.ccme.ca/en/air-quality-report#slide-7).
 Download the 'rcaaqs' package from
 [GitHub](https://github.com/bcgov/rcaaqs). The source code for repeating
 the analysis presented on this page is also available on
@@ -327,13 +326,9 @@ the analysis presented on this page is also available on
     B.C.](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
 -   [BC Lung Association's BC State of the Air
     Reports](https://bc.lung.ca/state-air-report)
--   [Canadian Environmental Sustainability Indicators: Air and Climate
-    Indicators](%20http://www.ec.gc.ca/indicateurs-indicators/default.asp?lang=En&n=03603FB3-1)
--   <div id="fn1">
-
-    </div>
-
-    ^1^[Canadian Smog Science Assessment: Highlights and Key
+-   [Canadian Environmental Sustainability Indicators: Air 
+    Indicators](https://www.canada.ca/en/environment-climate-change/services/environmental-indicators/air.html)
+-   ^1^[Canadian Smog Science Assessment: Highlights and Key
     Messages](http://publications.gc.ca/site/eng/9.694820/publication.html)
 
 ### Data
