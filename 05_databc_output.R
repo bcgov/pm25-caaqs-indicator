@@ -20,83 +20,57 @@ library(readr)
 library(dplyr)
 library(bcmaps)
 library(tidyr)
+library(bcdata)
+library(tidyverse)
+
 
 if (!exists("az_final")) load("tmp/analysed.RData")
-
-az <- st_intersection(airzones(), st_geometry(bc_bound())) %>% 
-  group_by(airzone = Airzone) %>% 
-  summarize()
-
-az_mgmt_sf <- az %>%
-  left_join(az_mgmt) %>% 
-  mutate_at("mgmt_level", ~ replace_na(.x, "Insufficient Data"))
-
 dir.create("out/databc", showWarnings = FALSE)
 
-# Station-level results
-pm_2013 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2015/pm25_site_summary.csv")) %>% 
-  select(-regional_district) %>% 
-  rename_all(tolower) %>% 
-  rename(station_name = display_name, instrument_type = monitor, 
-         caaqs_year = caaq_year, metric_value_ambient = metric_value,
-         caaqs_ambient = caaqs, mgmt_level = mgmt) %>% 
-  left_join(select(stations_clean, ems_id, city))
+# station results 
 
-pm_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_site_summary.csv")) %>% 
-  rename_all(tolower) %>% 
-  mutate(caaqs_year = 2016L) %>% 
-  rename(metric_value_ambient = metric_value, caaqs_ambient = caaqs)
+stations_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
+                            resource = 'bfa3fdd8-2950-4d3a-b190-52fb39a5ffd4')
+                                         
+stations_summary <- pm_caaqs_stations_all %>%
+  select(-c(flag_yearly_incomplete, flag_two_of_three_years,flag_daily_incomplete)) %>%
+  rename(latitude = lat, longitude = lon) %>%
+  mutate(caaqs_ambient = as.character(caaqs_ambient),
+         mgmt_level = as.character(mgmt_level))
 
-station_caaqs_combined <- pm_caaqs_combined_results %>% 
-  select(-starts_with("flag")) %>% 
-  rename(latitude = lat, longitude = lon) %>% 
-  bind_rows(pm_2016, pm_2013) %>% 
+bind_rows(stations_old, stations_summary) %>%
   arrange(caaqs_year) %>% 
-  select(ems_id, station_name, city, longitude, latitude, instrument_type, 
-         airzone, metric, caaqs_year, min_year, max_year, n_years, 
-         metric_value_ambient, caaqs_ambient, excluded, metric_value_mgmt, 
-         mgmt_level)
+  write_csv("out/databc/pm25sitesummary.csv", na = "")
 
-# Ambient airzone caaqs
-az_ambient_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_ambient_airzone_caaqs_summary.csv")) %>% 
-  rename_all(tolower)
 
-az_ambient_2016_tidy <- select(az_ambient_2016, airzone, contains("annual")) %>% 
-  mutate(metric = "pm2.5_annual") %>% 
-  rename_all(function(x) gsub("_annual", "", x)) %>% 
-  bind_rows(select(az_ambient_2016, airzone, contains("24")) %>% 
-              mutate(metric = "pm2.5_24h") %>% 
-              rename_all(function(x) gsub("_24h", "", x))) %>% 
-  mutate(caaqs_year = 2016L) %>% 
-  select(airzone, metric, caaqs_year, metric_value = pm2.5_metric, 
-         caaqs, rep_stn_id = rep_id, rep_stn_name = rep_stn, n_years)
+# fine particulate matter - ambient caaqs by airzone 
 
-az_ambient_combined <- az_ambient %>% 
-  select(airzone, metric, contains("ambient")) %>% 
-  rename_all(function(x) gsub("_ambient", "", x)) %>% 
-  rename(rep_stn_name = station_name) %>% 
-  # join to fill out airzones with missing values (e.g., NW)
-  right_join(select(az_ambient_2016_tidy, airzone, metric)) %>% 
-  mutate(caaqs_year = 2017L) %>% 
-  bind_rows(az_ambient_2016_tidy) %>% 
-  replace_na(list(caaqs = "Insufficient Data")) %>% 
-  select(airzone, metric, caaqs_year, everything()) %>% 
-  arrange(caaqs_year, airzone, metric)
+az_ambient_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
+                            resource = '5dd4fcf9-f7c6-49cf-90a0-0a5c9bc00334')                                      
 
-# Airzone management levels
-az_mgmt_2016 <- read_csv(soe_path("Operations ORCS/Indicators/air/fine_pm/2017/pm25_mgmt_airzone_caaqs_summary.csv")) %>% 
-  rename_all(tolower) %>% 
-  rename_all(function(x) gsub("^caaq_mgmt_", "", x)) %>% 
-  rename(mgmt_level = caaq_mgmt, rep_metric = metric) %>% 
-  mutate(caaqs_year = 2016L)
+az_ambient <- az_ambient %>%
+  select(c(airzone, metric, n_years_ambient, metric_value_ambient, 
+         caaqs_ambient, rep_stn_id_ambient, station_name_ambient)) %>%
+  rename_at(vars(ends_with("_ambient")), ~ gsub("_ambient", "",.)) %>%
+  mutate(caaqs = as.character(caaqs), 
+         caaqs_year = max_year, 
+         rep_stn_name = station_name) %>%
+  select(-station_name)
 
-az_mgmt_combined <- st_set_geometry(az_mgmt_sf, NULL) %>% 
-  mutate(caaqs_year = 2017L) %>% 
-  bind_rows(az_mgmt_2016) %>% 
+bind_rows(az_ambient_old, az_ambient) %>%
   arrange(caaqs_year) %>% 
-  replace_na(list(mgmt_level = "Insufficient Data"))
+  write_csv("out/databc/pm25-airzone-caaqs.csv", na = "")
 
-write_csv(station_caaqs_combined, "out/databc/pm25sitesummary.csv", na = "")
-write_csv(az_ambient_combined, "out/databc/pm25-airzone-caaqs.csv", na = "")
-write_csv(az_mgmt_combined, "out/databc/pm25-airzone-management-levels.csv", na = "")
+
+# air management zone 
+
+az_mgmt_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
+                            resource = '700a7155-0b68-4e5a-bbe0-11d4b844ec57')
+
+az_mgmt <- az_mgmt %>%
+  mutate(mgmt_level = as.character(mgmt_level))
+
+bind_rows(az_mgmt_old, az_mgmt) %>%
+  arrange(caaqs_year)%>% 
+  write_csv("out/databc/pm25-airzone-management-levels.csv.csv", na = "")
 

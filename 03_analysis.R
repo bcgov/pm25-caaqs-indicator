@@ -35,6 +35,18 @@ excludes <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28,
                    between(month(date), 5, 9)) %>% 
   select(site_group_vars, date)
 
+
+# output for Rmd file # 61 stations with 
+no.site.with.extreme.fire <- filter(get_daily(pm25_caaqs_24h), avg_24h > 28, 
+                   between(month(date), 5, 9), 
+                   between(year(date),2016,2018)) %>% 
+  select(site_group_vars, date) %>%
+  ungroup() %>%
+  select(ems_id) %>%
+  distinct %>%
+  pull
+
+
 # PM25 24 Hour - Management -----------------------------------------------
 
 pm25_24h_caaqs_mgmt <- caaqs_management(pm25_caaqs_24h, exclude_df = excludes, 
@@ -72,7 +84,6 @@ pm_annual_caaqs_results <- station_results_pipeline(pm25_annual_caaqs_mgmt)
 # Combo reporting df of annual and 24h caaqs results
 pm_caaqs_combined_results <- bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_results)
 
-
 # Airzone results ---------------------------------------------------------
 
 airzone_caaqs_pm_annual <- filter(pm_caaqs_combined_results, metric == "pm2.5_annual") %>% 
@@ -89,15 +100,24 @@ az_ambient <- bind_rows(airzone_caaqs_pm24h, airzone_caaqs_pm_annual) %>%
 az_mgmt <- az_ambient %>% 
   group_by(airzone) %>% 
   slice(which.max(mgmt_level)) %>% 
-  mutate(caaqs_year = 2017L) %>% 
+  mutate(caaqs_year = max_year) %>% 
   select(caaqs_year, airzone, mgmt_level, rep_metric = metric, 
          metric_value = metric_value_mgmt, rep_stn_id = rep_stn_id_mgmt, 
          rep_stn_name = station_name_mgmt)
 
+
+stations.with.exlusion <- pm_24h_caaqs_results %>%
+  filter(ems_id %in% no.site.with.extreme.fire) %>%
+  select(ems_id) %>%
+  distinct()
+
+no.stations.with.exclusion = length(stations.with.exlusion$ems_id)
+
+
 save(list = ls(), file = "tmp/analysed.RData")
 
 dir.create("out", showWarnings = FALSE)
-write_csv(az_ambient, "out/pm2.5_airzone_results_2017.csv", na = "")
-write_csv(pm_caaqs_combined_results, "out/pm2.5_caaqs_combined_results_2017.csv", na = "")
-write_csv(az_mgmt, "out/pm2.5_airzone_management_levels_2017.csv", na = "")
+write_csv(az_ambient, "out/pm2.5_airzone_results.csv" , na = "")
+write_csv(pm_caaqs_combined_results, "out/pm2.5_caaqs_combined_results.csv", na = "")
+write_csv(az_mgmt, "out/pm2.5_airzone_management_levels.csv", na = "")
 

@@ -6,9 +6,9 @@ header-includes:
   - \sisetup{detect-all,per-mode=symbol}
 output: envreportutils.internal::print_ver
 params:
-  min_year: 2015
-  max_year: 2017
-title: "Status of Fine Particulate Matter in B.C. (2015-2017)"
+  min_year: 2016
+  max_year: 2018
+title: "Status of Fine Particulate Matter in B.C. (2016-2018)"
 ---
 <!--
 Copyright 2018 Province of British Columbia
@@ -64,9 +64,9 @@ British Columbia operates a network of air monitoring stations that
 measure fine particulate matter and other air pollutants. This indicator
 reports on the concentration of fine particulate matter from `r year_range`
 and compares it to the [Canadian Ambient Air Quality
-Standards](http://www.ccme.ca/en/resources/air/aqms.html#anchor1)
+Standards](https://www.ccme.ca/en/air-quality-report#slide-7)
 established by the [Canadian Council of Ministers of the
-Environment](http://www.ccme.ca/index.html).
+Environment](http://www.ccme.ca).
 
 \begin{center}
 
@@ -98,9 +98,9 @@ Environment](http://www.ccme.ca/index.html).
     
     \vspace{1mm}
     
-    \text{British Columbia is divided up into seven air zones, which are areas that typically exhibit similar air}
+    \text{British Columbia is divided up into seven air zones, which are areas that typically}
     
-    \text{quality characteristics, issues, and trends.}
+    \text{exhibit similar air quality characteristics, issues, and trends.}
     
   \end{minipage}
 }
@@ -139,7 +139,7 @@ Environment](http://www.ccme.ca/index.html).
     air zones met the PM~2.5~ 24-hour standard, while the 
     Central Interior, Southern Interior, Lower Fraser Valley, and Georgia
     Strait air zones exceeded it. Many of the exceedances were due to the
-    influence of smoke from wildfires, especially during the summer of 2017. 
+    influence of smoke from wildfires, especially during the summers of 2017 and 2018.
     Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -180,7 +180,7 @@ achievement_map_annual
 
 \newpage
 
-# PM~2.5~ Metrics for Air Monitoring Statons within B.C. Air Zones (`r year_range`)
+# PM~2.5~ Metrics for Air Monitoring Stations within B.C. Air Zones (`r year_range`)
 
 ```{r pm_ambient_summary_plot}
 # run the @knitr pm_ambient_summary_plot chunk in ../04_output.R
@@ -211,8 +211,7 @@ pm_ambient_summary_plot
 -   Data completeness and sufficiency criteria for the two PM~2.5~ metrics
     are described in the [Guidance Document on Achievement
     Determination: Canadian Ambient Air Quality Standards for Fine
-    Particulate Matter and Ozone (2012)
-    (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1483_gdad_eng.pdf).
+    Particulate Matter and Ozone (2012)](http://publications.gc.ca/pub?id=9.697756&sl=0).
     
 ### Canada-wide Air Quality Management System
 
@@ -236,12 +235,11 @@ pollutants below the Canadian Ambient Air Quality Standards.
     air zone Canadian Ambient Air Quality Standard). Each management
     level is associated with a suite of actions that become more
     rigorous as fine particulate matter levels approach the standard.
-    Actions for each management level are detailed in the [Guidance
-    Document on Air Zone Management (2012)
-    (PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1481_gdazm_e.pdf).
+    Actions for each management level are detailed in the [Guidance Document on Air Zone Management (2019)
+    (PDF)](https://ccme.ca/en/res/guidancedocumentonairzonemanagement_secured.pdf).
 -   The Central Interior and Georgia Strait air zones were assigned to a
-    red management level, the Southern Interior to an orange management
-    level, and the Lower Fraser Valley, Coastal, and Northeast air zones
+    red management level, the Southern Interior and Lower Fraser Valley to an orange management
+    level, and the Coastal and Northeast air zones
     were assigned to a yellow management level. There are currently no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -284,15 +282,15 @@ pm_mgmt_chart
     sources they can control.
 -   Wildfires are generally the largest contributor to transboundary
     flows and exceptional events in B.C. Over the `r year_range` reporting
-    period, 59 stations had one or more days during the wildfire season
+    period, `r no.stations.with.exclusion` stations had one or more days during the wildfire season
     (May-September) where the daily fine particulate matter
     concentration was determined to be influenced by smoke from
     wildfires and exceeded the 24-hour standard of \SI{28}{\micro\gram\per\metre\cubed}. The
-    majority of wildfire influences occurred in 2017. Those daily
+    majority of wildfire influences occurred in 2017 and 2018. Those daily
     concentrations were removed from the calculations of management
     levels, resulting in a change from red to orange for the Southern
-    Interior management level, and a change from red to yellow for the 
-    Lower Fraser Valley management level for fine particulate matter.
+    Interior management level and Lower Fraser Valley management 
+    level for fine particulate matter.
 
 ### Methods
 
@@ -301,14 +299,14 @@ requirements, and calculation of the Canadian Ambient Air Quality
 Standard fine particulate matter metrics---are detailed in the [Guidance
 Document on Achievement Determination: Canadian Ambient Air Quality
 Standards for Fine Particulate Matter and Ozone (2012)
-(PDF)](http://www.ccme.ca/files/Resources/air/aqms/pn_1483_gdad_eng.pdf)
+](http://publications.gc.ca/pub?id=9.697756&sl=0)
 published by the [Canadian Council of Ministers of the
-Environment](http://www.ccme.ca/index.html).
+Environment](http://www.ccme.ca).
 
 **R package and code:** We have developed an
 [**R**](http://www.r-project.org) package to facilitate the calculation
 of air quality metrics according to the [Canadian Ambient Air Quality
-Standards](http://www.ccme.ca/en/resources/air/aqms.html#anchor1).
+Standards](https://www.ccme.ca/en/air-quality-report#slide-7).
 Download the 'rcaaqs' package from
 [GitHub](https://github.com/bcgov/rcaaqs). The source code for repeating
 the analysis presented on this page is also available on
@@ -328,13 +326,9 @@ the analysis presented on this page is also available on
     B.C.](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
 -   [BC Lung Association's BC State of the Air
     Reports](https://bc.lung.ca/state-air-report)
--   [Canadian Environmental Sustainability Indicators: Air and Climate
-    Indicators](%20http://www.ec.gc.ca/indicateurs-indicators/default.asp?lang=En&n=03603FB3-1)
--   <div id="fn1">
-
-    </div>
-
-    ^1^[Canadian Smog Science Assessment: Highlights and Key
+-   [Canadian Environmental Sustainability Indicators: Air 
+    Indicators](https://www.canada.ca/en/environment-climate-change/services/environmental-indicators/air.html)
+-   ^1^[Canadian Smog Science Assessment: Highlights and Key
     Messages](http://publications.gc.ca/site/eng/9.694820/publication.html)
 
 ### Data
@@ -350,13 +344,13 @@ each file, as indicated in parentheses below.
 -   [BC Air
     Zones](https://catalogue.data.gov.bc.ca/dataset/e8eeefc4-2826-47bc-8430-85703d328516) (`r get_data_license("ogl-bc")`)
 
-Published and Available On-Line at Environmental Reporting BC (June 2019):
+Published and Available On-Line at Environmental Reporting BC (April 2021):
 <http://www.env.gov.bc.ca/soe/indicators/air/fine_pm.html>
 
 Email correspondence to: envreportbc@gov.bc.ca
 
 *Suggested Citation*:  
-Environmental Reporting BC. 2019. Status of Fine Particulate Matter in B.C. (`r year_range`). State of Environment Reporting, Ministry of Environment and Climate Change Strategy, British Columbia, Canada.
+Environmental Reporting BC. 2021. Status of Fine Particulate Matter in B.C. (`r year_range`). State of Environment Reporting, Ministry of Environment and Climate Change Strategy, British Columbia, Canada.
 
 # Appendix: Detailed fine particulate matter Candadian Ambient Air Quality Standard results for each monitoring station within air zones in B.C.
 

@@ -26,10 +26,14 @@ stn_names <- read_csv("data/stn_names_reporting.csv") %>%
   mutate(ems_id = str_pad(ems_id, 7, "left", "0")) %>% 
   rename(orig_stn_name = station_name)
 
-max_year <- 2017
+max_year <- 2018
 
 ## Set stations to exclude from analyis (those in indsutrial settings):
 excluded_stations <- stations$EMS_ID[grepl("industr", stations$STATION_ENVIRONMENT, ignore.case = TRUE)]
+
+# remove bc_hydro stations (fort st James) as not reported 
+bchydro_stations <- unique(stations$EMS_ID[grepl("INDUSTRY-BCH", stations$STATION_OWNER, ignore.case = TRUE)])
+excluded_stations <- unique(c(excluded_stations, bchydro_stations))
 
 ## Exclude Kitimat Smeltersite which is industrial but not labelled as such in 
 ## the stations metadata
@@ -47,6 +51,7 @@ combo_squamish_id <- paste(squamish_ems_ids, collapse = "-")
 ## Met == meteorological stns using Campbell loggers; 
 ## BAM == Beta Attenuation Monitoring for PM measurement.
 select_pattern <- "_60$|Met$|OLD$|BAM$|Squamish Gov't Bldg"
+
 stations_clean <- rename_all(stations, tolower) %>% 
   mutate(ems_id = case_when(ems_id %in% squamish_ems_ids ~ combo_squamish_id, 
                             TRUE ~ gsub("_.+$", "", ems_id))) %>% 
@@ -67,7 +72,7 @@ stations_clean <- rename_all(stations, tolower) %>%
                  station_id = "ems_id", 
                  coords = c("longitude", "latitude"))
 
-## Format dates, extract 2014-2016, set variable names.
+## Format dates, extract time period , set variable names.
 
 pm25 <- pm25_all %>% 
   filter(!EMS_ID %in% excluded_stations) %>% 
@@ -109,9 +114,57 @@ pm25 <- pm25_all %>%
   ) %>% 
   distinct()
 
+
+# temp : check stations with NA's for instrument type 
+na_stations <- pm25 %>% 
+  filter(is.na(instrument_type)) %>%
+  group_by(station_name, year)%>%
+  summarise(count = n())
+na_stations 
+
 ## Plot deployments of different instruments at each station
+
 plot_station_instruments(pm25)
 plot_station_instruments(pm25, instrument = "instrument_type")
+
+library(ggplot2)
+
+# Temporary check outputs -------------------------------------------------
+# follow up with checks on instrument type. 
+ st_nms <- unique(pm25$station_name)
+ st_nms <- st_nms[1:25]
+ pm25a <- pm25 %>%
+   filter(station_name %in% st_nms)
+ p1_25 <- plot_station_instruments(pm25a)
+ p1_25
+ ggsave( "tmp/pm25_p1_25.jpg", plot = last_plot())
+ 
+ st_nms <- unique(pm25$station_name)
+ st_nms <- st_nms[26:50]
+ pm25a <- pm25 %>%
+   filter(station_name %in% st_nms)
+ p26_50 <- plot_station_instruments(pm25a)
+p26_50 
+ ggsave( "tmp/pm25_p26_50.jpg", plot = last_plot())
+# 
+ st_nms <- unique(pm25$station_name)
+ st_nms <- st_nms[51:75]
+ pm25a <- pm25 %>%
+   filter(station_name %in% st_nms)
+ p51_75 <- plot_station_instruments(pm25a)
+ p51_75
+ ggsave( "tmp/pm25_p51_75.jpg", plot = last_plot())
+# 
+ st_nms <- unique(pm25$station_name)
+ st_nms <- st_nms[76:100]
+ pm25a <- pm25 %>%
+   filter(station_name %in% st_nms)
+ p76_100 <- plot_station_instruments(pm25a)
+ p76_100
+ ggsave( "tmp/pm25_p76_100.jpg", plot = last_plot())
+# 
+
+##------------------------------------------------------------------------
 
 ## Summarise the dates during the most recent three years (caaqs timeframe)
 ## that different PM2.5 monitoring instrument types were deployed at each 
@@ -126,14 +179,14 @@ instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>%
             n_days = n()) %>%
   ungroup()
 
-## Select the monitor at each station that hast the most days
+## Select the monitor at each station that has the most days
 max_deployment_by_station <- group_by(instrument_deployments, ems_id) %>% 
   summarise(which_instrument = instrument_type[which.max(n_days)])
 
 squamish <- filter(
   pm25, instrument_type == "FEM", 
   (ems_id == squamish_ems_ids[1] & year == 2015) | 
-    (ems_id == squamish_ems_ids[2] & year %in% 2016:2017)
+    (ems_id == squamish_ems_ids[2] & year %in% 2016:2018)
 ) %>%
   # If BAM and SHARP were running in concert - take BAM
   group_by(date_time) %>%
@@ -153,7 +206,7 @@ pm25_clean <- pm25 %>%
   inner_join(select(stations_clean, ems_id, station_name), 
              by = "ems_id") %>% 
   # tsibble time series package to make sure hourly data
-  as_tsibble(key = id(ems_id, station_name, instrument, instrument_type), 
+  as_tsibble(key = c(ems_id, station_name, instrument, instrument_type), 
              regular = FALSE) %>% 
   group_by(ems_id, station_name, instrument, instrument_type) %>% 
   index_by(date_hr = ceiling_date(date_time, "hour") - 1) %>% 
@@ -168,3 +221,30 @@ plot_station_instruments(pm25_clean, instrument = "instrument_type")
 
 save(pm25_clean, stations_clean, max_year, file = "tmp/pm25_clean.rda")
 
+
+# Temporary check outputs -------------------------------------------------
+# follow up with checks on instrument type. 
+ st_nms <- unique(pm25_clean$station_name)
+ st_nms <- st_nms[1:25]
+ pm25a <- pm25_clean %>%
+   filter(station_name %in% st_nms)
+ p1_25 <- plot_station_instruments(pm25a)
+ p1_25
+ ggsave( "tmp/pm25c_p1_25.jpg", plot = last_plot())
+
+ st_nms <- unique(pm25_clean$station_name)
+ st_nms <- st_nms[26:50]
+ pm25a <- pm25_clean %>%
+   filter(station_name %in% st_nms)
+ p26_50 <- plot_station_instruments(pm25a)
+ p26_50 
+ ggsave( "tmp/pm25c_p26_50.jpg", plot = last_plot())
+ 
+ st_nms <- unique(pm25_clean$station_name)
+ st_nms <- st_nms[51:75]
+ pm25a <- pm25_clean %>%
+   filter(station_name %in% st_nms)
+ p51_75 <- plot_station_instruments(pm25a)
+ p51_75
+ ggsave( "tmp/pm25c_p51_75.jpg", plot = last_plot())
+ 
