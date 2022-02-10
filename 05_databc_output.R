@@ -12,27 +12,24 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License.
 
+
 # DataBC 
-## Create output files for databc, combining with previous years' data:
-library(envreportutils)
-library(sf)
-library(readr)
-library(dplyr)
-library(bcmaps)
-library(tidyr)
-library(bcdata)
-library(tidyverse)
 
+# Create output files for databc, combining with previous years' data
 
-if (!exists("az_final")) load("tmp/analysed.RData")
-dir.create("out/databc", showWarnings = FALSE)
+source("00_setup.R")
+
+library("readr")
+library("dplyr")
+
+library("bcdata")
 
 # station results 
 
 stations_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
-                            resource = 'bfa3fdd8-2950-4d3a-b190-52fb39a5ffd4')
+                              resource = 'bfa3fdd8-2950-4d3a-b190-52fb39a5ffd4')
                                          
-stations_summary <- pm_caaqs_stations_all %>%
+stations_summary <- pm25_results %>%
   select(-c(flag_yearly_incomplete, flag_two_of_three_years,flag_daily_incomplete)) %>%
   rename(latitude = lat, longitude = lon) %>%
   mutate(caaqs_ambient = as.character(caaqs_ambient),
@@ -50,12 +47,10 @@ az_ambient_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab',
 
 az_ambient <- az_ambient %>%
   select(c(airzone, metric, n_years_ambient, metric_value_ambient, 
-         caaqs_ambient, rep_stn_id_ambient, station_name_ambient)) %>%
+         caaqs_ambient, rep_stn_id_ambient)) %>%
   rename_at(vars(ends_with("_ambient")), ~ gsub("_ambient", "",.)) %>%
   mutate(caaqs = as.character(caaqs), 
-         caaqs_year = max_year, 
-         rep_stn_name = station_name) %>%
-  select(-station_name)
+         caaqs_year = .env$rep_year)
 
 bind_rows(az_ambient_old, az_ambient) %>%
   arrange(caaqs_year) %>% 
