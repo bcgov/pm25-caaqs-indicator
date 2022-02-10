@@ -9,14 +9,6 @@
     ]
   },
   "Packages": {
-    "BH": {
-      "Package": "BH",
-      "Version": "1.78.0-0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "4e348572ffcaa2fb1e610e7a941f6f3a",
-      "Requirements": []
-    },
     "DBI": {
       "Package": "DBI",
       "Version": "1.1.2",
@@ -93,17 +85,6 @@
         "Rcpp",
         "curl",
         "jsonlite"
-      ]
-    },
-    "anytime": {
-      "Package": "anytime",
-      "Version": "0.3.9",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "74a64813f17b492da9c6afda6b128e3d",
-      "Requirements": [
-        "BH",
-        "Rcpp"
       ]
     },
     "askpass": {
@@ -1271,9 +1252,14 @@
     "rcaaqs": {
       "Package": "rcaaqs",
       "Version": "0.3.1.9000",
-      "Source": "Repository",
-      "Repository": null,
-      "Hash": "63ca32992fc577d0f2e3082a7f21648e",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "bcgov",
+      "RemoteRepo": "rcaaqs",
+      "RemoteRef": "steffi-new-thresholds",
+      "RemoteSha": "27a8bc11eb6b842d639302c5eedab01dd3dfa487",
+      "Hash": "6a8433c231b03e0cb29207ac119020ea",
       "Requirements": [
         "dplyr",
         "ggplot2",
@@ -1681,25 +1667,6 @@
       "Hash": "847a9d113b78baca4a9a8639609ea228",
       "Requirements": [
         "Rcpp"
-      ]
-    },
-    "tsibble": {
-      "Package": "tsibble",
-      "Version": "1.1.1",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "6f071a41883a4636158a77e2b01766c3",
-      "Requirements": [
-        "anytime",
-        "dplyr",
-        "ellipsis",
-        "generics",
-        "lifecycle",
-        "lubridate",
-        "rlang",
-        "tibble",
-        "tidyselect",
-        "vctrs"
       ]
     },
     "tzdb": {
