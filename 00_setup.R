@@ -25,3 +25,6 @@ renv::restore()   # - When updating from GitHub etc. restore to packages in lock
 dir.create("data/raw", showWarnings = FALSE, recursive = TRUE)
 dir.create("data/datasets", showWarnings = FALSE, recursive = TRUE)
 dir.create("out", showWarnings = FALSE, recursive = TRUE)
+
+rep_year <- 2020
+

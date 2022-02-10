@@ -12,6 +12,8 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
+source("00_setup.R")
+
 library("readr")
 library("dplyr")
 library("tidyr")
@@ -30,8 +32,6 @@ library("assertr")
 
 
 options("rcaaqs.timezone" = "Etc/GMT+8")
-
-max_year <- 2020
 
 # Load Data ---------------------------------
 stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %>%
@@ -135,7 +135,7 @@ pm25_clean <- pm25 %>%
   # Format dates, only keep dates in range
   mutate(date_time = format_caaqs_dt(date_time), 
          year = year(date_time)) %>% 
-  filter(year <= max_year) %>% 
+  filter(year <= rep_year) %>% 
   
   # Clean values
   mutate(value = clean_neg(value, type = "pm25")) %>% 
@@ -168,10 +168,10 @@ overlaps_plot <- pm25_clean %>%
   filter(!is.na(value))
 
 g1 <- plot_station_instruments(overlaps_plot, station = "site") +
-  geom_vline(xintercept = ymd(max_year - 2, truncated = 2))
+  geom_vline(xintercept = ymd(rep_year - 2, truncated = 2))
 g2 <- plot_station_instruments(overlaps_plot, station = "site", 
                                instrument = "instrument_type") +
-  geom_vline(xintercept = ymd(max_year - 2, truncated = 2))
+  geom_vline(xintercept = ymd(rep_year - 2, truncated = 2))
 
 g <- g1 + g2 + 
   plot_annotation(title = "Sites with multiple instruments",
@@ -180,10 +180,11 @@ g <- g1 + g2 +
 
 ggsave(filename = "out/pm25_instrument_overlap.pdf",width = 14, height = 10)
 
-
 # All recent years (2018 - 2020) have only one instrument
 
-# Check for timeseries problems
+
+## Check timeseries -----------------------
+
 pm25_clean %>%
   nest(ts = c(year, date_time, value)) %>%
   mutate(n = map_int(ts, nrow),
@@ -195,5 +196,11 @@ pm25_clean %>%
 # None!
 
 
+# Last details -----------------------
+
+# Only keep stations with data
+stations_clean <- semi_join(stations_clean, pm25_clean, by = "site")
+
+# Write data ------------------------------
 write_rds(stations_clean, "data/datasets/stations_clean.rds")
 write_rds(pm25_clean, "data/datasets/pm25_clean.rds", compress = "gz")
