@@ -1,250 +1,199 @@
 # Copyright 2015 Province of British Columbia
-# 
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
 # http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and limitations under the License.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
 
-library("dplyr")
-library("lubridate")
-library("rcaaqs")
 library("readr")
-library("bcmaps")
+library("dplyr")
+library("tidyr")
+library("purrr")
+library("forcats")
+library("lubridate")
 library("stringr")
-library("tsibble")
+library("ggplot2")
+library("patchwork")
+
+library("rcaaqs")
+library("bcmaps")
+
+library("janitor")
+library("assertr")
+
 
 options("rcaaqs.timezone" = "Etc/GMT+8")
 
-if (!exists("pm25_all")) load("tmp/pm25_raw.RData")
+max_year <- 2020
 
-stn_names <- read_csv("data/stn_names_reporting.csv") %>% 
-  mutate(ems_id = str_pad(ems_id, 7, "left", "0")) %>% 
-  rename(orig_stn_name = station_name)
+# Load Data ---------------------------------
+stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %>%
+  clean_names() %>%
+  rename(lon = long)
 
-max_year <- 2018
+pm25 <- read_rds("data/raw/pm25_caaqs.Rds") %>%
+  as_tibble()
 
-## Set stations to exclude from analyis (those in indsutrial settings):
-excluded_stations <- stations$EMS_ID[grepl("industr", stations$STATION_ENVIRONMENT, ignore.case = TRUE)]
+az <- airzones() %>%
+  sf::st_make_valid()
 
-# remove bc_hydro stations (fort st James) as not reported 
-bchydro_stations <- unique(stations$EMS_ID[grepl("INDUSTRY-BCH", stations$STATION_OWNER, ignore.case = TRUE)])
-excluded_stations <- unique(c(excluded_stations, bchydro_stations))
 
-## Exclude Kitimat Smeltersite which is industrial but not labelled as such in 
-## the stations metadata
-excluded_stations <- unique(c(excluded_stations, "E290529"))
+# Clean Stations -------------------------------------------------------------
 
-# Combine two squamish stations (both FEM, one in 2015 and the other in 2016-17)
-# for a complete record
-squamish_ems_ids <- c("0310172", "E304570")
-combo_squamish_id <- paste(squamish_ems_ids, collapse = "-")
+# - lowercase column names
+# - remove pseudo-duplicates
+# - subset to those stations analysed
 
-## Clean station data - lowercase column names, remove pseudo-duplicates, subset to those 
-## stations analysed
-## OLD == closed stns; 
-## _60 == meteorological stns;
-## Met == meteorological stns using Campbell loggers; 
-## BAM == Beta Attenuation Monitoring for PM measurement.
-select_pattern <- "_60$|Met$|OLD$|BAM$|Squamish Gov't Bldg"
+stations_clean <- stations %>%
 
-stations_clean <- rename_all(stations, tolower) %>% 
-  mutate(ems_id = case_when(ems_id %in% squamish_ems_ids ~ combo_squamish_id, 
-                            TRUE ~ gsub("_.+$", "", ems_id))) %>% 
-  group_by(ems_id) %>%
-  filter(n() == 1 | 
-           !grepl(select_pattern, station_name) | 
-           all(grepl(select_pattern, station_name))) %>% 
-  filter(!is.na(latitude), !is.na(longitude)) %>% 
-  mutate(station_name = gsub(select_pattern, "", station_name), 
-         station_name = gsub("(Squamish).+", "\\1", station_name)) %>% 
-  # semi_join(pm25_clean, by = "ems_id") %>% 
-  top_n(1, station_name) %>% 
-  ungroup() %>% 
-  left_join(select(stn_names, -airzone), by = "ems_id") %>% 
-  mutate(station_name = case_when(is.na(reporting_name) ~ station_name,
-                                  TRUE ~ reporting_name)) %>% 
-  assign_airzone(airzones = airzones(), 
-                 station_id = "ems_id", 
-                 coords = c("longitude", "latitude"))
+  # Look for problems
+  assert(within_bounds(-90, 90), lat) %>%
+  assert(within_bounds(-180, 180), lon) %>%
+  assert(not_na, airzone) %>%
 
-## Format dates, extract time period , set variable names.
+  # Check Airzones
+  assign_airzone(airzones = az, 
+                 station_id = "site", 
+                 coords = c("lon", "lat"))
+  
+  # verify(airzone.x == airzone.y) #%>%
+  
+# Report non-matching airzones
+stations_clean %>% 
+  filter(airzone.x != airzone.y) %>%
+  select(site, lat, lon, region, 
+         airzone_stn = airzone.x, airzone_bcmaps = airzone.y)
 
-pm25 <- pm25_all %>% 
-  filter(!EMS_ID %in% excluded_stations) %>% 
-  mutate(date_time = format_caaqs_dt(DATE_PST), 
+
+# Use stations airzones for now, and only stations for pm25
+stations_clean <- stations_clean %>%
+  filter(pm25) %>%
+  select(site, region, airzone = airzone.x, lat, lon)
+
+# Check distances -------------------
+
+# instrument_index <- pm25_clean %>%
+#   select(station_name, instrument, instrument_type) %>%
+#   distinct()
+
+dist_mat <- stations_clean %>%
+  select(site, lat, lon) %>%
+  sf::st_as_sf(coords = c("lon", "lat"), crs  = 4326) %>%
+  sf::st_distance(., .)
+
+dist <- expand_grid(stn1 = stations_clean$site,
+                    stn2 = stations_clean$site) %>%
+  mutate(dist = as.numeric(c(dist_mat))) %>%
+  filter(stn1 != stn2) %>%
+  mutate(pair = map2_chr(stn1, stn2, ~paste(sort(c(.x, .y)), collapse = " vs.\n")),
+         pair = fct_reorder(pair, dist)) %>%
+  select("dist", "pair") %>%
+  distinct() %>%
+  separate(col = pair, into = c("stn1", "stn2"), sep = " vs.\n", remove = FALSE) %>%
+  arrange(dist)
+  
+ggplot(data = filter(dist, dist < 2000), aes(x = pair, y = dist)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_viridis_d(end = 0.8) +
+  geom_hline(yintercept = c(500, 1000, 1500), linetype = "dotted",
+             colour = "grey20") +
+  labs(x = "", y = "Distance (m)", 
+       title = "Distance between stations", 
+       subtitle = "Where distance < 2km")
+
+
+# Fix Squamish stations (??)
+# Original note: (both FEM, one in 2015 and the other in 2016-17)
+
+# fix <- c("0310172", "E304570")
+# filter(stations_clean, ems_id %in% c("0310172", "E304570"))
+# filter(pm25, ems_id %in% c("0310172", "E304570")) %>%
+#   group_by(ems_id) %>%
+#   summarize(n = n(), min = min(date_pst, na.rm = TRUE), max = max(date_pst, na.rm = TRUE))
+# 
+# stations_clean <- stations_clean %>%
+#   mutate(ems_id = if_else(ems_id %in% fix, paste(fix, collapse = "-"), ems_id))
+# 
+# filter(stations_clean, ems_id %in% fix)
+# filter(stations_clean, ems_id %in% paste(fix, collapse = "-"))
+
+
+# Clean pm25 -----------------------------------------------------------------
+
+## Overall clean -------------
+pm25_clean <- pm25 %>% 
+
+  # Format dates, only keep dates in range
+  mutate(date_time = format_caaqs_dt(date_time), 
          year = year(date_time)) %>% 
   filter(year <= max_year) %>% 
-  select(-DATE_PST) %>% 
-  rename_all(tolower) %>% 
-  rename(value = raw_value) %>% 
-  mutate(ems_id = gsub("_1$", "", ems_id), # remove _1 from ems_id (Smithers St Josephs)
-         value = clean_neg(value, type = "pm25"),) %>% 
-  group_by(ems_id, instrument) %>% 
-  do(., date_fill(., date_col = "date_time",
-                  fill_cols = c("ems_id", "instrument", "parameter"),
-                  interval = "1 hour")) %>% 
+  
+  # Clean values
+  mutate(value = clean_neg(value, type = "pm25")) %>% 
+  
+  # Fill dates
+  nest(data = c(-site, -instrument)) %>%
+  mutate(data = map(
+    data, ~date_fill(., date_col = "date_time", interval = "1 hour"))) %>%
+  
+  # Categorize instrument types
   mutate(instrument_type = 
-           case_when(grepl("TEOM", instrument) ~ "TEOM",
-                     grepl("SHARP|BAM", instrument) ~ "FEM", 
+           case_when(str_detect(instrument, "TEOM") ~ "TEOM",
+                     str_detect(instrument, "SHARP|BAM") ~ "FEM", 
                      is.na(instrument) ~ NA_character_,
-                     TRUE ~ "Unknown"), 
-         year = year(date_time)) %>% 
-  ungroup() %>% 
-  # Filter NAs out of Kamloops Fed building from two overlapping monitors
-  filter(!(ems_id == "0605008" & 
-             instrument == "BAM1020" & 
-             date_time > as.POSIXct("2017/06/19 14:59:59")) & 
-           !(ems_id == "0605008" & 
-               instrument == "PM25 SHARP5030" & 
-               date_time <= as.POSIXct("2017/06/19 14:59:59"))
-  ) %>% 
-  # Remove TEOM from Grand forks in 2017, as there was also FEM running at the 
-  # same time, and combine TEOM and FEM for that station
-  filter(!(ems_id == "E263701" & 
-           instrument_type == "TEOM" & 
-           date_time >= as.POSIXct("2016-12-31 23:59:59")
-           )) %>% 
-  mutate(
-    instrument_type = ifelse(ems_id == "E263701", "TEOM (2017 FEM)", instrument_type)
-  ) %>% 
-  distinct()
+                     TRUE ~ "Unknown")) %>% 
+  assert(not_na, instrument_type) %>%
+  
+  # Clean up
+  unnest(data)
 
 
-# temp : check stations with NA's for instrument type 
-na_stations <- pm25 %>% 
-  filter(is.na(instrument_type)) %>%
-  group_by(station_name, year)%>%
-  summarise(count = n())
-na_stations 
+## Overlapping --------------
+# - Check for overlapping instruments
+# - Check dates/patterns explicitly
 
-## Plot deployments of different instruments at each station
+overlaps_plot <- pm25_clean %>%
+  group_by(site) %>%
+  filter(n_distinct(instrument) > 1) %>%
+  ungroup() %>%
+  filter(!is.na(value))
 
-plot_station_instruments(pm25)
-plot_station_instruments(pm25, instrument = "instrument_type")
+g1 <- plot_station_instruments(overlaps_plot, station = "site") +
+  geom_vline(xintercept = ymd(max_year - 2, truncated = 2))
+g2 <- plot_station_instruments(overlaps_plot, station = "site", 
+                               instrument = "instrument_type") +
+  geom_vline(xintercept = ymd(max_year - 2, truncated = 2))
 
-library(ggplot2)
+g <- g1 + g2 + 
+  plot_annotation(title = "Sites with multiple instruments",
+                  subtitle = "Exluding missing data") +
+  plot_layout(guides = "collect")
 
-# Temporary check outputs -------------------------------------------------
-# follow up with checks on instrument type. 
- st_nms <- unique(pm25$station_name)
- st_nms <- st_nms[1:25]
- pm25a <- pm25 %>%
-   filter(station_name %in% st_nms)
- p1_25 <- plot_station_instruments(pm25a)
- p1_25
- ggsave( "tmp/pm25_p1_25.jpg", plot = last_plot())
- 
- st_nms <- unique(pm25$station_name)
- st_nms <- st_nms[26:50]
- pm25a <- pm25 %>%
-   filter(station_name %in% st_nms)
- p26_50 <- plot_station_instruments(pm25a)
-p26_50 
- ggsave( "tmp/pm25_p26_50.jpg", plot = last_plot())
-# 
- st_nms <- unique(pm25$station_name)
- st_nms <- st_nms[51:75]
- pm25a <- pm25 %>%
-   filter(station_name %in% st_nms)
- p51_75 <- plot_station_instruments(pm25a)
- p51_75
- ggsave( "tmp/pm25_p51_75.jpg", plot = last_plot())
-# 
- st_nms <- unique(pm25$station_name)
- st_nms <- st_nms[76:100]
- pm25a <- pm25 %>%
-   filter(station_name %in% st_nms)
- p76_100 <- plot_station_instruments(pm25a)
- p76_100
- ggsave( "tmp/pm25_p76_100.jpg", plot = last_plot())
-# 
-
-##------------------------------------------------------------------------
-
-## Summarise the dates during the most recent three years (caaqs timeframe)
-## that different PM2.5 monitoring instrument types were deployed at each 
-## station so we can get the most data
-instrument_deployments <- mutate(pm25, date = as.Date(date_time)) %>% 
-  filter(between(year(date_time), max_year - 2L, max_year)) %>% 
-  select(ems_id, instrument_type, date) %>% 
-  distinct() %>% 
-  group_by(ems_id, instrument_type) %>% 
-  summarise(min_date = min(date), 
-            max_date = max(date),
-            n_days = n()) %>%
-  ungroup()
-
-## Select the monitor at each station that has the most days
-max_deployment_by_station <- group_by(instrument_deployments, ems_id) %>% 
-  summarise(which_instrument = instrument_type[which.max(n_days)])
-
-squamish <- filter(
-  pm25, instrument_type == "FEM", 
-  (ems_id == squamish_ems_ids[1] & year == 2015) | 
-    (ems_id == squamish_ems_ids[2] & year %in% 2016:2018)
-) %>%
-  # If BAM and SHARP were running in concert - take BAM
-  group_by(date_time) %>%
-  filter(if (n() == 2) grepl("BAM", instrument) else TRUE) %>% 
-  ungroup() %>% 
-  mutate(ems_id = combo_squamish_id)
-
-## Now select the rest based on max deployments and combine with Squamish
-pm25_clean <- pm25 %>% 
-  inner_join(max_deployment_by_station, 
-             by = c("ems_id", 
-                    "instrument_type" = "which_instrument")) %>% 
-  filter(!ems_id %in% squamish_ems_ids) %>% 
-  bind_rows(squamish) %>% 
-  select(-station_name) %>% 
-  distinct() %>% #remove duplicate records if any
-  inner_join(select(stations_clean, ems_id, station_name), 
-             by = "ems_id") %>% 
-  # tsibble time series package to make sure hourly data
-  as_tsibble(key = c(ems_id, station_name, instrument, instrument_type), 
-             regular = FALSE) %>% 
-  group_by(ems_id, station_name, instrument, instrument_type) %>% 
-  index_by(date_hr = ceiling_date(date_time, "hour") - 1) %>% 
-  summarise(value = last(value)) %>% 
-  as_tibble() %>% 
-  rename(date_time = date_hr)
-
-## As a check, plot them - there should be only one monitor per station, 
-## except for Kamloops Federal Building, where two types of FEMs were combined
-plot_station_instruments(pm25_clean)
-plot_station_instruments(pm25_clean, instrument = "instrument_type")
-
-save(pm25_clean, stations_clean, max_year, file = "tmp/pm25_clean.rda")
+ggsave(filename = "out/pm25_instrument_overlap.pdf",width = 14, height = 10)
 
 
-# Temporary check outputs -------------------------------------------------
-# follow up with checks on instrument type. 
- st_nms <- unique(pm25_clean$station_name)
- st_nms <- st_nms[1:25]
- pm25a <- pm25_clean %>%
-   filter(station_name %in% st_nms)
- p1_25 <- plot_station_instruments(pm25a)
- p1_25
- ggsave( "tmp/pm25c_p1_25.jpg", plot = last_plot())
+# All recent years (2018 - 2020) have only one instrument
 
- st_nms <- unique(pm25_clean$station_name)
- st_nms <- st_nms[26:50]
- pm25a <- pm25_clean %>%
-   filter(station_name %in% st_nms)
- p26_50 <- plot_station_instruments(pm25a)
- p26_50 
- ggsave( "tmp/pm25c_p26_50.jpg", plot = last_plot())
- 
- st_nms <- unique(pm25_clean$station_name)
- st_nms <- st_nms[51:75]
- pm25a <- pm25_clean %>%
-   filter(station_name %in% st_nms)
- p51_75 <- plot_station_instruments(pm25a)
- p51_75
- ggsave( "tmp/pm25c_p51_75.jpg", plot = last_plot())
- 
+# Check for timeseries problems
+pm25_clean %>%
+  nest(ts = c(year, date_time, value)) %>%
+  mutate(n = map_int(ts, nrow),
+         n_expect = map_dbl(ts, ~as.numeric(difftime(max(.$date_time), 
+                                                     min(.$date_time), 
+                                                     units = "hours")))) %>%
+  filter(n_expect != n - 1) 
+
+# None!
+
+
+write_rds(stations_clean, "data/datasets/stations_clean.rds")
+write_rds(pm25_clean, "data/datasets/pm25_clean.rds", compress = "gz")
