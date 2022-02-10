@@ -10,149 +10,132 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-library("rcaaqs")
+source("00_setup.R")
+
 library("readr")
 library("dplyr")
 library("tidyr")
-library("bcmaps")
+
 library("ggplot2")
-library("envreportutils")
+library("patchwork")
+
 library("sf")
+library("bcmaps")
 
-if (!exists("az_final")) load("tmp/analysed.RData")
+library("rcaaqs")
+library("envreportutils")
 
-# Create output directory:
-dir.create("out", showWarnings = FALSE)
+# Load Data --------------------------------------------------
+pm25_results <- read_rds("data/datasets/pm25_results.rds")
+pm25_24h_mgmt <- read_rds("data/datasets/pm25_24h_mgmt.rds")
+pm25_annual_mgmt <- read_rds("data/datasets/pm25_annual_mgmt.rds")
 
-rep_year <- max_year 
+az_ambient <- read_rds("data/datasets/az_ambient.rds")
+az_mgmt <- read_rds("data/datasets/az_mgmt.rds")
 
+
+# Spatial data summaries --------------------------------------------
 ## @knitr pre
-
-az <- st_intersection(airzones(), st_geometry(bc_bound())) %>% 
+az <- airzones() %>%
+  st_make_valid() %>%
+  st_transform(st_crs(bc_bound())) %>%
+  st_intersection(st_geometry(bc_bound())) %>% 
   group_by(airzone = Airzone) %>% 
   summarize()
 
-stations_sf <- stations_clean %>% 
-  select(ems_id, lat, lon) %>%
-  semi_join(pm25_clean, by = "ems_id") %>% 
+az_mgmt_sf <- az %>%
+  left_join(az_mgmt, by = "airzone") %>% 
+  mutate(mgmt_level = replace_na(mgmt_level, "Insufficient Data"))
+
+az_ambient_sf <- az %>% 
+  left_join(az_ambient, by = "airzone") %>% 
+  mutate(caaqs_ambient = replace_na(caaqs_ambient, "Insufficient Data"))
+
+stations_sf <- pm25_results %>% 
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   transform_bc_albers()
 
-az_mgmt_sf <- az %>%
-  left_join(az_mgmt) %>% 
-  mutate_at("mgmt_level", ~ replace_na(.x, "Insufficient Data"))
+station_summary <- stations_sf %>%
+  group_by(metric) %>%
+  summarise(n = n(), 
+            n_achieved = sum(caaqs_ambient == "Achieved"), 
+            percent_achieved = round(n_achieved / n * 100))
 
-az_pm24h_sf <- az %>% 
-  left_join(airzone_caaqs_pm24h) %>% 
-  mutate_at("caaqs_ambient", ~ replace_na(.x, "Insufficient Data"))
-
-az_pm_annual_sf <- az %>% 
-  left_join(airzone_caaqs_pm_annual) %>% 
-  mutate_at("caaqs_ambient", ~ replace_na(.x, "Insufficient Data"))
-
-stations_caaqs_pm_24h_sf <- right_join(stations_sf, pm_24h_caaqs_results)
-stations_caaqs_pm_annual_sf <- right_join(stations_sf, pm_annual_caaqs_results)
-
-summary_pipe <- . %>% 
-  summarise(n = length(ems_id), 
-            n_achieved = length(.$ems_id[.$caaqs_ambient == "Achieved"]), 
-            percent_achieved = round(n_achieved / n() * 100))
-
-station_summary_annual <- summary_pipe(pm_annual_caaqs_results)
-station_summary_24h <- summary_pipe(pm_24h_caaqs_results)
-
-pm_caaqs_stations_all <- bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_results)
-
+# Maps ----------------------------------------------------------------------
 ## @knitr pm_ambient_summary_plot
-
-pm_ambient_summary_plot <- summary_plot(
-  pm_caaqs_stations_all, 
-  metric_val = "metric_value_ambient", 
-  airzone = "airzone", station = "station_name", 
-  parameter = "metric", pt_size = 2, 
-  az_labeller = label_wrap_gen(10)
-) + 
+summary_plot(pm25_results, 
+             metric_val = "metric_value_ambient", 
+             airzone = "airzone", station = "site", 
+             parameter = "metric", pt_size = 2, 
+             az_labeller = label_wrap_gen(10)) + 
   theme(strip.text.y = element_text(angle = 0))
 
+
 ## @knitr achievement_map_24h
-achievement_map_24h <- ggplot() + 
-  geom_sf(data = az_pm24h_sf, aes(fill = caaqs_ambient), colour = "white") + 
-  scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
-                    drop = FALSE, 
-                    guide = guide_legend(order = 1, title.position = "top")) + 
-  geom_sf(data = stations_caaqs_pm_24h_sf, aes(colour = metric_value_ambient), 
-          size = 3) + 
-  scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        guide = guide_colourbar(order = 2,
-                                                title.position = "top",
-                                                barwidth = 10)) + 
-  coord_sf(datum = NA) +
-  labs(colour = "Monitoring Stations:\nPM2.5 24h Metric (ug/m3)",
-       fill = "Airzones:\nPM2.5 24h Air Quality Standard") + 
-  theme_minimal() + 
-  theme(axis.title = element_blank(),
-        axis.text = element_blank(), 
-        axis.ticks = element_blank(),
-        panel.grid = element_blank(), 
-        legend.position = "bottom",
-        legend.box.just = "left")
+achivement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_24h"),
+               stn_data = filter(stations_sf, metric == "pm2.5_24h"),
+               az_labs = "Airzones:\nPM2.5 24h Air Quality Standard",
+               stn_labs = "Monitoring Stations:\nPM2.5 24h Metric (ug/m3)")
 
 ## @knitr achievement_map_annual
-achievement_map_annual <- ggplot() + 
-  geom_sf(data = az_pm_annual_sf, aes(fill = caaqs_ambient), colour = "white") + 
-  scale_fill_manual(values = get_colours(type = "achievement", drop_na = FALSE), 
-                    drop = FALSE, 
-                    guide = guide_legend(order = 1, title.position = "top")) + 
-  geom_sf(data = stations_caaqs_pm_annual_sf, aes(colour = metric_value_ambient), 
-          size = 3) + 
-  scale_colour_gradient(high = "#252525", low = "#f0f0f0", 
-                        guide = guide_colourbar(order = 2,
-                                                title.position = "top",
-                                                barwidth = 10)) + 
-  coord_sf(datum = NA) +
-  labs(colour = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)",
-       fill = "Airzones:\nPM2.5 Annual Air Quality Standard") + 
-  theme_minimal() + 
-  theme(axis.title = element_blank(),
-        axis.text = element_blank(), 
-        axis.ticks = element_blank(),
-        panel.grid = element_blank(), 
-        legend.position = "bottom",
-        legend.box.just = "left")
+achivement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_annual"),
+               stn_data = filter(stations_sf, metric == "pm2.5_annual"),
+               az_labs = "Airzones:\nPM2.5 Annual Air Quality Standard",
+               stn_labs = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)")
 
 # Individual Station Plots ------------------------------------------------
 
+# - Using management data because contains differences between the non-tfee data
+#   (ann_98_percentiles) and tfee-adjusted data (ann_98_percentiles_mgmt)
+
 ## @knitr stn_plots
+sites <- unique(pm25_results$site)
 
-emsids <- unique(pm_24h_caaqs_results$ems_id)
-stn_plots <- vector("list", length(emsids))
-names(stn_plots) <- emsids
-
-for (emsid in emsids) {
+for(s in sites) {
+  message("Creating plots for ", s, "\n")
+  g1 <- plot_rolling(pm25_24h_mgmt, id = s, id_col = "site")
+  g2 <- plot_rolling(pm25_annual_mgmt, id = s, id_col = "site")
+  #g1 / g2 + plot_layout(guides = "collect")
   
-  # Create plots
-  p_24 <- plot_ts(pm25_caaqs_24h, id = emsid, id_col = "ems_id", 
-                  rep_yr = max_year, plot_caaqs = TRUE, plot_exceedances = FALSE, 
-                  base_size = 14)
+  ggsave(paste0(loc, site, "_24.svg"), g1, 
+         width = 778, height = 254, dpi = 72, units = "px")
   
-  p_annual <- plot_ts(pm25_caaqs_annual, id = emsid, id_col = "ems_id", 
-                      rep_yr = max_year, plot_caaqs = TRUE, plot_exceedances = FALSE, 
-                      base_size = 14)
-  
-  p_annual <- p_annual + coord_cartesian(ylim = c(0, 80))
-  p_24 <- p_24 + coord_cartesian(ylim = c(0, 100))
-  
-  
-  stn_plots[[emsid]]$daily <- p_24
-  stn_plots[[emsid]]$annual <- p_annual
-  message("creating plots for ", emsid, "\n")
+  ggsave(paste0(loc, site, "_24.svg"), g2, 
+         width = 778, height = 254, dpi = 72, units = "px")
 }
 
 
-# Management map and bar chart --------------------------------------------
+## @knitr stn_plots_orig
+# sites <- unique(pm25_results$site)
+# stn_plots <- vector("list", length(sites)) %>%
+#   setNames(., sites)
+
+### Are these still desired for the print version?
+
+# for (s in sites) {
+#   
+#   # Create plots
+#   p_24 <- plot_ts(pm25_24h_caaqs, id = s, id_col = "site", 
+#                   rep_yr = rep_year, plot_caaqs = TRUE, plot_exceedances = FALSE, 
+#                   base_size = 14)
+#   
+#   p_annual <- plot_ts(pm25_caaqs_annual, id = s, id_col = "ems_id", 
+#                       rep_yr = rep_year, plot_caaqs = TRUE, plot_exceedances = FALSE, 
+#                       base_size = 14)
+#   
+#   p_annual <- p_annual + coord_cartesian(ylim = c(0, 80))
+#   p_24 <- p_24 + coord_cartesian(ylim = c(0, 100))
+#   
+#   
+#   stn_plots[[s]]$daily <- p_24
+#   stn_plots[[s]]$annual <- p_annual
+#   message("creating plots for ", s, "\n")
+# }
+
+
+# Management figures --------------------------------------------
 
 ## Management Air Zone Map
-
 ## @knitr pm_mgmt_map
 
 colrs <- get_colours("management", drop_na = FALSE)
@@ -183,12 +166,11 @@ pm_mgmt_map <- ggplot(az_mgmt_sf) +
             colour = "black", size = 6)
 
 ## Management Bar Chart
-
 ## @knitr pm_mgmt_chart
-pm_mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_results),
-                     aes(x = metric, fill = mgmt_level)) + 
+
+pm_mgmt_chart <- ggplot(data = pm25_results, aes(x = metric, fill = mgmt_level)) + 
   geom_bar(alpha = 1, width = 0.8) +
-  facet_wrap(~airzone, ncol = 1) +
+  facet_wrap(~ airzone, ncol = 1) +
   xlab("") + ylab("Number of Reporting Stations") +
   coord_flip() +
   scale_y_continuous(expand = c(0,0)) +
@@ -212,68 +194,29 @@ pm_mgmt_chart <- ggplot(data = bind_rows(pm_annual_caaqs_results, pm_24h_caaqs_r
 
 ## @knitr end
 
-# Output data, maps, and charts ------------------------------------------------
+# Output data ------------------------------------------------
 
-st_transform(stations_caaqs_pm_24h_sf, 4326) %>% 
+filter(stations_sf, metric == "pm2.5_24h") %>%
+  st_transform(4326) %>% 
   st_write("out/pm_caaqs_24h.geojson", delete_dsn = TRUE)
 
-st_transform(stations_caaqs_pm_annual_sf, 4326) %>% 
+filter(stations_sf, metric == "pm2.5_annual") %>%
+  st_transform(4326) %>% 
   st_write("out/pm_caaqs_annual.geojson", delete_dsn = TRUE)
 
-st_transform(az_pm24h_sf, 4326) %>% 
+filter(az_ambient_sf, metric == "pm2.5_24h") %>%
+  st_transform(4326) %>% 
   st_write("out/pm_airzone_24h.geojson", delete_dsn = TRUE)
 
-st_transform(az_pm_annual_sf, 4326) %>% 
+filter(az_ambient_sf, metric == "pm2.5_annual") %>%
+  st_transform(4326) %>% 
   st_write("out/pm_airzone_annual.geojson", delete_dsn = TRUE)
 
-## SVG of airzone CAAQS mgmt level map
-svg_px("out/pm_caaqs_mgmt_map.svg", width = 500, height = 500)
-plot(pm_mgmt_map)
-dev.off()
+# SVG of airzone CAAQS mgmt level map
+ggsave("out/pm_caaqs_mgmt_map.svg", plot = pm_mgmt_map, dpi = 72,
+       width = 500, height = 500, units = "px", bg = "white")
 
-## SVG of airzone/station CAAQS mgmt achievement chart
-svg_px("out/pm_caaqs_mgmt_chart.svg", width = 500, height = 500)
-plot(pm_mgmt_chart)
-dev.off()
-
-pm_summary <- select(pm_24h_caaqs_results, ems_id, station_name, airzone, )
-
-## Save line plots
-line_dir <- "leaflet_map/station_plots/"
-dir.create(line_dir, showWarnings = FALSE, recursive = TRUE)
-lapply(list.files(line_dir, full.names = TRUE), file.remove)
-width <- 778
-height <- 254
-
-for (i in seq_along(stn_plots)) {
-  #i = 1
-  emsid <- names(stn_plots[i])
-  daily_plot <- stn_plots[[i]]$daily
-  annual_plot <- stn_plots[[i]]$annual
-  cat("saving plots for", emsid, "\n")
-  # png_retina(filename = paste0(line_dir, emsid, "_24h_lineplot.png"), 
-  #     width = 778, height = 254, units = "px", res = res)
-  svg_px(paste0(line_dir, emsid, "_24h_lineplot.svg"), 
-         width = width, height = height)
-  plot(daily_plot)
-  dev.off()
-  # png_retina(filename = paste0(line_dir, emsid, "_annual_lineplot.png"), 
-  #     width = 778, height = 254, units = "px", res = res)
-  svg_px(paste0(line_dir, emsid, "_annual_lineplot.svg"),
-         width = width, height = height)
-  plot(annual_plot)
-  dev.off()
-}
-graphics.off() # Kill any hanging graphics processes
-
-## Save plot objects 
-save(
-  pm_ambient_summary_plot,
-  pm_mgmt_map,
-  pm_mgmt_chart,
-  file = "tmp/plots.RData"
-)
-
-
-save(list = ls(), file = "tmp/analysed.RData")
+# SVG of airzone/station CAAQS mgmt achievement chart
+ggsave("out/pm_caaqs_mgmt_chart.svg", plot = pm_mgmt_chart, dpi = 72,
+       width = 500, height = 500, units = "px", bg = "white")
 

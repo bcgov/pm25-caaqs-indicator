@@ -24,7 +24,38 @@ renv::restore()   # - When updating from GitHub etc. restore to packages in lock
 # Setup ---------------------------------
 dir.create("data/raw", showWarnings = FALSE, recursive = TRUE)
 dir.create("data/datasets", showWarnings = FALSE, recursive = TRUE)
-dir.create("out", showWarnings = FALSE, recursive = TRUE)
+dir.create("out", showWarnings = FALSE)
+dir.create("leaflet_map/station_plots/", showWarnings = FALSE, recursive = TRUE)
+dir.create("out/databc", showWarnings = FALSE)
 
 rep_year <- 2020
+
+
+# Functions ----------------------------
+
+# Achievement maps - used in 04_output.R
+achivement_map <- function(az_data, stn_data, az_labs, stn_labs) {
+  ggplot() + 
+    geom_sf(data = az_data, aes(fill = caaqs_ambient), colour = "white") + 
+    geom_sf(data = stn_data, aes(colour = metric_value_ambient), size = 3) + 
+    scale_fill_manual(
+      values = get_colours(type = "achievement", drop_na = FALSE), 
+      drop = FALSE, guide = guide_legend(order = 1, title.position = "top")) + 
+    scale_colour_gradient(
+      high = "#252525", low = "#f0f0f0", 
+      guide = guide_colourbar(order = 2, title.position = "top", barwidth = 10)) + 
+    coord_sf(datum = NA) +
+    labs(fill = az_labs,
+         colour = stn_labs) +
+    theme_minimal() + 
+    theme(axis.title = element_blank(),
+          axis.text = element_blank(), 
+          axis.ticks = element_blank(),
+          panel.grid = element_blank(), 
+          legend.position = "bottom",
+          legend.box.just = "left")
+}
+
+
+
 
