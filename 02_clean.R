@@ -110,11 +110,18 @@ pm25_clean <- pm25 %>%
          year = year(date_time)) %>% 
   filter(year <= rep_year) %>% 
   
-  # Clean values
+  # Clean negative values
   mutate(value = clean_neg(value, type = "pm25")) %>% 
   
+  # Omit NAs at at start/end of a site/instrument range
+  nest(data = -c(site, instrument)) %>%
+  mutate(data = map(data, ~ mutate(., na_before = cumall(is.na(value)))),
+         data = map(data, ~ arrange(., desc(date_time))),
+         data = map(data, ~ mutate(., na_after = cumall(is.na(value)))),
+         data = map(data, ~ arrange(., date_time)),
+         data = map(data, ~ filter(., !na_before, !na_after))) %>%
+  
   # Fill dates
-  nest(data = c(-site, -instrument)) %>%
   mutate(data = map(
     data, ~date_fill(., date_col = "date_time", interval = "1 hour"))) %>%
   
@@ -140,8 +147,7 @@ if(FALSE) {
   overlaps_plot <- pm25_clean %>%
     group_by(site) %>%
     filter(n_distinct(instrument) > 1) %>%
-    ungroup() %>%
-    filter(!is.na(value))
+    ungroup()
   
   g1 <- plot_station_instruments(overlaps_plot, station = "site") +
     geom_vline(xintercept = ymd(rep_year - 2, truncated = 2))
@@ -183,16 +189,48 @@ if(FALSE) {
   # All recent years (2018 - 2020) have only one instrument
 }
 
+## Assign instrument deployments ----------------------------------------------
+
+# Look for overlapping dates when 
+# - Same site, same instrument TYPE, multiple instruments
+# - Over entire data record (required for 3-yr-rolling later on)
+
+deps_ovlp <- pm25_clean %>%
+  mutate(date = as_date(date_time)) %>%
+  distinct() %>%
+  group_by(site, instrument, instrument_type) %>%
+  summarize(min_date = min(date), 
+            max_date = max(date),
+            n_days = n(), .groups = "drop") %>%
+  add_count(site, instrument_type) %>%
+  # Only care when more than one instrument per type per site
+  filter(n > 1) %>%
+  group_by(site, instrument_type) %>%
+  arrange(min_date, .by_group = TRUE) %>%
+  mutate(overlap = max(min_date) <= min(max_date)) %>%
+  # Only care when they overlap in dates
+  filter(overlap)
+  
+# Harmac Cedar Woobank instrument BAM1020_2 has only one day of operation 
+# (2014-08-01) and it overlaps with the first day of BAM1020
+# Let's omit it
+
+pm25_clean <- filter(pm25_clean, !(site == "Harmac Cedar Woobank" &
+                                     instrument == "BAM1020_2"))
+
+
 ## Check timeseries problems -----------------------
 # - Check for missing/extra observations
 
 t <- pm25_clean %>%
-  nest(ts = c(-site, -instrument, -instrument_type)) %>%
-  mutate(n = map_int(ts, nrow),
+  nest(ts = c(-site, -instrument_type)) %>%
+  mutate(n_distinct = map_int(ts, ~n_distinct(.$date_time)),
+         n = map_int(ts, nrow),
          n_expect = map_dbl(ts, ~as.numeric(difftime(max(.$date_time), 
                                                      min(.$date_time), 
                                                      units = "hours")))) %>%
-  filter(n_expect != n - 1) 
+  filter(n_expect != n - 1, 
+         n_distinct != n) 
 
 # None!
 
