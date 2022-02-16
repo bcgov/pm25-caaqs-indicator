@@ -41,8 +41,7 @@ stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %
 pm25 <- read_rds("data/raw/pm25_caaqs.Rds") %>%
   as_tibble()
 
-az <- airzones() %>%
-  sf::st_make_valid()
+az <- airzones()
 
 
 # Clean Stations -------------------------------------------------------------
@@ -56,26 +55,17 @@ stations_clean <- stations %>%
   # Look for problems
   assert(within_bounds(-90, 90), lat) %>%
   assert(within_bounds(-180, 180), lon) %>%
-  assert(not_na, airzone) %>%
 
-  # Check Airzones
+  # Use airzones from bcmaps
+  select(-airzone) %>%
   assign_airzone(airzones = az, 
                  station_id = "site", 
-                 coords = c("lon", "lat"))
+                 coords = c("lon", "lat")) %>%
+  assert(not_na, airzone) %>%
   
-  # verify(airzone.x == airzone.y) #%>%
-  
-# Report non-matching airzones
-stations_clean %>% 
-  filter(airzone.x != airzone.y) %>%
-  select(site, lat, lon, region, 
-         airzone_stn = airzone.x, airzone_bcmaps = airzone.y)
-
-
-# Use stations airzones for now, and only stations for pm25
-stations_clean <- stations_clean %>%
+  # Only keep stations for pm25
   filter(pm25) %>%
-  select(site, region, airzone = airzone.x, lat, lon)
+  select(site, region, airzone, lat, lon)
 
 # Check distances -------------------
 
