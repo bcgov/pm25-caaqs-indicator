@@ -47,7 +47,6 @@ az <- airzones()
 # Clean Stations -------------------------------------------------------------
 
 # - lowercase column names
-# - remove pseudo-duplicates
 # - subset to those stations analysed
 
 stations_clean <- stations %>%
@@ -69,52 +68,36 @@ stations_clean <- stations %>%
 
 # Check distances -------------------
 
-# instrument_index <- pm25_clean %>%
-#   select(station_name, instrument, instrument_type) %>%
-#   distinct()
-
-dist_mat <- stations_clean %>%
-  select(site, lat, lon) %>%
-  sf::st_as_sf(coords = c("lon", "lat"), crs  = 4326) %>%
-  sf::st_distance(., .)
-
-dist <- expand_grid(stn1 = stations_clean$site,
-                    stn2 = stations_clean$site) %>%
-  mutate(dist = as.numeric(c(dist_mat))) %>%
-  filter(stn1 != stn2) %>%
-  mutate(pair = map2_chr(stn1, stn2, ~paste(sort(c(.x, .y)), collapse = " vs.\n")),
-         pair = fct_reorder(pair, dist)) %>%
-  select("dist", "pair") %>%
-  distinct() %>%
-  separate(col = pair, into = c("stn1", "stn2"), sep = " vs.\n", remove = FALSE) %>%
-  arrange(dist)
+# (only if curious)
+if(FALSE) {
+  dist_mat <- stations_clean %>%
+    select(site, lat, lon) %>%
+    sf::st_as_sf(coords = c("lon", "lat"), crs  = 4326) %>%
+    sf::st_distance(., .)
   
-ggplot(data = filter(dist, dist < 2000), aes(x = pair, y = dist)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  scale_fill_viridis_d(end = 0.8) +
-  geom_hline(yintercept = c(500, 1000, 1500), linetype = "dotted",
-             colour = "grey20") +
-  labs(x = "", y = "Distance (m)", 
-       title = "Distance between stations", 
-       subtitle = "Where distance < 2km")
-
-
-# Fix Squamish stations (??)
-# Original note: (both FEM, one in 2015 and the other in 2016-17)
-
-# fix <- c("0310172", "E304570")
-# filter(stations_clean, ems_id %in% c("0310172", "E304570"))
-# filter(pm25, ems_id %in% c("0310172", "E304570")) %>%
-#   group_by(ems_id) %>%
-#   summarize(n = n(), min = min(date_pst, na.rm = TRUE), max = max(date_pst, na.rm = TRUE))
-# 
-# stations_clean <- stations_clean %>%
-#   mutate(ems_id = if_else(ems_id %in% fix, paste(fix, collapse = "-"), ems_id))
-# 
-# filter(stations_clean, ems_id %in% fix)
-# filter(stations_clean, ems_id %in% paste(fix, collapse = "-"))
+  dist <- expand_grid(stn1 = stations_clean$site,
+                      stn2 = stations_clean$site) %>%
+    mutate(dist = as.numeric(c(dist_mat))) %>%
+    filter(stn1 != stn2) %>%
+    mutate(pair = map2_chr(stn1, stn2, ~paste(sort(c(.x, .y)), collapse = " vs.\n")),
+           pair = fct_reorder(pair, dist)) %>%
+    select("dist", "pair") %>%
+    distinct() %>%
+    separate(col = pair, into = c("stn1", "stn2"), sep = " vs.\n", remove = FALSE) %>%
+    arrange(dist)
+  
+  ggplot(data = filter(dist, dist < 2000), aes(x = pair, y = dist)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    scale_fill_viridis_d(end = 0.8) +
+    geom_hline(yintercept = c(500, 1000, 1500), linetype = "dotted",
+               colour = "grey20") +
+    labs(x = "", y = "Distance (m)", 
+         title = "Distance between stations", 
+         subtitle = "Where distance < 2km")
+  ggsave("out/stations_distance.png", width = 12)
+}
 
 
 # Clean pm25 -----------------------------------------------------------------
@@ -148,35 +131,63 @@ pm25_clean <- pm25 %>%
 
 
 ## Overlapping --------------
+
 # - Check for overlapping instruments
 # - Check dates/patterns explicitly
+# - Only check if curious
 
-overlaps_plot <- pm25_clean %>%
-  group_by(site) %>%
-  filter(n_distinct(instrument) > 1) %>%
-  ungroup() %>%
-  filter(!is.na(value))
+if(FALSE) {
+  overlaps_plot <- pm25_clean %>%
+    group_by(site) %>%
+    filter(n_distinct(instrument) > 1) %>%
+    ungroup() %>%
+    filter(!is.na(value))
+  
+  g1 <- plot_station_instruments(overlaps_plot, station = "site") +
+    geom_vline(xintercept = ymd(rep_year - 2, truncated = 2))
+  g2 <- plot_station_instruments(overlaps_plot, station = "site", 
+                                 instrument = "instrument_type") +
+    geom_vline(xintercept = ymd(rep_year - 2, truncated = 2))
+  
+  g <- g1 + g2 + 
+    plot_annotation(title = "Sites with multiple instruments",
+                    subtitle = "Exluding missing data") +
+    plot_layout(guides = "collect")
+  
+  ggsave(filename = "out/pm25_instrument_overlap.png", width = 14, height = 10)
+  
+  # Check by dist
+  dist_site <- filter(dist, dist <= 2000) %>% 
+    select(-dist, -pair) %>%
+    pivot_longer(contains("stn"), names_to = "pair", values_to = "site") %>%
+    pull(site) %>% 
+    unique()
+  
+  overlaps_plot <- pm25_clean %>%
+    filter(site %in% dist_site) %>%
+    filter(!is.na(value))
+  
+  g1 <- plot_station_instruments(overlaps_plot, station = "site") +
+    geom_vline(xintercept = ymd(rep_year - 2, truncated = 2))
+  g2 <- plot_station_instruments(overlaps_plot, station = "site", 
+                                 instrument = "instrument_type") +
+    geom_vline(xintercept = ymd(rep_year - 2, truncated = 2))
+  
+  g <- g1 + g2 + 
+    plot_annotation(title = "Sites near other sites",
+                    subtitle = "Exluding missing data") +
+    plot_layout(guides = "collect")
+  
+  ggsave(filename = "out/pm25_stn_nearby.png", width = 14, height = 10)
+  
+  # All recent years (2018 - 2020) have only one instrument
+}
 
-g1 <- plot_station_instruments(overlaps_plot, station = "site") +
-  geom_vline(xintercept = ymd(rep_year - 2, truncated = 2))
-g2 <- plot_station_instruments(overlaps_plot, station = "site", 
-                               instrument = "instrument_type") +
-  geom_vline(xintercept = ymd(rep_year - 2, truncated = 2))
+## Check timeseries problems -----------------------
+# - Check for missing/extra observations
 
-g <- g1 + g2 + 
-  plot_annotation(title = "Sites with multiple instruments",
-                  subtitle = "Exluding missing data") +
-  plot_layout(guides = "collect")
-
-ggsave(filename = "out/pm25_instrument_overlap.pdf",width = 14, height = 10)
-
-# All recent years (2018 - 2020) have only one instrument
-
-
-## Check timeseries -----------------------
-
-pm25_clean %>%
-  nest(ts = c(year, date_time, value)) %>%
+t <- pm25_clean %>%
+  nest(ts = c(-site, -instrument, -instrument_type)) %>%
   mutate(n = map_int(ts, nrow),
          n_expect = map_dbl(ts, ~as.numeric(difftime(max(.$date_time), 
                                                      min(.$date_time), 
