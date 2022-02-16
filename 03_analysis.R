@@ -19,6 +19,7 @@ library("dplyr")
 library("tidyr")
 library("purrr")
 library("lubridate")
+library("assertr")
 
 library("rcaaqs")
 
@@ -32,21 +33,19 @@ tfee <- pm25_clean %>%
   # Ceiling TFEE to capture original dates
   mutate(date = ceiling_date(date_time, unit = "hour"),
          date = as_date(date)) %>%
-  select(site, instrument, date) %>%
+  select(site, instrument_type, date) %>%
   distinct()
-
-# ANY OTHER EXTREME THINGS TO CONSIDER?
 
 # Calculate CAAQs --------------------------------------
 
 # PM25 24 Hour
-pm25_24h_caaqs <- pm_24h_caaqs(pm25_clean, by = c("site", "instrument"))
+pm25_24h_caaqs <- pm_24h_caaqs(pm25_clean, by = c("site", "instrument_type"))
 pm25_24h_mgmt <- caaqs_management(pm25_24h_caaqs, 
                                   exclude_df = tfee, 
                                   exclude_df_dt = "date")
 
 # PM25 Annual
-pm25_annual_caaqs <- pm_annual_caaqs(pm25_clean, by = c("site", "instrument"))
+pm25_annual_caaqs <- pm_annual_caaqs(pm25_clean, by = c("site", "instrument_type"))
 pm25_annual_mgmt <- caaqs_management(pm25_annual_caaqs, 
                                      exclude_df = tfee, 
                                      exclude_df_dt = "date")
@@ -55,11 +54,14 @@ pm25_annual_mgmt <- caaqs_management(pm25_annual_caaqs,
 # Combine and filter
 pm25_results <- bind_rows(get_caaqs(pm25_24h_mgmt),
                           get_caaqs(pm25_annual_mgmt)) %>%
-  group_by(metric, site) %>%
   filter(caaqs_year == .env$rep_year, n_years > 1) %>% 
-  ungroup() %>% 
   left_join(stations_clean, by = "site") %>% 
-  select(airzone, site, region, lat, lon, everything())
+  # Ensure only 1 analysis per site
+  add_count(site, metric) %>%
+  assert(in_set(1), n) %>%
+  # Clean up
+  select(airzone, site, region, lat, lon, everything(), -n)
+
 
 # Airzone results ---------------------------------------------------------
 # Get airzone results by metric
