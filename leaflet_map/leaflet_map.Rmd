@@ -1,4 +1,5 @@
 ---
+title: Air Quality Maps
 output: 
   html_document:
     css: "assets/caaqs-styles.css"
@@ -9,195 +10,148 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Allows Rmd file to be run interactively and knit 
 # without having to change the relative file locations all the time
-library(here) 
+library("here") 
 
 # Tidyverse
-library(dplyr)
-library(tidyr)
-library(purrr)
-library(stringr)
+library("dplyr")
+library("tidyr")
+library("purrr")
+library("stringr")
 
 # Mapping
-library(leaflet)
-library(sf)
-library(geojsonio)
-library(htmltools) # For HTML() function
+library("leaflet")
+library("sf")
+library("geojsonio")
+library("htmltools") # For HTML() function
 
 # Functions to create popups and center map
-library(envreportutils)
+library("envreportutils")
+library("rcaaqs")
 
 # Get css
-css_caaqs_copy(folder = here("./leaflet_map/"))
+css_caaqs_copy(folder = here("leaflet_map/"), overwrite = TRUE)
 
 # Assign colours
-az_annual_colours <- c("Not Achieved (&gt; 10 &mu;g/m&sup3;)" = "#cd7277",
-                       "Achieved (&leq; 10 &mu;g/m&sup3;)" = "#72a4cd",
-                       "Insufficient Data" = "#dbdbdb")
-station_annual_colours <- c("&leq; 4 &mu;g/m&sup3;" = "#ffffff", 
-                            "&gt;4 &amp; &leq;6.4 &mu;g/m&sup3;" = "#bdbdbd", 
-                            "&gt;6.4 &amp; &leq;10 &mu;g/m&sup3;" = "#737373", 
-                            "&gt;10 &mu;g/m&sup3;" = "#000000")
+labels_ambient <- achievement_levels %>%
+  rename(metric = parameter) %>%
+  filter(str_detect(metric, "pm2.5")) %>%
+  add_row(metric = c("pm2.5_annual", "pm2.5_24h"), 
+          labels = "Insufficient Data", units = c(unique(.$units_html))) %>%
+  mutate(colour = case_when(labels == "Achieved" ~ "#72a4cd",
+                            labels == "Not Achieved" ~ "#cd7277",
+                            labels == "Insufficient Data" ~ "#dbdbdb"),
+         labels_full = if_else(!is.na(val_labels_html), 
+                               paste0(labels, " (", val_labels_html, ")"),
+                               labels),
+         labels = factor(labels, levels = c("Not Achieved", 
+                                            "Achieved", "Insufficient Data")),
+         metric_short = str_remove(metric, "pm2.5_")) %>%
+  arrange(metric, labels) %>%
+  mutate(labels_full = factor(labels_full, levels = unique(labels_full))) %>%
+  select(metric, metric_short, labels, colour, labels_full, units_html)
+  
+labels_mgmt <- management_levels %>%
+  rename(metric = parameter) %>%
+  filter(str_detect(metric, "pm2.5")) %>%
+  mutate(colour = case_when(str_detect(labels, "Keeping") ~ "#ffffff",
+                            str_detect(labels, "Deterioration") ~ "#bdbdbd",
+                            str_detect(labels, "Exceedance") ~ "#737373",
+                            str_detect(labels, "Achieving") ~ "#000000"),
+         labels = val_labels_html,
+         labels = factor(labels, levels = labels),
+         labels_full = labels,
+         metric_short = str_remove(metric, "pm2.5_")) %>%
+  arrange(metric, labels) %>%
+  select(metric, metric_short, labels, colour, labels_full, units_html) %>%
+  mutate(icons = rep(c("assets/marker_white.svg", "assets/marker_lightgrey.svg", 
+                       "assets/marker_grey.svg", "assets/marker_black.svg"), 2))
+  
+
+# Load and prep data ------------------------------------
+
+## Stations - Get CAAQs and popups ---------------------------------------
+stations <- read_sf(here("out/pm_caaqs.geojson")) %>%
+  # Count total stations, then omit those with insufficient data
+  add_count(metric, airzone) %>%
+  filter(!is.na(caaqs_ambient)) %>%
+  
+  # Get management levels
+  mutate(caaqs_mgmt = map2_chr(metric_value_ambient, metric,
+                                 ~ as.character(rcaaqs:::cut_management(.x, .y,"breaks_h")))) %>%
+  left_join(labels_mgmt, by = c("metric", "caaqs_mgmt" = "labels")) %>%
+  rename(caaqs_legend = labels_full) %>%
+  
+  # Create popups
+  mutate(p_az = airzone,
+         p_station = site,
+         p_station_id = paste0(site, "_", metric_short)) %>%
+  mutate(popup = popup_caaqs(
+    ., type = "station", 
+    units = units_html,
+    metric_name = paste0("PM<sub>2.5</sub> Metric (", metric_short, ")"),
+    standard_name = paste0("PM<sub>2.5</sub> Air Quality Standard (", metric_short, ")")))
+
+## Count stations
+stns_n <- stations %>%
+  st_set_geometry(NULL) %>%
+  select(metric, airzone, n) %>%
+  distinct()
+
+## Airzones - Get CAAQs and popups -----------------------------------
+az <- st_read(here("./out/pm_airzone.geojson")) %>%
+  # Clarify names and add data
+  rename(rep_station_id = rep_stn_id_ambient, n_years = n_years_ambient) %>%
+  mutate(caaqs_ambient = replace_na(caaqs_ambient, "Insufficient Data")) %>%
+  left_join(stns_n, by = c("metric", "airzone")) %>%
+  
+  # Get CAAQS labels
+  left_join(labels_ambient, by = c("metric", "caaqs_ambient" = "labels")) %>%
+  mutate(metric_value_ambient = as.numeric(metric_value_ambient)) %>%
+  rename(caaqs_legend = labels_full) %>%
+  
+  # Create Airzone tooltips
+  mutate(n = replace_na(n, 0),
+         tooltip = map2(airzone, n, 
+                        ~HTML(paste0(.x, "<br>", .y, 
+                                     " Monitoring Station", 
+                                     if_else(.y == 1, "", "s"))))) %>%
+  # Create Airzone Popups
+  mutate(p_az = airzone,
+         p_station = rep_station_id,
+         p_station_id = paste0(rep_station_id, "_", metric_short)) %>%
+  mutate(popup = popup_caaqs(
+    ., type = "region", 
+    units = units_html,
+    metric_name = paste0("PM<sub>2.5</sub> Metric (", metric_short, ")"),
+    standard_name = paste0("PM<sub>2.5</sub> Air Quality Standard (", 
+                           metric_short, ")")),
+    popup = replace(popup, n == 0, NA))
 
 
-az_24h_colours <- c("Not Achieved (&gt; 28 &mu;g/m&sup3;)" = "#cd7277",
-                    "Achieved (&leq; 28 &mu;g/m&sup3;)" = "#72a4cd",
-                    "Insufficient Data" = "#dbdbdb")
-station_24h_colours <- c("&leq; 10 &mu;g/m&sup3;" = "#ffffff", 
-                     "&gt;10 &amp; &leq;19 &mu;g/m&sup3;" = "#bdbdbd", 
-                     "&gt;19 &amp; &leq;28 &mu;g/m&sup3;" = "#737373", 
-                     "&gt;28 &mu;g/m&sup3;" = "#000000")
+# Start splitting metrics ----------------------
 
-# # Load and prep data
-stations_annual <- read_sf(here("out/pm_caaqs_annual.geojson"))
-stations_24h <- read_sf(here("out/pm_caaqs_24h.geojson"))
+## Create palettes
 
-# Count stations before removing for insufficient data
-az_n <- stations_annual %>%
-  group_by(airzone) %>%
-  count() %>%
-  st_set_geometry(NULL)
+pal_az_annual <- filter(labels_ambient, metric_short == "annual") %>%
+  colorFactor(palette = .$colour, levels = .$labels_full)
 
-# Deal with insufficient data
-stations_annual <- stations_annual %>%
-  mutate(caaqs_ambient = replace(caaqs_ambient, is.na(caaqs_ambient), "Insufficient Data"),
-         caaqs_legend = rcaaqs:::cut_management(metric_value_ambient, 
-                                               "pm2.5_annual", "breaks_h")) %>%
-  filter(caaqs_ambient != "Insufficient Data") %>% 
-  mutate(caaqs_legend = factor(caaqs_legend,
-                               levels = c("&lteq; 4&mu;g/m&sup3;", 
-                                          "&gt; 4&mu;g/m&sup3; &amp; &lteq; 6.4&mu;g/m&sup3;", 
-                                          "&gt; 6.4&mu;g/m&sup3; &amp; &lteq; 10&mu;g/m&sup3;", 
-                                          "&gt; 10&mu;g/m&sup3;"),
-                               labels = names(station_annual_colours)))
-
-stations_24h <- stations_24h %>%
-  mutate(caaqs_ambient = replace(caaqs_ambient, is.na(caaqs_ambient), "Insufficient Data"),
-         caaqs_legend = rcaaqs:::cut_management(metric_value_ambient, 
-                                               "pm2.5_24h", "breaks_h")) %>%
-  filter(caaqs_ambient != "Insufficient Data") %>%
-  mutate(caaqs_legend = factor(caaqs_legend,
-                               levels = c("&lteq; 10&mu;g/m&sup3;", 
-                                         "&gt; 10&mu;g/m&sup3; &amp; &lteq; 19&mu;g/m&sup3;", 
-                                         "&gt; 19&mu;g/m&sup3; &amp; &lteq; 28&mu;g/m&sup3;", 
-                                         "&gt; 28&mu;g/m&sup3;"),
-                               labels = names(station_24h_colours)))
-
-# Load airzones
-az_annual <- st_read(here("./out/pm_airzone_annual.geojson"), stringsAsFactors = FALSE) %>%
-  left_join(az_n, by = "airzone")# Join only data, not by spatial
-
-az_24h <- st_read(here("./out/pm_airzone_24h.geojson"), stringsAsFactors = FALSE) %>%
-  left_join(az_n, by = "airzone")# Join only data, not by spatial
-
-# Separate into distinct metrics and assign Insufficient data
-az_annual <- az_annual %>% 
-  rename(rep_station_name = station_name_ambient,
-         rep_station_id = rep_stn_id_ambient, 
-         n_years = n_years_ambient) %>%
-  mutate(rep_station_id = paste0(rep_station_id, "_annual"),
-         caaqs_ambient = replace(caaqs_ambient, is.na(caaqs_ambient), "Insufficient Data"),
-         caaqs_legend = factor(caaqs_ambient, 
-                               levels = c("Not Achieved", "Achieved", 
-                                          "Insufficient Data"),
-                               labels = names(az_annual_colours)),
-         metric_value_ambient = as.numeric(metric_value_ambient))
-
-az_24h <- az_24h %>%
-  rename(rep_station_name = station_name_ambient,
-         rep_station_id = rep_stn_id_ambient,
-         n_years = n_years_ambient) %>%
-  mutate(rep_station_id = paste0(rep_station_id, "_24h"),
-         caaqs_ambient = replace(caaqs_ambient, is.na(caaqs_ambient), "Insufficient Data"),
-         caaqs_legend = factor(caaqs_ambient, 
-                               levels = c("Not Achieved", "Achieved", 
-                                          "Insufficient Data"),
-                               labels = names(az_24h_colours)),
-         metric_value_ambient = as.numeric(metric_value_ambient))
-
-# Calculate/Create Airzone tooltips
-az_annual <- mutate(az_annual, n = replace(n, is.na(n), 0),
-                    tooltip = map2(airzone, n, 
-                                   ~HTML(paste0(.x, "<br>", .y, 
-                                                " Monitoring Station", 
-                                                if_else(.y == 1, "", "s")))))
-
-az_24h <- mutate(az_24h, n = replace(n, is.na(n), 0),
-                 tooltip = map2(airzone, n, 
-                                ~HTML(paste0(.x, "<br>", .y, 
-                                             " Monitoring Station", 
-                                             if_else(.y == 1, "", "s")))))
-# Create Airzone Popups
-az_annual <- mutate(az_annual, 
-                    p_az = airzone,
-                    p_station = rep_station_name,
-                    p_station_id = rep_station_id) %>%
-  mutate(popup = popup_caaqs(., type = "region", 
-                             metric_name = "PM<sub>2.5</sub> Metric (annual)",
-                             units = "&mu;g/m&sup3;",
-                             standard_name = "PM<sub>2.5</sub> Air Quality Standard (annual)"),
-         popup = replace(popup, n == 0, NA))
-
-az_24h <- mutate(az_24h, 
-                 p_az = airzone,
-                 p_station = rep_station_name,
-                 p_station_id = rep_station_id) %>%
-  mutate(popup = popup_caaqs(., type = "region", 
-                             metric_name = "PM<sub>2.5</sub> Metric (24h)",
-                             units = "&mu;g/m&sup3;",
-                             standard_name = "PM<sub>2.5</sub> Air Quality Standard (24h)"),
-         popup = replace(popup, n == 0, NA))
-
-# Create Stations Popups
-stations_annual <- mutate(stations_annual,
-                          p_az = airzone,
-                          p_station = station_name,
-                          p_station_id = paste0(ems_id, "_annual")) %>%
-  mutate(popup = popup_caaqs(., type = "station", 
-                             metric_name = "PM<sub>2.5</sub> Metric (annual)",
-                             units = "&mu;g/m&sup3;",
-                             standard_name = "PM<sub>2.5</sub> Air Quality Standard (annual)"))
-
-stations_24h <- mutate(stations_24h,
-                       p_az = airzone,
-                       p_station = station_name,
-                       p_station_id = paste0(ems_id, "_24h")) %>%
-  mutate(popup = popup_caaqs(., type = "station", 
-                             metric_name = "PM<sub>2.5</sub> Metric (24h)",
-                             units = "&mu;g/m&sup3;",
-                             standard_name = "PM<sub>2.5</sub> Air Quality Standard (24h)"))
-
-
-# Verify popup formating
-#cat(az_annual$popup[3])
-#cat(az_24h$popup[3])
-
-# Create palettes
-pal_az_annual <- colorFactor(palette = az_annual_colours,
-                             levels = names(az_annual_colours))
-pal_az_24h <- colorFactor(palette = az_24h_colours,
-                          levels = names(az_24h_colours))
+pal_az_24h <- filter(labels_ambient, metric_short == "24h") %>%
+  colorFactor(palette = .$colour, levels = .$labels_full)
 
 # Create icons
 icon_size <- 30
-markers_annual <- icons( # file locations have to be relative (can't use here())
-  iconUrl = c("assets/marker_white.svg", "assets/marker_lightgrey.svg", 
-              "assets/marker_grey.svg", "assets/marker_black.svg"
-  )[as.numeric(stations_annual$caaqs_legend)],
+markers <- icons( # file locations have to be relative (can't use here())
+  iconUrl = stations$icons,
   iconWidth = icon_size, iconHeight = icon_size,
   iconAnchorX = icon_size/2, iconAnchorY = icon_size,
   shadowUrl = "assets/marker_shadow.svg",
   shadowWidth = icon_size * 0.75, shadowHeight = icon_size * 0.75,
   shadowAnchorX = 1, shadowAnchorY = icon_size * 0.75)
 
-markers_24h <- icons( # file locations have to be relative (can't use here())
-  iconUrl = c("assets/marker_white.svg", "assets/marker_lightgrey.svg", 
-              "assets/marker_grey.svg", "assets/marker_black.svg"
-  )[as.numeric(stations_24h$caaqs_legend)],
-  iconWidth = icon_size, iconHeight = icon_size,
-  iconAnchorX = icon_size/2, iconAnchorY = icon_size,
-  shadowUrl = "assets/marker_shadow.svg",
-  shadowWidth = icon_size * 0.75, shadowHeight = icon_size * 0.75,
-  shadowAnchorX = 1, shadowAnchorY = icon_size * 0.75)
+markers_annual <- markers
+markers_annual$iconUrl <- markers_annual$iconUrl[stations$metric_short == "annual"]
+markers_24h <- markers
+markers_24h$iconUrl <- markers_24h$iconUrl[stations$metric_short == "24h"]
 
 # Popup Options
 ppo <- popupOptions(autoPanPaddingTopLeft = c(10, 10),
@@ -231,7 +185,7 @@ m <- leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom
 ```{r, warning=FALSE}
 m %>%
   # Add annual data
-  addPolygons(data = az_annual, group = "Annual",
+  addPolygons(data = filter(az, metric_short == "annual"), group = "Annual",
               color = "white", weight = 2, opacity = 1, fillOpacity = 0.7,
               fillColor = ~pal_az_annual(caaqs_legend),
               label = ~tooltip, 
@@ -239,8 +193,8 @@ m %>%
               popupOptions = ppo) %>%
               # highlightOptions = highlightOptions(bringToFront = TRUE, 
               #                                     fillOpacity = 0.7)) %>%
-  addMarkers(data = stations_annual, group = "Annual",
-             icon = markers_annual, label = ~station_name, 
+  addMarkers(data = filter(stations, metric_short == "annual"), group = "Annual",
+             icon = markers_annual, label = ~site, 
              popup = ~popup, #options = markerOptions(riseOnHover = TRUE),
              # Stick to marker, not mouse
              labelOptions = labelOptions(sticky = FALSE, 
@@ -263,7 +217,7 @@ m %>%
 ```{r, warning=FALSE}
 m %>%
   # Add 24h data
-  addPolygons(data = az_24h, group = "24-hour",
+  addPolygons(data = filter(az, metric_short == "24h"), group = "24-hour",
               color = "white", weight = 2, opacity = 1, fillOpacity = 0.7,
               fillColor = ~pal_az_24h(caaqs_legend),
               label = ~tooltip, 
@@ -271,8 +225,8 @@ m %>%
               popupOptions = ppo) %>%
               # highlightOptions = highlightOptions(bringToFront = TRUE, 
               #                                     fillOpacity = 0.7)) %>%
-  addMarkers(data = stations_24h, group = "24-hour",
-             icon = markers_24h, label = ~station_name, 
+  addMarkers(data = filter(stations, metric_short == "24h"), group = "24-hour",
+             icon = markers_24h, label = ~site, 
              popup = ~popup, #options = markerOptions(riseOnHover = TRUE),
              # Stick to marker, not mouse
              labelOptions = labelOptions(sticky = FALSE, 
