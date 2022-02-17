@@ -124,8 +124,7 @@ az <- st_read(here("./out/pm_airzone.geojson")) %>%
     units = units_html,
     metric_name = paste0("PM<sub>2.5</sub> Metric (", metric_short, ")"),
     standard_name = paste0("PM<sub>2.5</sub> Air Quality Standard (", 
-                           metric_short, ")")),
-    popup = replace(popup, n == 0, NA))
+                           metric_short, ")")))
 
 
 # Start splitting metrics ----------------------

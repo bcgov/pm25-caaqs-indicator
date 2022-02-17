@@ -46,12 +46,14 @@ az <- airzones() %>%
   group_by(airzone = Airzone) %>% 
   summarize()
 
-az_mgmt_sf <- az %>%
-  left_join(az_mgmt, by = "airzone") %>% 
+az_mgmt_sf <- az_mgmt %>%
+  complete(airzone = az$airzone, rep_metric, caaqs_year) %>% # Ensure ALL airzones
+  left_join(az, ., by = "airzone") %>% 
   mutate(mgmt_level = replace_na(mgmt_level, "Insufficient Data"))
 
-az_ambient_sf <- az %>% 
-  left_join(az_ambient, by = "airzone") %>% 
+az_ambient_sf <- az_ambient %>% 
+  complete(airzone = az$airzone, metric) %>% # Ensure ALL airzones
+  left_join(az, ., by = "airzone") %>% 
   mutate(caaqs_ambient = replace_na(caaqs_ambient, "Insufficient Data"))
 
 stations_sf <- pm25_results %>% 
