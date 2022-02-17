@@ -236,10 +236,10 @@
     },
     "cli": {
       "Package": "cli",
-      "Version": "3.1.1",
+      "Version": "3.2.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "da5160e769a652e3ec7111d63883f9bc",
+      "Hash": "1bdb126893e9ce6aae50ad1d6fc32faf",
       "Requirements": [
         "glue"
       ]
@@ -270,10 +270,10 @@
     },
     "crayon": {
       "Package": "crayon",
-      "Version": "1.4.2",
+      "Version": "1.5.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "0a6a65d92bd45b47b94b84244b528d17",
+      "Hash": "741c2e098e98afe3dc26a7b0e5489f4e",
       "Requirements": []
     },
     "crosstalk": {
@@ -389,12 +389,12 @@
       "Version": "0.9.0",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
+      "RemoteUsername": "steffilazerte",
       "RemoteRepo": "envreportutils",
-      "RemoteUsername": "bcgov",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "968a1980870ac9b8d4e3336cca6b86d3bdfdf73e",
-      "Hash": "2516e32494d5976d6ada6faf647d690a",
+      "RemoteRef": "master",
+      "RemoteSha": "c6173f23e5696ab6b9d52532750821c73bf1e6fe",
+      "RemoteHost": "api.github.com",
+      "Hash": "bbfe5d086f64cc8debfd0bdc4153a81c",
       "Requirements": [
         "dplyr",
         "extrafont",
@@ -784,10 +784,10 @@
     },
     "leaflet": {
       "Package": "leaflet",
-      "Version": "2.0.4.1",
+      "Version": "2.1.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "e3d73becdeb92754d27172d278cbf61d",
+      "Hash": "6dfe956c509b92d7edee4f0f4bf42e64",
       "Requirements": [
         "RColorBrewer",
         "base64enc",
@@ -1060,9 +1060,9 @@
       "RemoteUsername": "bcgov",
       "RemoteRepo": "rcaaqs",
       "RemoteRef": "steffi-new-thresholds",
-      "RemoteSha": "24685b6da27d68a16e4ede686e135e658ff423a5",
+      "RemoteSha": "cdc095099daa308fa24e550ab5261b5c122e711c",
       "RemoteHost": "api.github.com",
-      "Hash": "ff848b9243887f9358d4cb3575ca7fd6",
+      "Hash": "70bc0e2bd73f298d995f81dfd94d7fe8",
       "Requirements": [
         "dplyr",
         "ggplot2",
@@ -1289,10 +1289,10 @@
     },
     "systemfonts": {
       "Package": "systemfonts",
-      "Version": "1.0.3",
+      "Version": "1.0.4",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "5be9fcf8ef6763e8cb13ab009e273a1d",
+      "Hash": "90b28393209827327de889f49935140a",
       "Requirements": [
         "cpp11"
       ]
@@ -1360,10 +1360,10 @@
     },
     "tinytex": {
       "Package": "tinytex",
-      "Version": "0.36",
+      "Version": "0.37",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "130fe4c61e55b271a2655b3a284a205f",
+      "Hash": "a80abeb527a977e4bef21873d29222dd",
       "Requirements": [
         "xfun"
       ]
