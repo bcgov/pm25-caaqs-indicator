@@ -46,7 +46,7 @@ library("rcaaqs")
 library("bcmaps")
 library("envreportutils")
 
-source(here("00_setup.R"))
+renv::restore()
 knitr::read_chunk(here("04_output.R"))
 
 knitr_latex_char <- function(x) {
