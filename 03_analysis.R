@@ -75,6 +75,7 @@ az_mgmt <- az_ambient %>%
   group_by(airzone, metric) %>%    # Groupby airzone AND metric? (orig no metric)
   slice(which.max(mgmt_level)) %>% 
   mutate(caaqs_year = .env$rep_year) %>% 
+  ungroup() %>%
   select(caaqs_year, airzone, mgmt_level, rep_metric = metric, 
          metric_value = metric_value_mgmt, 
          rep_stn_id = rep_stn_id_mgmt)
