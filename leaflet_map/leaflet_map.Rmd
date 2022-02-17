@@ -31,7 +31,16 @@ library("rcaaqs")
 # Get css
 css_caaqs_copy(folder = here("leaflet_map/"), overwrite = TRUE)
 
-# Assign colours
+# Assign labels, colours, and cutoffs using rcaaqs ----------------------------
+#
+# - This is a big messy block of code, but means that the units and labels
+#   are automatically gathered from rcaaqs via achivement_levels and management_levels.
+#   This means that changes only need to be made in rcaaqs.
+# - All formating, colours, and markers are specified here
+# - Factor levels are determined here as well, so that custom orders don't need
+#  to be specified directly in the legends
+
+# Ambient labels
 labels_ambient <- achievement_levels %>%
   rename(metric = parameter) %>%
   filter(str_detect(metric, "pm2.5")) %>%
@@ -43,13 +52,16 @@ labels_ambient <- achievement_levels %>%
          labels_full = if_else(!is.na(val_labels_html), 
                                paste0(labels, " (", val_labels_html, ")"),
                                labels),
+         # Format the labels - add space before units
+         labels_full = str_replace_all(labels_full, "(\\d+)(\\&mu)", "\\1 \\2"),
          labels = factor(labels, levels = c("Not Achieved", 
                                             "Achieved", "Insufficient Data")),
          metric_short = str_remove(metric, "pm2.5_")) %>%
-  arrange(metric, labels) %>%
+  arrange(labels) %>%
   mutate(labels_full = factor(labels_full, levels = unique(labels_full))) %>%
   select(metric, metric_short, labels, colour, labels_full, units_html)
   
+# Management labels
 labels_mgmt <- management_levels %>%
   rename(metric = parameter) %>%
   filter(str_detect(metric, "pm2.5")) %>%
@@ -58,8 +70,11 @@ labels_mgmt <- management_levels %>%
                             str_detect(labels, "Exceedance") ~ "#737373",
                             str_detect(labels, "Achieving") ~ "#000000"),
          labels = val_labels_html,
+         # Format the labels - add space before units, remove duplicate units
          labels = factor(labels, levels = labels),
          labels_full = labels,
+         labels_full = str_replace_all(labels_full, "(\\d+)(\\&)", "\\1 \\2"),
+         labels_full = str_remove(labels_full, paste0(units_html, " ")), 
          metric_short = str_remove(metric, "pm2.5_")) %>%
   arrange(metric, labels) %>%
   select(metric, metric_short, labels, colour, labels_full, units_html) %>%
@@ -183,65 +198,68 @@ m <- leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom
 ### Annual
 ```{r, warning=FALSE}
 m %>%
-  # Add annual data
+  # Add Airzone polygons
   addPolygons(data = filter(az, metric_short == "annual"), group = "Annual",
               color = "white", weight = 2, opacity = 1, fillOpacity = 0.7,
               fillColor = ~pal_az_annual(caaqs_legend),
               label = ~tooltip, 
               popup = ~popup,
               popupOptions = ppo) %>%
-              # highlightOptions = highlightOptions(bringToFront = TRUE, 
-              #                                     fillOpacity = 0.7)) %>%
+  
+  # Add station markers
   addMarkers(data = filter(stations, metric_short == "annual"), group = "Annual",
              icon = markers_annual, label = ~site, 
-             popup = ~popup, #options = markerOptions(riseOnHover = TRUE),
+             popup = ~popup,
              # Stick to marker, not mouse
              labelOptions = labelOptions(sticky = FALSE, 
                                          offset = c(0, -icon_size/2))) %>%
-  # Custom legends to override order
-  addLegend("bottomleft", group = "Annual",
-            colors = rev(station_annual_colours),
-            className = "info legend solid",
-            labels = rev(names(station_annual_colours)),
-            opacity = 1,
-            title = htmltools::HTML("<h3>PM<sub>2.5</sub> Monitoring Stations</h3><h4>PM<sub>2.5</sub> Metric (annual)</h4>")) %>%
+  
+  # Legend for polygons
   addLegend("bottomright", group = "Annual",
-            colors = pal_az_annual(names(az_annual_colours)), 
-            labels = names(az_annual_colours), 
+            data = filter(az, metric_short == "annual"),
+            pal = pal_az_annual, values = ~caaqs_legend, 
             opacity = 1, 
-            title = htmltools::HTML("<h3>Air Zones</h3><h4>PM<sub>2.5</sub> Air Quality Standard (annual)</h4>"))
+            title = htmltools::HTML("<h3>Air Zones</h3><h4>PM<sub>2.5</sub> Air Quality Standard (annual)</h4>")) %>%
+  
+   # Custom legends for markers
+  addLegend("bottomleft", group = "Annual",
+            colors = filter(labels_mgmt, metric_short == "annual") %>% pull(colour) %>% rev(),
+            className = "info legend solid",
+            labels = filter(labels_mgmt, metric_short == "annual") %>% pull(labels_full) %>% rev(),
+            opacity = 1,
+            title = htmltools::HTML("<h3>PM<sub>2.5</sub> Monitoring Stations</h3><h4>PM<sub>2.5</sub> Metric (annual)</h4>"))
 ```
 
 ### 24-hour
 ```{r, warning=FALSE}
 m %>%
-  # Add 24h data
+  # Add airzone polygons
   addPolygons(data = filter(az, metric_short == "24h"), group = "24-hour",
               color = "white", weight = 2, opacity = 1, fillOpacity = 0.7,
               fillColor = ~pal_az_24h(caaqs_legend),
               label = ~tooltip, 
               popup = ~popup,
               popupOptions = ppo) %>%
-              # highlightOptions = highlightOptions(bringToFront = TRUE, 
-              #                                     fillOpacity = 0.7)) %>%
+  
+  # Add station markers
   addMarkers(data = filter(stations, metric_short == "24h"), group = "24-hour",
              icon = markers_24h, label = ~site, 
-             popup = ~popup, #options = markerOptions(riseOnHover = TRUE),
+             popup = ~popup, 
              # Stick to marker, not mouse
              labelOptions = labelOptions(sticky = FALSE, 
                                          offset = c(0, -icon_size/2))) %>%
-  # Custom legends to override order
-  addLegend("bottomleft", group = "24-hour",
-            colors = rev(station_24h_colours),
-            className = "info legend solid",
-            labels = rev(names(station_24h_colours)),
-            opacity = 1,
-            title = htmltools::HTML("<h3>PM<sub>2.5</sub> Monitoring Stations</h3><h4>PM<sub>2.5</sub> Metric (24h)</h4>")) %>%
-  addLegend("bottomright", group = "24-hour",
-            colors = pal_az_24h(names(az_24h_colours)), 
-            labels = names(az_24h_colours), 
+  
+  # Legend for polygons 
+  addLegend("bottomright", group = "24h",
+            data = filter(az, metric_short == "24h"),
+            pal = pal_az_24h, values = ~caaqs_legend, 
             opacity = 1, 
-            title = htmltools::HTML("<h3>Air Zones</h3><h4>PM<sub>2.5</sub> Air Quality Standard (24h)</h4>"))
+            title = htmltools::HTML("<h3>Air Zones</h3><h4>PM<sub>2.5</sub> Air Quality Standard (24h)</h4>")) %>%
+   # Custom legends to override order
+  addLegend("bottomleft", group = "24h",
+            colors = filter(labels_mgmt, metric_short == "24h") %>% pull(colour) %>% rev(),
+            className = "info legend solid",
+            labels = filter(labels_mgmt, metric_short == "24h") %>% pull(labels_full) %>% rev(),
+            opacity = 1,
+            title = htmltools::HTML("<h3>PM<sub>2.5</sub> Monitoring Stations</h3><h4>PM<sub>2.5</sub> Metric (24h)</h4>"))
 ```
- 
- 
