@@ -2,3 +2,4 @@ envreportbc_pm25*
 pm25_cache
 *.pdf
 *.log
+*.html
