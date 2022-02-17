@@ -392,9 +392,9 @@
       "RemoteUsername": "steffilazerte",
       "RemoteRepo": "envreportutils",
       "RemoteRef": "master",
-      "RemoteSha": "c6173f23e5696ab6b9d52532750821c73bf1e6fe",
+      "RemoteSha": "43d8a5c11a51226459d75062d5b387a6678d7235",
       "RemoteHost": "api.github.com",
-      "Hash": "bbfe5d086f64cc8debfd0bdc4153a81c",
+      "Hash": "ff0a050ebf83ce702e34e5f297334232",
       "Requirements": [
         "dplyr",
         "extrafont",
@@ -1060,9 +1060,9 @@
       "RemoteUsername": "bcgov",
       "RemoteRepo": "rcaaqs",
       "RemoteRef": "steffi-new-thresholds",
-      "RemoteSha": "cdc095099daa308fa24e550ab5261b5c122e711c",
+      "RemoteSha": "1e90fc481de45bf8c853ad2e0c63b439f80784c0",
       "RemoteHost": "api.github.com",
-      "Hash": "70bc0e2bd73f298d995f81dfd94d7fe8",
+      "Hash": "02b322a2d5b5ab721a3df6f8b010479e",
       "Requirements": [
         "dplyr",
         "ggplot2",
@@ -1299,10 +1299,10 @@
     },
     "terra": {
       "Package": "terra",
-      "Version": "1.5-17",
+      "Version": "1.5-21",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "6c9f036bad848c41d12be5071b72fa53",
+      "Hash": "a713f0d9f9a2b68af112a991adbfe5d5",
       "Requirements": [
         "Rcpp"
       ]
@@ -1506,10 +1506,10 @@
     },
     "yaml": {
       "Package": "yaml",
-      "Version": "2.2.2",
+      "Version": "2.3.4",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "4597f73aad7d32c2913ec33a345f900b",
+      "Hash": "84c6e30ea1adddaebd4b33d6c5cb5e65",
       "Requirements": []
     }
   }
