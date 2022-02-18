@@ -93,8 +93,9 @@ az_ambient <- pm25_results %>%
   select(airzone, metric, everything())
 
 az_mgmt <- az_ambient %>% 
-  group_by(airzone, metric) %>%    # Groupby airzone AND metric? (orig no metric)
-  slice(which.max(mgmt_level)) %>% 
+  group_by(airzone) %>%   
+  # Get which ever metric is worst (one per airzone)
+  slice_max(mgmt_level, with_ties = FALSE) %>% 
   mutate(caaqs_year = .env$rep_year) %>% 
   ungroup() %>%
   select(caaqs_year, airzone, mgmt_level, rep_metric = metric, 
