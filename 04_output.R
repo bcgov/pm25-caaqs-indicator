@@ -89,7 +89,7 @@ print_plots[["achievement_map_annual"]] <- g
 # Individual Station Plots ------------------------------------------------
 
 # - Using management data because contains differences between the non-tfee data
-#   (ann_98_percentiles) and tfee-adjusted data (ann_98_percentiles_mgmt)
+#   and tfee-adjusted data
 
 ## @knitr stn_plots
 sites <- unique(pm25_results$site)
