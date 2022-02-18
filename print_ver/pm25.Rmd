@@ -4,7 +4,7 @@ header-includes:
   - \usepackage[utf8]{inputenc}
   - \usepackage{siunitx}
   - \sisetup{detect-all,per-mode=symbol}
-output: envreportutils.internal::print_ver
+output: pdf_document
 params:
   year_range: "2018-2020"
 ---
@@ -35,23 +35,18 @@ knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE,
 library("readr")
 library("dplyr")
 library("tidyr")
-library("sf")
 library("here")
-
-library("extrafont")
+library("purrr")
 library("ggplot2")
-library("grid")
 
 library("rcaaqs")
-library("bcmaps")
 library("envreportutils")
 
 renv::restore()
-knitr::read_chunk(here("04_output.R"))
 
 knitr_latex_char <- function(x) {
   y <- gsub("\\\\", "\\\\textbackslash{}", x) # backslash has to be first!
-  y <- gsub("([#$%&_])", "\\\\\\1", y) # Doesdn't deal with { or } because of function{}
+  y <- gsub("([#$%&_])", "\\\\\\1", y) # Doesn't deal with { or } because of function{}
   y <- gsub("\\^", "\\\\textasciicircum{}", y)
   y <- gsub("~", "\\\\textasciitilde{}", y)
   return(y)
@@ -59,15 +54,36 @@ knitr_latex_char <- function(x) {
 
 year_range <- params$year_range
 
+tfee_sites <- read_rds(here("data/datasets/print_tfee_sites.rds"))
+plots <- read_rds(here("data/datasets/print_plots.rds"))
+stn_plots <- read_rds(here("data/datasets/print_stn_plots.rds"))
+station_summary <- read_rds(here("data/datasets/print_station_summary.rds"))
+pm_data <- read_rds(here("data/datasets/pm25_results.rds"))
+
 pm_lvls <- achievement_levels %>%
   filter(parameter %in% c("pm2.5_annual", "pm2.5_24h"), lower_breaks != 0) %>%
   pull(lower_breaks, parameter)
-```
 
-```{r pre}
-# run the @knitr pre chunk in ../04_output.R
-```
 
+# For descriptions....
+
+# Which Achieved or Not
+read_rds(here("data/datasets/az_ambient.rds")) %>%
+  select(airzone, metric, caaqs_ambient) %>%
+  arrange(metric, caaqs_ambient)
+
+# What management levels, and how affected by TFEEs?
+read_rds(here("data/datasets/az_ambient.rds")) %>%
+  group_by(airzone) %>%
+  slice_max(mgmt_level, with_ties = FALSE) %>%
+  # Get the management levels if there had been no TFEEs...
+  mutate(mgmt_level_no_tfee = map2(metric_value_ambient, metric, 
+                                   ~rcaaqs:::cut_management(.x, .y))) %>%
+  unnest(mgmt_level_no_tfee) %>%
+  group_by(airzone) %>%
+  summarize(mgmt_level = max(mgmt_level), 
+            mgmt_level_no_tfee = max(mgmt_level_no_tfee))
+```
 
 British Columbia operates a network of air monitoring stations that
 measure fine particulate matter and other air pollutants. This indicator
@@ -135,21 +151,21 @@ Environment](http://www.ccme.ca).
     for PM~2.5~---an annual standard and a
     24-hour standard (see sidebar). The annual standard was met at 
     `r station_summary$n_achieved[station_summary$metric == "pm2.5_annual"]` of the 
-    `r station_summary$n[station_summary$metric == "pm2.5_annual"]` stations (
-    `r station_summary$percent_achieved[station_summary$metric == "pm2.5_annual"]`%) 
+    `r station_summary$n[station_summary$metric == "pm2.5_annual"]` stations 
+    (`r station_summary$percent_achieved[station_summary$metric == "pm2.5_annual"]`%) 
     for which valid data was obtained, while the 24-hour standard was met at 
     `r station_summary$n_achieved[station_summary$metric == "pm2.5_24h"]` of the 
-    `r station_summary$n[station_summary$metric == "pm2.5_24h"]` stations (
-    `r station_summary$percent_achieved[station_summary$metric == "pm2.5_24h"]`%) 
+    `r station_summary$n[station_summary$metric == "pm2.5_24h"]` stations 
+    (`r station_summary$percent_achieved[station_summary$metric == "pm2.5_24h"]`%) 
     with sufficient data for analysis.
--   ~~**Fine particulate matter levels met both of the Canadian Ambient
-    Air Quality Standards in two of B.C.'s seven air zones.** The Coastal, 
-    Northeast, Lower Fraser Valley, and Georgia Strait air zones met the
-    PM~2.5~ annual standard, while the Central Interior and
-    Southern Interior air zones exceeded it. The Coastal and Northeast 
-    air zones met the PM~2.5~ 24-hour standard, while the 
-    Central Interior, Southern Interior, Lower Fraser Valley, and Georgia
-    Strait air zones exceeded it.~~
+-   **Fine particulate matter levels met both of the Canadian Ambient
+    Air Quality Standards in one of B.C.'s seven air zones.** The Coastal, 
+    Northeast, and Lower Fraser Valley, air zones met the
+    PM~2.5~ annual standard, while the Central Interior, Georgia Strait, and
+    Southern Interior air zones exceeded it. The Coastal air zone met the 
+    PM~2.5~ 24-hour standard, while the Northeast, Central Interior, 
+    Southern Interior, Lower Fraser Valley, and Georgia
+    Strait air zones exceeded it.
     Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -168,7 +184,7 @@ sufficient data was available for the `r year_range` reporting period.
 # Status of 24-hour PM~2.5~ Levels in B.C. Air Zones (`r year_range`)
 
 ```{r achievement_map_24h, fig.height=8}
-# run the @knitr achievement_map_24h chunk in ../04_output.R
+plots[["achievement_map_24h"]]
 ```
 
 
@@ -177,7 +193,7 @@ sufficient data was available for the `r year_range` reporting period.
 # Status of Annual PM~2.5~ Levels in B.C. Air Zones (`r year_range`)
 
 ```{r achievement_map_annual, fig.height=8}
-# run the @knitr achievement_map_annual chunk in ../04_output.R
+plots[["achievement_map_annual"]]
 ```
 
 \newpage
@@ -185,7 +201,7 @@ sufficient data was available for the `r year_range` reporting period.
 # PM~2.5~ Metrics for Air Monitoring Stations within B.C. Air Zones (`r year_range`)
 
 ```{r pm_ambient_summary_plot, fig.height=9}
-# run the @knitr pm_ambient_summary_plot chunk in ../04_output.R
+plots[["pm_ambient_summary_plot"]]
 ```
 
 \hyperdef{}{metric-info}{}
@@ -236,10 +252,11 @@ pollutants below the Canadian Ambient Air Quality Standards.
     rigorous as fine particulate matter levels approach the standard.
     Actions for each management level are detailed in the [Guidance Document on Air Zone Management (2019)
     (PDF)](https://ccme.ca/en/res/guidancedocumentonairzonemanagement_secured.pdf).
--   The Central Interior and Georgia Strait air zones were assigned to a
-    red management level, the Southern Interior and Lower Fraser Valley to an orange management
-    level, and the Coastal and Northeast air zones
-    were assigned to a yellow management level. There are currently no 
+-   The Southern Interior air zone was assigned to a red management level, 
+    the Central Interior, Georgia Strait, and Lower Fraser Valley to an 
+    orange management level, and the 
+    Coastal and Northeast air zones were assigned to a yellow management level. 
+    There are currently no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
     
@@ -248,7 +265,7 @@ pollutants below the Canadian Ambient Air Quality Standards.
 # Air Quality Management Levels in B.C. Air Zones   
 
 ```{r pm_mgmt_map, fig.height=9}
-# run the @knitr pm_mgmt_map chunk in ../04_output.R
+plots[["pm_mgmt_map"]]
 ```
 
 \newpage
@@ -256,7 +273,7 @@ pollutants below the Canadian Ambient Air Quality Standards.
 # Station-Level Air Quality Management Levels Within Air Zones
 
 ```{r pm_mgmt_chart, fig.height=8}
-# run the @knitr pm_mgmt_chart chunk in ../04_output.R
+plots[["pm_mgmt_chart"]]
 ```
 
 #### More about the Air Quality Management System management levels:
@@ -270,17 +287,17 @@ pollutants below the Canadian Ambient Air Quality Standards.
     external influences. These arrangements aim to ensure that
     jurisdictions are responsible for managing only the emissions
     sources they can control.
--   ~~Wildfires are generally the largest contributor to transboundary
+-   Wildfires are generally the largest contributor to transboundary
     flows and exceptional events in B.C. Over the `r year_range` reporting
-    period, `r #no.stations.with.exclusion` stations had one or more days during the wildfire season
+    period, `r length(tfee_sites)` stations had one or more days during the wildfire season
     (May-September) where the daily fine particulate matter
     concentration was determined to be influenced by smoke from
-    wildfires and exceeded the 24-hour standard of \SI{28}{\micro\gram\per\metre\cubed}. The
-    majority of wildfire influences occurred in 2017 and 2018. Those daily
+    wildfires and exceeded the 24-hour standard of 
+    \SI{`r pm_lvls[["pm2.5_24h"]]`}{\micro\gram\per\metre\cubed}. The
+    majority of wildfire influences occurred in 2018 and 2020. Those daily
     concentrations were removed from the calculations of management
-    levels, resulting in a change from red to orange for the Southern
-    Interior management level and Lower Fraser Valley management 
-    level for fine particulate matter.~~
+    levels, resulting in a change from red to orange for the Central Interior
+    and Georgia Strait air zones; from red to yellow for the Northeast air zone.
 
 ### Methods
 
@@ -368,8 +385,6 @@ set_label_size <- function(plot, size) {
   }
   plot
 }
-
-pm_data <- pm25_results
 
 for (az in unique(pm_data$airzone)) {
   sites <- unique(pm_data$site[pm_data$airzone == az])
