@@ -21,6 +21,8 @@
 
 renv::restore()   # - When updating from GitHub etc. restore to packages in lockfile
 
+library("magrittr")
+
 # Setup ---------------------------------
 dir.create("data/raw", showWarnings = FALSE, recursive = TRUE)
 dir.create("data/datasets", showWarnings = FALSE, recursive = TRUE)
