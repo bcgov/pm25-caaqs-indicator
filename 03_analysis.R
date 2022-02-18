@@ -62,6 +62,27 @@ pm25_results <- bind_rows(get_caaqs(pm25_24h_mgmt),
   # Clean up
   select(airzone, site, region, lat, lon, everything(), -n)
 
+# Stations with TFEEs -----------------------------------------------------
+# Almost certainly the same as unique(tfee$site), 
+# but just in case check against data...
+
+# Get breaks
+pm25_24h_lvl <- achievement_levels %>%
+  filter(parameter == "pm2.5_24h", lower_breaks > 0) %>%
+  pull(lower_breaks) 
+
+tfee_sites <- get_daily(pm25_24h_caaqs) %>% 
+  filter(avg_24h >= pm25_24h_lvl) %>% 
+  semi_join(tfee, by = c("site", "date")) %>%
+  pull(site) %>%
+  unique()
+
+# Majority occurred in... 2018 and 2020 (considering 2018-2020)
+tfee %>% 
+  pull(date) %>% 
+  year() %>% 
+  table()
+
 
 # Airzone results ---------------------------------------------------------
 # Get airzone results by metric
@@ -85,6 +106,7 @@ write_rds(az_ambient, "data/datasets/az_ambient.rds")
 write_rds(az_mgmt, "data/datasets/az_mgmt.rds")
 write_rds(pm25_24h_mgmt, "data/datasets/pm25_24h_mgmt.rds")
 write_rds(pm25_annual_mgmt, "data/datasets/pm25_annual_mgmt.rds")
+write_rds(tfee_sites, "data/datasets/print_tfee_sites.rds")
 
 write_csv(pm25_results, "out/pm2.5_caaqs_combined_results.csv", na = "")
 write_csv(az_ambient, "out/pm2.5_airzone_results.csv" , na = "")
