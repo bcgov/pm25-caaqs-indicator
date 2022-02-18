@@ -17,10 +17,7 @@ source("00_setup.R")
 library("readr")
 library("dplyr")
 library("tidyr")
-library("here")
-
 library("ggplot2")
-library("patchwork")
 
 library("sf")
 library("bcmaps")
@@ -29,12 +26,12 @@ library("rcaaqs")
 library("envreportutils")
 
 # Load Data --------------------------------------------------
-pm25_results <- read_rds(here("data/datasets/pm25_results.rds"))
-pm25_24h_mgmt <- read_rds(here("data/datasets/pm25_24h_mgmt.rds"))
-pm25_annual_mgmt <- read_rds(here("data/datasets/pm25_annual_mgmt.rds"))
+pm25_results <- read_rds("data/datasets/pm25_results.rds")
+pm25_24h_mgmt <- read_rds("data/datasets/pm25_24h_mgmt.rds")
+pm25_annual_mgmt <- read_rds("data/datasets/pm25_annual_mgmt.rds")
 
-az_ambient <- read_rds(here("data/datasets/az_ambient.rds"))
-az_mgmt <- read_rds(here("data/datasets/az_mgmt.rds"))
+az_ambient <- read_rds("data/datasets/az_ambient.rds")
+az_mgmt <- read_rds("data/datasets/az_mgmt.rds")
 
 # Let's save plots for the print version
 print_plots <- list()
@@ -104,10 +101,10 @@ for(s in sites) {
   g1 <- plot_caaqs(pm25_24h_mgmt, id = s, id_col = "site", year_min = 2013)
   g2 <- plot_caaqs(pm25_annual_mgmt, id = s, id_col = "site", year_min = 2013)
   
-  ggsave(here(paste0("leaflet_map/station_plots/", s, "_24h.svg")), g1, 
+  ggsave(paste0("leaflet_map/station_plots/", s, "_24h.svg"), g1, 
          width = 778, height = 254, dpi = 72, units = "px", bg = "white")
   
-  ggsave(here(paste0("leaflet_map/station_plots/", s, "_annual.svg")), g2, 
+  ggsave(paste0("leaflet_map/station_plots/", s, "_annual.svg"), g2, 
          width = 778, height = 254, dpi = 72, units = "px", bg = "white")
   
   # Save for print version
@@ -147,7 +144,7 @@ g <- ggplot(az_mgmt_sf) +
 print_plots[["pm_mgmt_map"]] <- g
 
 # SVG of airzone CAAQS mgmt level map
-ggsave(here("out/pm_caaqs_mgmt_map.svg"), plot = g, dpi = 72,
+ggsave("out/pm_caaqs_mgmt_map.svg", plot = g, dpi = 72,
        width = 500, height = 450, units = "px", bg = "white")
 
 ## Bar Chart --------------
@@ -179,7 +176,7 @@ g <- ggplot(data = pm25_results, aes(x = metric, fill = mgmt_level)) +
 print_plots[["pm_mgmt_chart"]] <- g
 
 # SVG of airzone/station CAAQS mgmt achievement chart
-ggsave(here("out/pm_caaqs_mgmt_chart.svg"), dpi = 72,
+ggsave("out/pm_caaqs_mgmt_chart.svg", dpi = 72,
        width = 500, height = 500, units = "px", bg = "white")
 
 # Output data ------------------------------------------------
@@ -190,8 +187,8 @@ write_rds(station_summary, "data/datasets/print_station_summary.rds")
 
 filter(stations_sf) %>%
   st_transform(4326) %>% 
-  st_write(here("out/pm_caaqs.geojson"), delete_dsn = TRUE)
+  st_write("out/pm_caaqs.geojson", delete_dsn = TRUE)
 
 filter(az_ambient_sf) %>%
   st_transform(4326) %>% 
-  st_write(here("out/pm_airzone.geojson"), delete_dsn = TRUE)
+  st_write("out/pm_airzone.geojson", delete_dsn = TRUE)
