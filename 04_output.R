@@ -29,7 +29,6 @@ library("rcaaqs")
 library("envreportutils")
 
 # Load Data --------------------------------------------------
-## @knitr pre
 pm25_results <- read_rds(here("data/datasets/pm25_results.rds"))
 pm25_24h_mgmt <- read_rds(here("data/datasets/pm25_24h_mgmt.rds"))
 pm25_annual_mgmt <- read_rds(here("data/datasets/pm25_annual_mgmt.rds"))
@@ -37,6 +36,8 @@ pm25_annual_mgmt <- read_rds(here("data/datasets/pm25_annual_mgmt.rds"))
 az_ambient <- read_rds(here("data/datasets/az_ambient.rds"))
 az_mgmt <- read_rds(here("data/datasets/az_mgmt.rds"))
 
+# Let's save plots for the print version
+print_plots <- list()
 
 # Spatial data summaries --------------------------------------------
 az <- airzones() %>%
@@ -67,26 +68,26 @@ station_summary <- stations_sf %>%
             percent_achieved = round(n_achieved / n * 100))
 
 # Maps ----------------------------------------------------------------------
-## @knitr pm_ambient_summary_plot
-summary_plot(pm25_results, 
-             metric_val = "metric_value_ambient", 
-             airzone = "airzone", station = "site", 
-             parameter = "metric", pt_size = 2, 
-             az_labeller = label_wrap_gen(10)) + 
+g <- summary_plot(pm25_results, 
+                  metric_val = "metric_value_ambient", 
+                  airzone = "airzone", station = "site", 
+                  parameter = "metric", pt_size = 2, 
+                  az_labeller = label_wrap_gen(10)) + 
   theme(strip.text.y = element_text(angle = 0))
+print_plots[["pm_ambient_summary_plot"]]<- g
+
+g <- achievement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_24h"),
+                     stn_data = filter(stations_sf, metric == "pm2.5_24h"),
+                     az_labs = "Airzones:\nPM2.5 24h Air Quality Standard",
+                     stn_labs = "Monitoring Stations:\nPM2.5 24h Metric (ug/m3)")
+print_plots[["achievement_map_24h"]] <- g
 
 
-## @knitr achievement_map_24h
-achivement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_24h"),
-               stn_data = filter(stations_sf, metric == "pm2.5_24h"),
-               az_labs = "Airzones:\nPM2.5 24h Air Quality Standard",
-               stn_labs = "Monitoring Stations:\nPM2.5 24h Metric (ug/m3)")
-
-## @knitr achievement_map_annual
-achivement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_annual"),
-               stn_data = filter(stations_sf, metric == "pm2.5_annual"),
-               az_labs = "Airzones:\nPM2.5 Annual Air Quality Standard",
-               stn_labs = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)")
+g <- achievement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_annual"),
+                     stn_data = filter(stations_sf, metric == "pm2.5_annual"),
+                     az_labs = "Airzones:\nPM2.5 Annual Air Quality Standard",
+                     stn_labs = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)")
+print_plots[["achievement_map_annual"]] <- g
 
 # Individual Station Plots ------------------------------------------------
 
@@ -115,8 +116,7 @@ for(s in sites) {
 }
 # Management figures --------------------------------------------
 
-## Management Air Zone Map
-## @knitr pm_mgmt_map
+## Air Zone Map --------------
 
 colrs <- get_colours("management", drop_na = FALSE)
 
@@ -127,7 +127,7 @@ labels_df <-  data.frame(
                    "Central\nInterior", "Southern\nInterior", 
                    "Georgia Strait", "Lower Fraser Valley"))
 
-ggplot(az_mgmt_sf) +   
+g <- ggplot(az_mgmt_sf) +   
   geom_sf(aes(fill = mgmt_level), colour = "white") + 
   coord_sf(datum = NA) + 
   theme_minimal() + 
@@ -144,14 +144,15 @@ ggplot(az_mgmt_sf) +
   geom_text(data = labels_df, aes(x = x, y = y, label = airzone_name), 
             colour = "black", size = 6)
 
+print_plots[["pm_mgmt_map"]] <- g
+
 # SVG of airzone CAAQS mgmt level map
-ggsave(here("out/pm_caaqs_mgmt_map.svg"), dpi = 72,
+ggsave(here("out/pm_caaqs_mgmt_map.svg"), plot = g, dpi = 72,
        width = 500, height = 450, units = "px", bg = "white")
 
-## Management Bar Chart
-## @knitr pm_mgmt_chart
+## Bar Chart --------------
 
-ggplot(data = pm25_results, aes(x = metric, fill = mgmt_level)) + 
+g <- ggplot(data = pm25_results, aes(x = metric, fill = mgmt_level)) + 
   geom_bar(alpha = 1, width = 0.8) +
   facet_wrap(~ airzone, ncol = 1) +
   xlab("") + ylab("Number of Reporting Stations") +
@@ -175,13 +176,17 @@ ggplot(data = pm25_results, aes(x = metric, fill = mgmt_level)) +
         plot.margin = unit(c(10,0,1,0),"mm"),
         strip.text = element_text(size = 13))
 
+print_plots[["pm_mgmt_chart"]] <- g
+
 # SVG of airzone/station CAAQS mgmt achievement chart
 ggsave(here("out/pm_caaqs_mgmt_chart.svg"), dpi = 72,
        width = 500, height = 500, units = "px", bg = "white")
 
-## @knitr end
-
 # Output data ------------------------------------------------
+
+write_rds(print_plots, "data/datasets/print_plots.rds")
+write_rds(stn_plots, "data/datasets/print_stn_plots.rds")
+write_rds(station_summary, "data/datasets/print_station_summary.rds")
 
 filter(stations_sf) %>%
   st_transform(4326) %>% 
