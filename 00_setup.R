@@ -36,7 +36,7 @@ rep_year <- 2020
 # Functions ----------------------------
 
 # Achievement maps - used in 04_output.R
-achivement_map <- function(az_data, stn_data, az_labs, stn_labs) {
+achievement_map <- function(az_data, stn_data, az_labs, stn_labs) {
   ggplot() + 
     geom_sf(data = az_data, aes(fill = caaqs_ambient), colour = "white") + 
     geom_sf(data = stn_data, aes(colour = metric_value_ambient), size = 3) + 
