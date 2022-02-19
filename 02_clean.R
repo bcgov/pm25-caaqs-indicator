@@ -230,7 +230,8 @@ t <- pm25_clean %>%
                                                      min(.$date_time), 
                                                      units = "hours")))) %>%
   filter(n_expect != n - 1, 
-         n_distinct != n) 
+         n_distinct != n) %>%
+  verify(nrow(.) == 0)
 
 # None!
 
