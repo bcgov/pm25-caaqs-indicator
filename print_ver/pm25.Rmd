@@ -55,7 +55,7 @@ tfee <- read_rds(here("data/datasets/print_tfee.rds"))
 plots <- read_rds(here("data/datasets/print_plots.rds"))
 stn_plots <- read_rds(here("data/datasets/print_stn_plots.rds"))
 print_summary <- read_rds(here("data/datasets/print_summary.rds"))
-pm_data <- read_rds(here("data/datasets/pm25_results.rds")) # From 03_analysis.R
+pm25_results <- read_rds(here("data/datasets/pm25_results.rds")) # From 03_analysis.R
 
 # Specify cutoffs from rcaaqs
 pm_lvls <- achievement_levels %>%
@@ -374,74 +374,50 @@ Environmental Reporting BC. 2021. Status of Fine Particulate Matter in B.C. (`r 
 
 # Appendix: Detailed fine particulate matter Candadian Ambient Air Quality Standard results for each monitoring station within air zones in B.C.
 
-```{r message=FALSE, results='asis', fig.width = 9, fig.asp = 0.4}
+\vspace{1cm}
 
-## Function to identify the layers in the plot that are labels ("annotations")
-label_layers <- function(plot) {
-  layer_is_label <- vapply(plot$layers, function(x) {
-    "label" %in% names(x$aes_params)}
-    , FUN.VALUE = logical(1))
-  which(layer_is_label)
-}
 
-## Function to set the text size of labels in the plot
-set_label_size <- function(plot, size) {
-  layers <- label_layers(plot)
+```{r appendix, results='asis', fig.width = 9, fig.asp = 0.4}
+
+iwalk(stn_plots[1:2],  ~ {
   
-  for (l in layers) {
-    plot$layers[[l]]$aes_params$size <- size
-  }
-  plot
-}
-
-for (az in unique(pm_data$airzone)) {
-  sites <- unique(pm_data$site[pm_data$airzone == az])
-  cat("\\subsection{", az, " Air Zone}", sep = "")
+  stn <- filter(pm25_results, site == .y) 
+  stn_24h <- filter(stn, metric == "pm2.5_24h")
+  stn_annual <- filter(stn, metric == "pm2.5_annual")
   
-  for (s in sites) {
-    
-    caaqs_data_24h <- filter(pm_data, site == .env$s, metric == "pm2.5_24h")
-    caaqs_data_annual <- filter(pm_data, site == .env$s, metric == "pm2.5_annual")
-    
-    ## Subset daily, caaqs, and annual data
-    daily_plot <- stn_plots[[s]][["24h"]]
-    annual_plot <- stn_plots[[s]][["annual"]]
-    
-    cat("\\subsubsection*{\\underline{", knitr_latex_char(s), " monitoring station}}", sep = "")
-    
-    if (nrow(caaqs_data_24h)) {
-      
-      cat("\\textbf{PM$_{2.5}$ 24-hour Air Quality Standard:} ",
-          as.character(caaqs_data_24h$caaqs_ambient), " \\newline ")
-      cat("\\textbf{PM$_{2.5}$ 24-hour Metric:} \\SI{", caaqs_data_24h$metric_value_ambient, 
-          "}{\\micro\\gram\\per\\metre\\cubed} (", caaqs_data_24h$n_years,
-          " year average) \\newline ", "\\newline ", sep = "")
-      plot(set_label_size(daily_plot, 3))
-      
-    } else {
-      cat("\\textbf{PM$_{2.5}$ 24-hour Air Quality Standard:} Insufficient Data")
-    }
-    
-    cat("\\newline ")
-    cat("\\newline ")
-    cat("\\newline ")
-    
-    if (nrow(caaqs_data_annual)) {
-      
-      cat("\\textbf{PM$_{2.5}$ Annual Air Quality Standard:} ",
-          as.character(caaqs_data_annual$caaqs_ambient), " \\newline ")
-      cat("\\textbf{PM$_{2.5}$ Annual Metric:} \\SI{", caaqs_data_annual$metric_value_ambient,
-          "}{\\micro\\gram\\per\\metre\\cubed} (", caaqs_data_annual$n_years,
-          " year average) \\newline ",  "\\newline ", sep = "")
-      plot(set_label_size(annual_plot, 3))
-      
-    } else {
-      cat("\\textbf{PM$_{2.5}$ Annual Air Quality Standard:} Insufficient Data")
-    }
-    
-    cat("\\newpage ")
-  }
-}
+  # Airzone & Site block
+  cat("\\hrule")
+  cat("\\textbf{Air Zone:} ", stn$airzone[1], "\\newline")
+  cat("\\textbf{Monitoring Station:} ", knitr_latex_char(stn$site[1]), "\\newline")
+  cat("\\vspace{-0.2cm} \n \n \\hrule \n \n \\vspace{0.5cm}")
+  
+  # 24h - CAAQS
+  cat("\\textbf{PM$_{2.5}$ 24-hour Air Quality Standard:} ",
+      as.character(stn_24h$caaqs_ambient), "\\newline")
+  
+  # 24h - Value
+  cat("\\textbf{PM$_{2.5}$ 24-hour Metric:} ",
+      "\\SI{", stn_24h$metric_value_ambient, "}{\\micro\\gram\\per\\metre\\cubed} (", 
+      stn_24h$n_years, " year average) \\newline ", "\\newline ", sep = "")
+  
+  # 24h - Plot
+  plot(.x[["24h"]])
+  cat("\n \n \\vspace{0.75cm} \n ") # Need line breaks or \vspace applies to next line
+  
+  
+  # annual - CAAQS
+  cat("\\textbf{PM$_{2.5}$ Annual Air Quality Standard:} ",
+      as.character(stn_annual$caaqs_ambient), " \\newline ")
+  
+  # annual - Value
+  cat("\\textbf{PM$_{2.5}$ Annual Metric:} ",
+      "\\SI{", stn_annual$metric_value_ambient, "}{\\micro\\gram\\per\\metre\\cubed} (", 
+      stn_annual$n_years, " year average) \\newline ", "\\newline ", sep = "")
+  
+  # annual - Plot
+  plot(.x[["annual"]])
+  
+  cat("\\newpage")
+})
 
 ```
-

@@ -91,7 +91,7 @@ for(s in sites) {
 }
 
 
-# Maps ----------------------------------------------------------------------
+# Summary plot -------------------------------------------------------------
 # - For print version
 
 g <- summary_plot(pm25_results, 
@@ -101,6 +101,9 @@ g <- summary_plot(pm25_results,
                   az_labeller = label_wrap_gen(10)) + 
   theme(strip.text.y = element_text(angle = 0))
 print_plots[["pm_ambient_summary_plot"]]<- g
+
+# Maps -------------------------------------------------------------
+# - For print version
 
 g <- achievement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_24h"),
                      stn_data = filter(stations_sf, metric == "pm2.5_24h"),
