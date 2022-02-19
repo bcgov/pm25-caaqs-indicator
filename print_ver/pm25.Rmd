@@ -5,12 +5,7 @@ header-includes:
   - \usepackage{siunitx}
   - \sisetup{detect-all,per-mode=symbol}
 output: pdf_document
-params:
-  year_range: "2018-2020"
----
-
----
-title: "Status of Fine Particulate Matter in B.C. (`r params$year_range`)"
+title: "Status of Fine Particulate Matter in B.C. (2018-2020)"
 ---
 
 <!--
@@ -29,6 +24,9 @@ specific language governing permissions and limitations under the License.
 -->
 
 ```{r setup, include = FALSE}
+
+renv::restore()
+
 knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE, 
                       warning = FALSE, error = FALSE, fig.width = 7)
 
@@ -42,8 +40,6 @@ library("ggplot2")
 library("rcaaqs")
 library("envreportutils")
 
-renv::restore()
-
 knitr_latex_char <- function(x) {
   y <- gsub("\\\\", "\\\\textbackslash{}", x) # backslash has to be first!
   y <- gsub("([#$%&_])", "\\\\\\1", y) # Doesn't deal with { or } because of function{}
@@ -52,25 +48,29 @@ knitr_latex_char <- function(x) {
   return(y)
 }
 
-year_range <- params$year_range
+year_range <- "2018-2020"
 
-tfee_sites <- read_rds(here("data/datasets/print_tfee_sites.rds"))
+# Data from 04_outputs.R
+tfee <- read_rds(here("data/datasets/print_tfee.rds"))
 plots <- read_rds(here("data/datasets/print_plots.rds"))
 stn_plots <- read_rds(here("data/datasets/print_stn_plots.rds"))
-station_summary <- read_rds(here("data/datasets/print_station_summary.rds"))
-pm_data <- read_rds(here("data/datasets/pm25_results.rds"))
+print_summary <- read_rds(here("data/datasets/print_summary.rds"))
+pm_data <- read_rds(here("data/datasets/pm25_results.rds")) # From 03_analysis.R
 
+# Specify cutoffs from rcaaqs
 pm_lvls <- achievement_levels %>%
   filter(parameter %in% c("pm2.5_annual", "pm2.5_24h"), lower_breaks != 0) %>%
   pull(lower_breaks, parameter)
 
 
-# For descriptions....
+
+# Summaries to consult when writing descriptions....
 
 # Which Achieved or Not
 read_rds(here("data/datasets/az_ambient.rds")) %>%
   select(airzone, metric, caaqs_ambient) %>%
-  arrange(metric, caaqs_ambient)
+  arrange(metric, caaqs_ambient) %>%
+  pivot_wider(names_from = "metric", values_from = "caaqs_ambient")
 
 # What management levels, and how affected by TFEEs?
 read_rds(here("data/datasets/az_ambient.rds")) %>%
@@ -83,6 +83,9 @@ read_rds(here("data/datasets/az_ambient.rds")) %>%
   group_by(airzone) %>%
   summarize(mgmt_level = max(mgmt_level), 
             mgmt_level_no_tfee = max(mgmt_level_no_tfee))
+
+# tfee details
+tfee
 ```
 
 British Columbia operates a network of air monitoring stations that
@@ -146,17 +149,17 @@ Environment](http://www.ccme.ca).
     short-term (24-hour) and longer-term (a year or more) exposure to
     fine particulate matter can have negative effects on human health.
 -   **Fine particulate matter levels met the Canadian Ambient Air
-    Quality Standards at `r min(station_summary$percent_achieved)`
+    Quality Standards at `r min(print_summary$percent_achieved)`
     percent of assessed monitoring stations in B.C.** There are two standards 
     for PM~2.5~---an annual standard and a
     24-hour standard (see sidebar). The annual standard was met at 
-    `r station_summary$n_achieved[station_summary$metric == "pm2.5_annual"]` of the 
-    `r station_summary$n[station_summary$metric == "pm2.5_annual"]` stations 
-    (`r station_summary$percent_achieved[station_summary$metric == "pm2.5_annual"]`%) 
+    `r print_summary$n_achieved[print_summary$metric == "pm2.5_annual"]` of the 
+    `r print_summary$n[print_summary$metric == "pm2.5_annual"]` stations 
+    (`r print_summary$percent_achieved[print_summary$metric == "pm2.5_annual"]`%) 
     for which valid data was obtained, while the 24-hour standard was met at 
-    `r station_summary$n_achieved[station_summary$metric == "pm2.5_24h"]` of the 
-    `r station_summary$n[station_summary$metric == "pm2.5_24h"]` stations 
-    (`r station_summary$percent_achieved[station_summary$metric == "pm2.5_24h"]`%) 
+    `r print_summary$n_achieved[print_summary$metric == "pm2.5_24h"]` of the 
+    `r print_summary$n[print_summary$metric == "pm2.5_24h"]` stations 
+    (`r print_summary$percent_achieved[print_summary$metric == "pm2.5_24h"]`%) 
     with sufficient data for analysis.
 -   **Fine particulate matter levels met both of the Canadian Ambient
     Air Quality Standards in one of B.C.'s seven air zones.** The Coastal, 
@@ -169,11 +172,15 @@ Environment](http://www.ccme.ca).
     Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
+    <!-- See the summaries calculated in the starting RMD chunk for information 
+     needed to fill in the above bullet point. -->
 -   **Fine particulate matter levels are used to set management levels
     for each air zone.** Four management levels (green, yellow, orange,
     and red) are each associated with a suite of actions that become
     more rigorous as fine particulate matter levels approach the
     Canadian Ambient Air Quality Standards.
+    
+    
 
 The maps and chart below summarise the Canadian Ambient Air Quality Standard 
 achievement status for fine particulate matter in B.C. air zones, as
@@ -260,6 +267,9 @@ pollutants below the Canadian Ambient Air Quality Standards.
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
     
+<!-- See the summaries calculated in the starting RMD chunk for information 
+     needed to fill in the above bullet point. -->
+
 \newpage
     
 # Air Quality Management Levels in B.C. Air Zones   
@@ -289,8 +299,8 @@ plots[["pm_mgmt_chart"]]
     sources they can control.
 -   Wildfires are generally the largest contributor to transboundary
     flows and exceptional events in B.C. Over the `r year_range` reporting
-    period, `r length(tfee_sites)` stations had one or more days during the wildfire season
-    (May-September) where the daily fine particulate matter
+    period, `r tfee$n_sites` stations had one or more days during the wildfire season
+    (May-October) where the daily fine particulate matter
     concentration was determined to be influenced by smoke from
     wildfires and exceeded the 24-hour standard of 
     \SI{`r pm_lvls[["pm2.5_24h"]]`}{\micro\gram\per\metre\cubed}. The
@@ -298,6 +308,9 @@ plots[["pm_mgmt_chart"]]
     concentrations were removed from the calculations of management
     levels, resulting in a change from red to orange for the Central Interior
     and Georgia Strait air zones; from red to yellow for the Northeast air zone.
+
+<!-- See the summaries calculated in the starting RMD chunk for information 
+     needed to fill in the above bullet point. -->
 
 ### Methods
 
@@ -361,12 +374,7 @@ Environmental Reporting BC. 2021. Status of Fine Particulate Matter in B.C. (`r 
 
 # Appendix: Detailed fine particulate matter Candadian Ambient Air Quality Standard results for each monitoring station within air zones in B.C.
 
-```{r stn_plots}
-# run the @knitr stn_plots chunk in ../04_output.R
-```
-
-
-```{r message=FALSE, results='asis', fig.height=3, fig.asp = 0.4}
+```{r message=FALSE, results='asis', fig.width = 9, fig.asp = 0.4}
 
 ## Function to identify the layers in the plot that are labels ("annotations")
 label_layers <- function(plot) {

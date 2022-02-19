@@ -58,13 +58,42 @@ stations_sf <- pm25_results %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   transform_bc_albers()
 
-station_summary <- stations_sf %>%
+# Numbers for print version 
+print_summary <- stations_sf %>%
   group_by(metric) %>%
   summarise(n = n(), 
-            n_achieved = sum(caaqs_ambient == "Achieved"), 
+            n_achieved = sum(caaqs_ambient == "Achieved", na.rm = TRUE), 
             percent_achieved = round(n_achieved / n * 100))
 
+# Individual Station Plots ------------------------------------------------
+# - For print version and leaflet maps
+# - Using management data because contains differences between the non-tfee data
+#   and tfee-adjusted data
+
+sites <- unique(pm25_results$site)
+stn_plots <- list()
+
+for(s in sites) {
+  message("Creating plots for ", s)
+  
+  g1 <- plot_caaqs(pm25_24h_mgmt, id = s, id_col = "site", year_min = 2013)
+  g2 <- plot_caaqs(pm25_annual_mgmt, id = s, id_col = "site", year_min = 2013)
+  
+  ggsave(paste0("leaflet_map/station_plots/", s, "_24h.svg"), g1, 
+         width = 778, height = 254, dpi = 72, units = "px", bg = "white")
+  
+  ggsave(paste0("leaflet_map/station_plots/", s, "_annual.svg"), g2, 
+         width = 778, height = 254, dpi = 72, units = "px", bg = "white")
+  
+  # Save for print version
+  stn_plots[[s]][["24h"]] <- g1
+  stn_plots[[s]][["annual"]] <- g2
+}
+
+
 # Maps ----------------------------------------------------------------------
+# - For print version
+
 g <- summary_plot(pm25_results, 
                   metric_val = "metric_value_ambient", 
                   airzone = "airzone", station = "site", 
@@ -86,32 +115,8 @@ g <- achievement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_annual"),
                      stn_labs = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)")
 print_plots[["achievement_map_annual"]] <- g
 
-# Individual Station Plots ------------------------------------------------
-
-# - Using management data because contains differences between the non-tfee data
-#   and tfee-adjusted data
-
-## @knitr stn_plots
-sites <- unique(pm25_results$site)
-stn_plots <- list()
-
-for(s in sites) {
-  message("Creating plots for ", s)
-  
-  g1 <- plot_caaqs(pm25_24h_mgmt, id = s, id_col = "site", year_min = 2013)
-  g2 <- plot_caaqs(pm25_annual_mgmt, id = s, id_col = "site", year_min = 2013)
-  
-  ggsave(paste0("leaflet_map/station_plots/", s, "_24h.svg"), g1, 
-         width = 778, height = 254, dpi = 72, units = "px", bg = "white")
-  
-  ggsave(paste0("leaflet_map/station_plots/", s, "_annual.svg"), g2, 
-         width = 778, height = 254, dpi = 72, units = "px", bg = "white")
-  
-  # Save for print version
-  stn_plots[[s]][["24h"]] <- g1
-  stn_plots[[s]][["annual"]] <- g2
-}
 # Management figures --------------------------------------------
+# - For print version
 
 ## Air Zone Map --------------
 
@@ -145,7 +150,7 @@ print_plots[["pm_mgmt_map"]] <- g
 
 # SVG of airzone CAAQS mgmt level map
 ggsave("out/pm_caaqs_mgmt_map.svg", plot = g, dpi = 72,
-       width = 500, height = 450, units = "px", bg = "white")
+       width = 500, height = 500, units = "px", bg = "white")
 
 ## Bar Chart --------------
 
@@ -177,14 +182,16 @@ print_plots[["pm_mgmt_chart"]] <- g
 
 # SVG of airzone/station CAAQS mgmt achievement chart
 ggsave("out/pm_caaqs_mgmt_chart.svg", dpi = 72,
-       width = 500, height = 500, units = "px", bg = "white")
+       width = 500, height = 600, units = "px", bg = "white")
 
 # Output data ------------------------------------------------
 
+# For print version
 write_rds(print_plots, "data/datasets/print_plots.rds")
 write_rds(stn_plots, "data/datasets/print_stn_plots.rds")
-write_rds(station_summary, "data/datasets/print_station_summary.rds")
+write_rds(print_summary, "data/datasets/print_summary.rds")
 
+# For leaflet maps
 filter(stations_sf) %>%
   st_transform(4326) %>% 
   st_write("out/pm_caaqs.geojson", delete_dsn = TRUE)
