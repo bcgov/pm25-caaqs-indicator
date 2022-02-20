@@ -15,7 +15,7 @@
 
 # DataBC 
 
-# Create output files for databc, combining with previous years' data
+# Create output files for the BC data catalogue, combining with previous years' data
 
 source("00_setup.R")
 
@@ -42,10 +42,10 @@ setdiff(names(stations_old), names(stations_summary))
 
 bind_rows(stations_old, stations_summary) %>%
   arrange(caaqs_year) %>% 
-  write_csv("out/databc/pm25sitesummary.csv", na = "")
+  write_csv("out/databc/pm25_site_summary.csv", na = "")
 
 
-# fine particulate matter - ambient caaqs by airzone 
+## Ambient CAAQs by airzone 
 
 az_ambient_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
                             resource = '5dd4fcf9-f7c6-49cf-90a0-0a5c9bc00334') %>%
@@ -77,7 +77,7 @@ setdiff(names(az_ambient_old), names(az_ambient))
 
 bind_rows(az_ambient_old, az_ambient) %>%
   arrange(caaqs_year) %>% 
-  write_csv("out/databc/pm25-airzone-caaqs.csv", na = "")
+  write_csv("out/databc/pm25_airzone_ambient_summary.csv", na = "")
 
 
 # air management zone 
@@ -92,5 +92,5 @@ setdiff(names(az_mgmt_old), names(az_mgmt))
 
 bind_rows(az_mgmt_old, az_mgmt) %>%
   arrange(caaqs_year)%>% 
-  write_csv("out/databc/pm25-airzone-management-levels.csv.csv", na = "")
+  write_csv("out/databc/pm25_airzone_management_summary.csv", na = "")
 
