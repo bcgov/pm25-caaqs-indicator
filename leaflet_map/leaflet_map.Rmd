@@ -1,5 +1,5 @@
 ---
-title: Air Quality Maps
+title: "Air Quality Maps - PM 2.5"
 output: 
   html_document:
     css: "assets/caaqs-styles.css"
@@ -144,7 +144,7 @@ az <- st_read(here("./out/pm_airzone.geojson")) %>%
 
 # Start splitting metrics ----------------------
 
-## Create palettes
+# Create palettes
 
 pal_az_annual <- filter(labels_ambient, metric_short == "annual") %>%
   colorFactor(palette = .$colour, levels = .$labels_full)
@@ -217,7 +217,11 @@ m %>%
   # Legend for polygons
   addLegend("bottomright", group = "Annual",
             data = filter(az, metric_short == "annual"),
-            pal = pal_az_annual, values = ~caaqs_legend, 
+            # Ensure we get all levels
+            colors = filter(labels_ambient, metric_short == "annual") %>%
+              pull(colour), 
+            labels = filter(labels_ambient, metric_short == "annual") %>%
+              pull(labels_full),
             opacity = 1, 
             title = htmltools::HTML("<h3>Air Zones</h3><h4>PM<sub>2.5</sub> Air Quality Standard (annual)</h4>")) %>%
   
@@ -252,7 +256,10 @@ m %>%
   # Legend for polygons 
   addLegend("bottomright", group = "24h",
             data = filter(az, metric_short == "24h"),
-            pal = pal_az_24h, values = ~caaqs_legend, 
+            colors = filter(labels_ambient, metric_short == "24h") %>%
+              pull(colour), 
+            labels = filter(labels_ambient, metric_short == "24h") %>%
+              pull(labels_full),
             opacity = 1, 
             title = htmltools::HTML("<h3>Air Zones</h3><h4>PM<sub>2.5</sub> Air Quality Standard (24h)</h4>")) %>%
    # Custom legends to override order
