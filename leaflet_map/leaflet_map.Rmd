@@ -88,7 +88,7 @@ labels_mgmt <- management_levels %>%
 stations <- read_sf(here("out/pm_caaqs.geojson")) %>%
   # Count total stations, then omit those with insufficient data
   add_count(metric, airzone) %>%
-  filter(!is.na(caaqs_ambient)) %>%
+  filter(!is.na(metric_value_ambient)) %>%
   
   # Get management levels
   mutate(caaqs_mgmt = map2_chr(metric_value_ambient, metric,
@@ -139,7 +139,10 @@ az <- st_read(here("./out/pm_airzone.geojson")) %>%
     units = units_html,
     metric_name = paste0("PM<sub>2.5</sub> Metric (", metric_short, ")"),
     standard_name = paste0("PM<sub>2.5</sub> Air Quality Standard (", 
-                           metric_short, ")")))
+                           metric_short, ")")),
+    # Where insufficient data, keep the tool tip but omit the popup
+    popup = if_else(caaqs_ambient == "Insufficient Data", 
+                    list(NA_character_), popup))
 
 
 # Start splitting metrics ----------------------
