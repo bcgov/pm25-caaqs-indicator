@@ -1,9 +1,9 @@
 [![img](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-# Fine Particulate Matter CAAQS Analysis for B.C. (2014-2016)
+# Fine Particulate Matter CAAQS Analysis for B.C. (2018-2020)
 
-A set of R scripts to calculate the Canadian Ambient Air Quality Standards (CAAQS) for fine particulate matter (PM<sub>2.5</sub>) for 2014-2016. These scripts reproduce the 2017 analysis presented on [Environmental Reporting BC](http://www.env.gov.bc.ca/soe/indicators/air/fine-pm.html).
+A set of R scripts to calculate the Canadian Ambient Air Quality Standards (CAAQS) for fine particulate matter (PM<sub>2.5</sub>) for 2018-2020. These scripts reproduce the 2022 analysis presented on [Environmental Reporting BC](http://www.env.gov.bc.ca/soe/indicators/air/fine-pm.html).
 
 This analysis makes use of the [rcaaqs](https://github.com/bcgov/rcaaqs) package, and [air quality monitoring data](http://catalogue.data.gov.bc.ca/dataset/air-quality-monitoring-verified-hourly-data-and-station-data) from the B.C. Ministry of Enviornment.
 

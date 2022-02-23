@@ -1,12 +1,11 @@
 .Rproj.user
 .Rhistory
 .RData
-/tmp
 /out
+/data
 internal.R
 README.html
 .DS_Store
 leaflet_map/leaflet_map.html
 leaflet_map/station_plots
-/data
-/leaflet_map/assets/caaqs-styles.css
+leaflet_map/assets/caaqs-styles.css
