@@ -1,33 +1,29 @@
 [![img](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-# Fine Particulate Matter CAAQS Analysis for B.C. (2018-2020)
+# Fine Particulate Matter CAAQS Analysis for B.C.
 
-A set of R scripts to calculate the Canadian Ambient Air Quality Standards (CAAQS) for fine particulate matter (PM<sub>2.5</sub>) for 2018-2020. These scripts reproduce the 2022 analysis presented on [Environmental Reporting BC](http://www.env.gov.bc.ca/soe/indicators/air/fine-pm.html).
+A set of R scripts to calculate the Canadian Ambient Air Quality Standards (CAAQS)
+for fine particulate matter (PM<sub>2.5</sub>) in British Columbia. 
+These scripts reproduce the analysis and data visualizations presented on
+[Environmental Reporting BC](http://www.env.gov.bc.ca/soe/indicators/air/fine-pm.html).
 
-This analysis makes use of the [rcaaqs](https://github.com/bcgov/rcaaqs) package, and [air quality monitoring data](http://catalogue.data.gov.bc.ca/dataset/air-quality-monitoring-verified-hourly-data-and-station-data) from the B.C. Ministry of Enviornment.
+This analysis makes use of the [rcaaqs](https://github.com/bcgov/rcaaqs) package, and [air quality monitoring data](http://catalogue.data.gov.bc.ca/dataset/air-quality-monitoring-verified-hourly-data-and-station-data) from the B.C. Ministry of Environment.
 
 ## Usage
 
-There are four core scripts that are required for the analysis, they need to be run in order:
+There are five scripts that are required for the analysis, they need to be run in order:
 
 - `01_load.R` - downloads the data from DataBC
 - `02_clean.R` - cleans and prepares data for analysis
 - `03_analysis.R` - performs the analysis
 - `04_output.R` - creates maps and graphs and saves outputs
+- `05_databc_output.R` - creates output files for Data BC catalogue
 
 The `run_all.R` script can be `source`ed to run it all at once.
 
-Most packages used in the analysis can be installed from CRAN using `install.packages()`, but you will need to install [envreportutils](https://github.com/bcgov/envreportutils), [rcaaqs](https://github.com/bcgov/rcaaqs) and [bcmaps](https://github.com/bcgov/bcmaps) using devtools:
-
-```r
-install.packages("devtools") # If you don't already have it installed
-
-library(devtools)
-install_github("bcgov/rcaaqs")
-install_github("bcgov/bcmaps")
-install_github("bcgov/envreportutils")
-```
+This repository uses `renv` to ensure all required packages and the correct
+versions of said packages are installed. 
 
 ## Getting Help or Reporting an Issue
 
