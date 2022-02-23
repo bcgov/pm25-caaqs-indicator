@@ -379,7 +379,7 @@ Environmental Reporting BC. 2021. Status of Fine Particulate Matter in B.C. (`r 
 
 ```{r appendix, results='asis', fig.width = 9, fig.asp = 0.4}
 
-iwalk(stn_plots[1:2],  ~ {
+iwalk(stn_plots,  ~ {
   
   stn <- filter(pm25_results, site == .y) 
   stn_24h <- filter(stn, metric == "pm2.5_24h")
