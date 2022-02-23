@@ -70,7 +70,11 @@ print_summary <- stations_sf %>%
 # - Using management data because contains differences between the non-tfee data
 #   and tfee-adjusted data
 
-sites <- unique(pm25_results$site)
+sites <- pm25_results %>%
+  arrange(airzone, site, metric) %>%
+  pull(site) %>%
+  unique()
+
 stn_plots <- list()
 
 for(s in sites) {
