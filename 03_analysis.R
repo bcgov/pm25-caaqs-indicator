@@ -62,15 +62,6 @@ pm25_results <- bind_rows(get_caaqs(pm25_24h_mgmt),
   # Clean up
   select(airzone, site, region, lat, lon, everything(), -n)
 
-# Stations with TFEEs -----------------------------------------------------
-# Almost certainly the same as unique(tfee$site), 
-# but just in case check against data...
-
-# Get breaks
-pm25_24h_lvl <- achievement_levels %>%
-  filter(parameter == "pm2.5_24h", lower_breaks > 0) %>%
-  pull(lower_breaks) 
-
 # Airzone results ---------------------------------------------------------
 # Get airzone results by metric
 az_ambient <- pm25_results %>%
@@ -90,6 +81,12 @@ az_mgmt <- az_ambient %>%
          rep_stn_id = rep_stn_id_mgmt)
 
 # For print version --------------------------------------------------------
+
+# Get breaks
+pm25_24h_lvl <- achievement_levels %>%
+  filter(parameter == "pm2.5_24h", lower_breaks > 0) %>%
+  pull(lower_breaks) 
+
 # Get reporting period tfee numbers for print version
 print_tfee <- get_daily(pm25_24h_caaqs) %>% 
   ungroup() %>%
