@@ -18,6 +18,7 @@ library("readr")
 library("dplyr")
 library("tidyr")
 library("ggplot2")
+library("ggtext")
 
 library("sf")
 library("bcmaps")
@@ -108,18 +109,19 @@ print_plots[["pm_ambient_summary_plot"]]<- g
 
 # Maps -------------------------------------------------------------
 # - For print version
-
-g <- achievement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_24h"),
-                     stn_data = filter(stations_sf, metric == "pm2.5_24h"),
-                     az_labs = "Airzones:\nPM2.5 24h Air Quality Standard",
-                     stn_labs = "Monitoring Stations:\nPM2.5 24h Metric (ug/m3)")
+g <- achievement_map(
+  az_data = filter(az_ambient_sf, metric == "pm2.5_24h"),
+  stn_data = filter(stations_sf, metric == "pm2.5_24h"),
+  az_labs = "**Airzones:**<br>PM<sub>2.5</sub> 24h Air Quality Standard",
+  stn_labs = "**Monitoring Stations:**<br>PM<sub>2.5</sub> 24h Metric (&mu;g/m<sup>3</sup>)")
 print_plots[["achievement_map_24h"]] <- g
 
 
-g <- achievement_map(az_data = filter(az_ambient_sf, metric == "pm2.5_annual"),
-                     stn_data = filter(stations_sf, metric == "pm2.5_annual"),
-                     az_labs = "Airzones:\nPM2.5 Annual Air Quality Standard",
-                     stn_labs = "Monitoring Stations:\nPM2.5 Annual Metric (ug/m3)")
+g <- achievement_map(
+  az_data = filter(az_ambient_sf, metric == "pm2.5_annual"),
+  stn_data = filter(stations_sf, metric == "pm2.5_annual"),
+  az_labs = "**Airzones:**<br>PM<sub>2.5</sub> Annual Air Quality Standard",
+  stn_labs = "**Monitoring Stations:**<br>PM<sub>2.5</sub> Annual Metric (&mu;g/m<sup>3</sup>)")
 print_plots[["achievement_map_annual"]] <- g
 
 # Management figures --------------------------------------------
