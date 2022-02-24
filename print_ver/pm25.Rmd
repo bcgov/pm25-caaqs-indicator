@@ -36,6 +36,7 @@ library("tidyr")
 library("here")
 library("purrr")
 library("ggplot2")
+library("ggtext")
 
 library("rcaaqs")
 library("envreportutils")
