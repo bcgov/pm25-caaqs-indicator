@@ -28,7 +28,8 @@ specific language governing permissions and limitations under the License.
 renv::restore()
 
 knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE, 
-                      warning = FALSE, error = FALSE, fig.width = 7)
+                      warning = FALSE, error = FALSE, fig.width = 7,
+                      dev = "cairo_pdf") # To get unicode in the map plots
 
 library("readr")
 library("dplyr")
