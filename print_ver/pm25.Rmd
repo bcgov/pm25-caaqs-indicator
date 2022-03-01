@@ -1,11 +1,11 @@
 ---
 topic: "air"
-header-includes:
-  - \usepackage[utf8]{inputenc}
-  - \usepackage{siunitx}
-  - \sisetup{detect-all,per-mode=symbol}
-output: pdf_document
 title: "Status of Fine Particulate Matter in B.C. (2018-2020)"
+output: 
+  pdf_document: envreportutils.internal::print_ver
+  html_document:
+    self_contained: false
+
 ---
 
 <!--
@@ -31,6 +31,7 @@ knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE,
                       warning = FALSE, error = FALSE, fig.width = 7,
                       dev = "cairo_pdf") # To get unicode in the map plots
 
+
 library("readr")
 library("dplyr")
 library("tidyr")
@@ -41,6 +42,13 @@ library("ggtext")
 
 library("rcaaqs")
 library("envreportutils")
+library(envreportutils.internal)
+
+
+# Karly added: is_html, is_pdf add-ons to code chunks until we decide whether html and pdf outputs will come from the same document 
+
+#is_html <- knitr::is_html_output()
+#is_pdf <- knitr::is_latex_output()
 
 knitr_latex_char <- function(x) {
   y <- gsub("\\\\", "\\\\textbackslash{}", x) # backslash has to be first!
