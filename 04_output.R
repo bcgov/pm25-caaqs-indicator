@@ -45,15 +45,15 @@ az <- airzones() %>%
   group_by(airzone = Airzone) %>% 
   summarize()
 
-az_mgmt_sf <- az_mgmt %>%
-  complete(airzone = az$airzone, rep_metric, caaqs_year) %>% # Ensure ALL airzones
-  left_join(az, ., by = "airzone") %>% 
-  mutate(mgmt_level = replace_na(mgmt_level, "Insufficient Data"))
-
 az_ambient_sf <- az_ambient %>% 
   complete(airzone = az$airzone, metric) %>% # Ensure ALL airzones
   left_join(az, ., by = "airzone") %>% 
-  mutate(caaqs_ambient = replace_na(caaqs_ambient, "Insufficient Data"))
+  mutate(caaqs_ambient = replace_na(caaqs_ambient, levels(mgmt_level)[1]))
+
+az_mgmt_sf <- az_mgmt %>%
+  complete(airzone = az$airzone, caaqs_year) %>% # Ensure ALL airzones
+  left_join(az, ., by = "airzone") %>% 
+  mutate(mgmt_level = replace_na(mgmt_level, levels(mgmt_level)[1]))
 
 stations_sf <- pm25_results %>% 
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -65,6 +65,40 @@ print_summary <- stations_sf %>%
   summarise(n = n(), 
             n_achieved = sum(caaqs_ambient == "Achieved", na.rm = TRUE), 
             percent_achieved = round(n_achieved / n * 100))
+
+# Spatial files for leaflet maps ---------------------------------------
+
+# Airzones by ambient CAAQS
+# - Arranged by worst CAAQS ambient, but includes ambient values for both metrics
+v <- az_ambient_sf %>%
+  st_drop_geometry() %>%
+  select("rep_stn_id_ambient", "metric", "metric_value_ambient") %>%
+  drop_na(rep_stn_id_ambient) %>%
+  mutate(name = paste0("metric_value_ambient_", str_remove(metric, "pm2.5_"))) %>%
+  select(-metric) %>%
+  pivot_wider(names_from = name, values_from = metric_value_ambient)
+
+leaf_az_ambient <- az_ambient_sf %>%
+  select(airzone, caaqs_ambient, rep_stn_id_ambient, n_years = n_years_ambient,
+         geometry) %>%
+  group_by(airzone) %>% 
+  slice_max(caaqs_ambient, with_ties = FALSE) %>%
+  left_join(v, by = "rep_stn_id_ambient")
+  
+# Stations by management CAAQS
+# - Arranged by worst CAAQS management, but include mgmt values for both metrics
+v <- pm25_results %>%
+  select("site", "metric",  "metric_value_mgmt") %>%
+  mutate(name = paste0("metric_value_mgmt_", str_remove(metric, "pm2.5_"))) %>%
+  select(-metric) %>%
+  pivot_wider(names_from = name, values_from = metric_value_mgmt)
+
+leaf_stations_mgmt <- stations_sf %>%
+  select(airzone, site, mgmt_level, n_years) %>%
+  group_by(site) %>% 
+  slice_max(mgmt_level, with_ties = FALSE) %>%
+  ungroup() %>%
+  left_join(v, by = "site")
 
 # Individual Station Plots ------------------------------------------------
 # - For print version and leaflet maps
@@ -201,10 +235,10 @@ write_rds(stn_plots, "data/datasets/print_stn_plots.rds")
 write_rds(print_summary, "data/datasets/print_summary.rds")
 
 # For leaflet maps
-filter(stations_sf) %>%
+filter(leaf_stations_mgmt) %>%
   st_transform(4326) %>% 
-  st_write("out/pm_caaqs.geojson", delete_dsn = TRUE)
+  st_write("out/pm_stations_mgmt.geojson", delete_dsn = TRUE)
 
-filter(az_ambient_sf) %>%
+filter(leaf_az_ambient) %>%
   st_transform(4326) %>% 
-  st_write("out/pm_airzone.geojson", delete_dsn = TRUE)
+  st_write("out/pm_airzones_ambient.geojson", delete_dsn = TRUE)
