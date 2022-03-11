@@ -41,7 +41,8 @@ stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %
 pm25 <- read_rds("data/raw/pm25_caaqs.Rds") %>%
   as_tibble()
 
-az <- airzones()
+az <- airzones() %>% 
+  st_make_valid() # fixes invalid geometry error in assign_airzones function below
 
 
 # Clean Stations -------------------------------------------------------------
