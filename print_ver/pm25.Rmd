@@ -1,10 +1,11 @@
 ---
 topic: "air"
 title: "Status of Fine Particulate Matter in B.C. (2018-2020)"
-output: 
-  pdf_document: envreportutils.internal::print_ver
-  html_document:
-    self_contained: false
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage{siunitx}
+  - \sisetup{detect-all,per-mode=symbol}
+output: pdf_document
 
 ---
 
@@ -42,7 +43,6 @@ library("ggtext")
 
 library("rcaaqs")
 library("envreportutils")
-library(envreportutils.internal)
 
 
 # Karly added: is_html, is_pdf add-ons to code chunks until we decide whether html and pdf outputs will come from the same document 
@@ -136,9 +136,9 @@ Environment](http://www.ccme.ca).
     
     \vspace{1mm}
     
-    \text{British Columbia is divided up into seven air zones, which are areas that typically}
-    
-    \text{exhibit similar air quality characteristics, issues, and trends.}
+    \text{British Columbia is divided up into seven air zones, which are areas that typically 
+          exhibit similar}
+    \text{air quality characteristics, issues, and trends.}
     
   \end{minipage}
 }
