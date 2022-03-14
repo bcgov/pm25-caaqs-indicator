@@ -410,9 +410,9 @@
       "RemoteUsername": "steffilazerte",
       "RemoteRepo": "envreportutils",
       "RemoteRef": "master",
-      "RemoteSha": "86cd5d714bf5d6a07dfd876f378e9ad70bedd29c",
+      "RemoteSha": "ea45256ffdedf494e1a7c3269b7bde3e8f076a97",
       "RemoteHost": "api.github.com",
-      "Hash": "9f8d154b3dcde9a169f78ccc2699de9a",
+      "Hash": "c72d1a7d8140d859dd9c150bdaed09a3",
       "Requirements": [
         "dplyr",
         "extrafont",
@@ -1116,9 +1116,9 @@
       "RemoteUsername": "bcgov",
       "RemoteRepo": "rcaaqs",
       "RemoteRef": "steffi-new-thresholds",
-      "RemoteSha": "d5e9cc6ad39ebc15f9e7c45b3bbbde4aefb7beb5",
+      "RemoteSha": "31f135c2d3c49be86ecd9df5366270e6cb276628",
       "RemoteHost": "api.github.com",
-      "Hash": "ba2294ed29896859840522ea64a5d3c1",
+      "Hash": "3581b38d0489ef3aaa940ebd987a7b0e",
       "Requirements": [
         "dplyr",
         "ggplot2",
