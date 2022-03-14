@@ -60,5 +60,65 @@ achievement_map <- function(az_data, stn_data, az_labs, stn_labs) {
 }
 
 
+add_caaqs_historic <- function(g, metric) {
+  hist_caaqs <- tribble(
+    ~parameter,     ~labels,                                            ~lower_breaks, ~upper_breaks,
+    "o3",           "Actions for Keeping Clean Areas Clean",            0,             50,
+    "o3",           "Actions for Preventing Air Quality Deterioration", 50,            56,
+    "o3",           "Actions for Preventing CAAQS Exceedance",          56,            63,
+    "o3",           "Actions for Achieving Air Zone CAAQS",             63,            Inf,
+    
+    "pm2.5_annual", "Actions for Keeping Clean Areas Clean",            0,             4.0,
+    "pm2.5_annual", "Actions for Preventing Air Quality Deterioration", 4.0,           6.4,
+    "pm2.5_annual", "Actions for Preventing CAAQS Exceedance",          6.4,           10.0,
+    "pm2.5_annual", "Actions for Achieving Air Zone CAAQS",             10.0,          Inf,
+    
+    "pm2.5_24h",    "Actions for Keeping Clean Areas Clean",            0,             10,
+    "pm2.5_24h",    "Actions for Preventing Air Quality Deterioration", 10,            19,
+    "pm2.5_24h",    "Actions for Preventing CAAQS Exceedance",          19,            28,
+    "pm2.5_24h",    "Actions for Achieving Air Zone CAAQS",             28,            Inf) %>%
+    filter(parameter == .env$metric, !is.na(lower_breaks)) %>%
+    left_join(select(rcaaqs::management_levels, labels, colour) %>% distinct(), 
+              by = "labels")
+  
+  years <- select(g$data, caaqs_year) %>%
+    distinct() %>%
+    nrow() 
+  
+  current_caaqs <- rcaaqs::management_levels %>%
+    filter(parameter == .env$metric, !is.na(lower_breaks))
+  
+  ylim <- max(g$data$raw, na.rm = TRUE) * 1.1
+  if(ylim < (max(hist_caaqs$lower_breaks, na.rm = TRUE) * 1.1)) {
+    g <- g + 
+      ggplot2::scale_y_continuous(
+        expand = c(0,0), limits = c(NA, max(hist_caaqs$lower_breaks, na.rm = TRUE) * 1.1),
+        breaks = scales::breaks_extended(n = 7))
+  }
+  
+  g <- g + geom_rect(
+    data = hist_caaqs, xmin = -Inf, xmax = years - 0.5, 
+    aes(ymin = lower_breaks, ymax = upper_breaks, fill = labels), 
+    inherit.aes = FALSE, alpha = 0.55)
+  
+  g <- g + 
+    geom_rect(data = current_caaqs, xmin = years - 0.5, xmax = Inf,
+              aes(ymin = lower_breaks, ymax = upper_breaks, fill = labels), 
+              inherit.aes = FALSE, alpha = 0.55)
+  
+  g$layers <- list(g$layers[[2]], g$layers[[3]], g$layers[[1]])
+  
+  line_df <- data.frame(y = c(max(hist_caaqs$lower_breaks, na.rm = TRUE),
+                              max(hist_caaqs$lower_breaks, na.rm = TRUE),
+                              max(current_caaqs$lower_breaks, na.rm = TRUE),
+                              max(current_caaqs$lower_breaks, na.rm = TRUE)),
+                        x = c(0, years-0.5, years-0.5, Inf))
+  
+  g +
+    geom_line(data = line_df, aes(x = x, y = y, colour = "CAAQS Achievement"), 
+              inherit.aes = FALSE, linetype = "dashed", size = 1) +
+    scale_colour_manual(values = last(hist_caaqs$colour))
+}
+
 
 

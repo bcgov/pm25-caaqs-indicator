@@ -119,8 +119,13 @@ stn_plots <- list()
 for(s in sites) {
   message("Creating plots for ", s)
   
-  g1 <- plot_caaqs(pm25_24h_mgmt, id = s, id_col = "site", year_min = 2013)
-  g2 <- plot_caaqs(pm25_annual_mgmt, id = s, id_col = "site", year_min = 2013)
+  g1 <- plot_caaqs(pm25_24h_mgmt, id = s, id_col = "site", year_min = 2013,
+                   plot_std = FALSE, plot_mgmt = FALSE)
+  g1 <- add_caaqs_historic(g1, metric = "pm2.5_24h")
+  
+  g2 <- plot_caaqs(pm25_annual_mgmt, id = s, id_col = "site", year_min = 2013,
+                   plot_std = FALSE, plot_mgmt = FALSE)
+  g2 <- add_caaqs_historic(g2, metric = "pm2.5_annual")
   
   ggsave(paste0("leaflet_map/station_plots/", s, "_24h.svg"), g1, 
          width = 778, height = 254, dpi = 72, units = "px", bg = "white")
