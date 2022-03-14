@@ -19,6 +19,7 @@ library("dplyr")
 library("tidyr")
 library("ggplot2")
 library("ggtext")
+library("stringr")
 
 library("sf")
 library("bcmaps")
@@ -48,12 +49,15 @@ az <- airzones() %>%
 az_ambient_sf <- az_ambient %>% 
   complete(airzone = az$airzone, metric) %>% # Ensure ALL airzones
   left_join(az, ., by = "airzone") %>% 
-  mutate(caaqs_ambient = replace_na(caaqs_ambient, levels(mgmt_level)[1]))
+  mutate(caaqs_ambient = replace_na(caaqs_ambient, levels(caaqs_ambient)[1]))
 
 az_mgmt_sf <- az_mgmt %>%
   complete(airzone = az$airzone, caaqs_year) %>% # Ensure ALL airzones
   left_join(az, ., by = "airzone") %>% 
-  mutate(mgmt_level = replace_na(mgmt_level, levels(mgmt_level)[1]))
+  mutate(mgmt_level = replace_na(mgmt_level, levels(mgmt_level)[1]),
+         caaqs_ambient = replace_na(caaqs_ambient, levels(caaqs_ambient)[1]),
+         caaqs_ambient_no_tfees = replace_na(caaqs_ambient_no_tfees, 
+                                             levels(caaqs_ambient_no_tfees)[1]))
 
 stations_sf <- pm25_results %>% 
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -68,22 +72,22 @@ print_summary <- stations_sf %>%
 
 # Spatial files for leaflet maps ---------------------------------------
 
-# Airzones by ambient CAAQS
-# - Arranged by worst CAAQS ambient, but includes ambient values for both metrics
-v <- az_ambient_sf %>%
+# Airzones by Management CAAQS
+# - Arranged by worst Management level, but includes Management values for both metrics
+v <- az_mgmt_sf %>%
   st_drop_geometry() %>%
-  select("rep_stn_id_ambient", "metric", "metric_value_ambient") %>%
-  drop_na(rep_stn_id_ambient) %>%
-  mutate(name = paste0("metric_value_ambient_", str_remove(metric, "pm2.5_"))) %>%
+  select("rep_stn_id", "metric", "metric_value_mgmt") %>%
+  drop_na(rep_stn_id) %>%
+  mutate(name = paste0("metric_value_mgmt_", str_remove(metric, "pm2.5_"))) %>%
   select(-metric) %>%
-  pivot_wider(names_from = name, values_from = metric_value_ambient)
+  pivot_wider(names_from = name, values_from = metric_value_mgmt)
 
-leaf_az_ambient <- az_ambient_sf %>%
-  select(airzone, caaqs_ambient, rep_stn_id_ambient, n_years = n_years_ambient,
-         geometry) %>%
+leaf_az_mgmt <- az_mgmt_sf %>%
+  select(airzone, caaqs_ambient, caaqs_ambient_no_tfees, 
+         mgmt_level, rep_stn_id, n_years, geometry) %>%
   group_by(airzone) %>% 
-  slice_max(caaqs_ambient, with_ties = FALSE) %>%
-  left_join(v, by = "rep_stn_id_ambient")
+  slice_max(mgmt_level, with_ties = FALSE) %>%
+  left_join(v, by = "rep_stn_id")
   
 # Stations by management CAAQS
 # - Arranged by worst CAAQS management, but include mgmt values for both metrics
@@ -239,6 +243,6 @@ filter(leaf_stations_mgmt) %>%
   st_transform(4326) %>% 
   st_write("out/pm_stations_mgmt.geojson", delete_dsn = TRUE)
 
-filter(leaf_az_ambient) %>%
+filter(leaf_az_mgmt) %>%
   st_transform(4326) %>% 
-  st_write("out/pm_airzones_ambient.geojson", delete_dsn = TRUE)
+  st_write("out/pm_airzones_mgmt.geojson", delete_dsn = TRUE)

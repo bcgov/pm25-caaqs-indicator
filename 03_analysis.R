@@ -63,7 +63,6 @@ pm25_results <- bind_rows(get_caaqs(pm25_24h_mgmt),
   select(airzone, site, region, lat, lon, everything(), -n)
 
 # Airzone results ---------------------------------------------------------
-# Get airzone results by metric
 az_ambient <- pm25_results %>%
   nest(data = c(-metric)) %>%
   mutate(data = map(data, ~airzone_metric(., keep = "site", station_id = "site"))) %>%
@@ -76,9 +75,17 @@ az_mgmt <- az_ambient %>%
   slice_max(mgmt_level, with_ties = FALSE) %>% 
   mutate(caaqs_year = .env$rep_year) %>% 
   ungroup() %>%
-  select(caaqs_year, airzone, mgmt_level, rep_metric = metric, 
-         metric_value = metric_value_mgmt, 
-         rep_stn_id = rep_stn_id_mgmt)
+  select(caaqs_year, airzone, mgmt_level, metric, 
+         metric_value_mgmt,
+         rep_stn_id = rep_stn_id_mgmt, n_years = n_years_mgmt, 
+         caaqs_ambient) %>%
+  # Mgmt level reflects the WORST station with TFEE adjustment, does that level
+  # reflect a CAAQS Achievement (had there been no TFEEs?)
+  mutate(caaqs_ambient_no_tfees = map_int(mgmt_level, max),
+         caaqs_ambient_no_tfees = case_when(
+           caaqs_ambient_no_tfees == 5 ~ unique(achievement_levels$labels)[3],
+           caaqs_ambient_no_tfees == 1 ~ unique(achievement_levels$labels)[1],
+           TRUE ~ unique(achievement_levels$labels)[2]))
 
 # For print version --------------------------------------------------------
 

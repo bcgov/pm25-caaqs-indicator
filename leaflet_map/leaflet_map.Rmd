@@ -52,11 +52,7 @@ labels_mgmt <- management_levels %>%
   filter(str_detect(parameter, "pm2.5")) %>%
   select(labels, colour, colour_text, units_html) %>%
   distinct() %>%
-  mutate(icons = c(NA, 
-                   "assets/marker_white.svg", "assets/marker_lightgrey.svg", 
-                   "assets/marker_grey.svg", "assets/marker_black.svg"),
-         # Special colours for map
-         marker_colours = c(NA, "white", "lightgrey", "grey", "black"), 
+  mutate(icons = paste0("assets/marker_", colour_text, ".svg"),
          text_colour = c("white", "black", "black", "white", "white"))
 
 
@@ -78,7 +74,7 @@ stations <- read_sf(here("out/pm_stations_mgmt.geojson")) %>%
   mutate(caaqs_legend = mgmt_level) %>%
   
   # Create popups
-  mutate(popup = popup_caaqs_combo(
+  mutate(popup = popup_caaqs(
     ., type = "station", 
     metric_type = "PM<sub>2.5</sub>", 
     metrics = c("annual", "24h"), 
@@ -88,7 +84,7 @@ stations <- read_sf(here("out/pm_stations_mgmt.geojson")) %>%
     station_id = "site", 
     value1 = "metric_value_mgmt_annual", 
     value2 = "metric_value_mgmt_24h",
-    level = "mgmt_level"))
+    level1 = "mgmt_level"))
 
 ## Count stations
 stns_n <- stations %>%
@@ -98,10 +94,16 @@ stns_n <- stations %>%
 
 ## Airzones - Get Ambient CAAQs and create popups --------------------------
 # - Keep insufficent data polygons, but not popups
-az <- st_read(here("./out/pm_airzones_ambient.geojson")) %>%
+az <- st_read(here("./out/pm_airzones_mgmt.geojson")) %>%
   left_join(stns_n, by = "airzone") %>%
-  left_join(labels_ambient, by = c("caaqs_ambient" = "labels")) %>%
-  mutate(caaqs_legend = caaqs_ambient) %>%
+  left_join(select(labels_mgmt, labels, legend_colour = colour, icons, units_html),
+            by = c("mgmt_level" = "labels")) %>%
+  left_join(select(labels_ambient, labels, colour, text_colour),
+            by = c("caaqs_ambient" = "labels")) %>%
+  left_join(select(labels_ambient, labels, colour, text_colour),
+            by = c("caaqs_ambient_no_tfees" = "labels"), suffix = c("", 2)) %>%
+  
+  mutate(caaqs_legend = mgmt_level) %>%
   
   # Create Airzone tooltips
   mutate(n = replace_na(n, 0),
@@ -110,17 +112,18 @@ az <- st_read(here("./out/pm_airzones_ambient.geojson")) %>%
                                      " Monitoring Station", 
                                      if_else(.y == 1, "", "s"))))) %>%
   # Create popups
-  mutate(popup = popup_caaqs_combo(
-    ., type = "region", 
+  mutate(popup = popup_caaqs(
+    ., type = "airzone", 
     metric_type = "PM<sub>2.5</sub>", 
     metrics = c("annual", "24h"), 
     units = units_html[1],
     airzone = "airzone", 
-    station_name = "rep_stn_id_ambient", 
-    station_id = "rep_stn_id_ambient", 
-    value1 = "metric_value_ambient_annual", 
-    value2 = "metric_value_ambient_24h",
-    level = "caaqs_ambient"),
+    station_name = "rep_stn_id", 
+    station_id = "rep_stn_id", 
+    value1 = "metric_value_mgmt_annual", 
+    value2 = "metric_value_mgmt_24h",
+    level1 = "caaqs_ambient", 
+    level2 = "caaqs_ambient_no_tfees"),
     # Where insufficient data, keep the tool tip but omit the popup
     popup = if_else(caaqs_ambient == "Insufficient Data", 
                     list(NA_character_), popup))
@@ -130,8 +133,8 @@ az <- st_read(here("./out/pm_airzones_ambient.geojson")) %>%
 
 # Create palettes
 
-pal_az <- colorFactor(palette = labels_ambient$colour, 
-                      levels = labels_ambient$labels)
+pal_az <- colorFactor(palette = labels_mgmt$colour, 
+                      levels = labels_mgmt$labels)
 
 
 # Create icons
@@ -175,23 +178,13 @@ leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)
              labelOptions = labelOptions(sticky = FALSE, 
                                          offset = c(0, -icon_size/2))) %>%
   
-  # Legend for polygons
-  addLegend("bottomright", group = "Annual",
+  # Legend
+  addLegend("bottomleft", group = "Annual",
             data = az,
             # Ensure we get all levels
-            colors = labels_ambient$colour, 
-            labels = labels_ambient$labels,
+            colors = rev(labels_mgmt$colour), 
+            labels = rev(labels_mgmt$labels),
             opacity = 1, 
             title = htmltools::HTML(
-              "<h3>Air Zones</h3>",
-              "<h4>PM<sub>2.5</sub> Air Quality Standard</h4>")) %>%
-  
-   # Custom legends for markers
-  addLegend("bottomleft", group = "Annual",
-            colors = rev(labels_mgmt$colour),
-            className = "info legend solid",
-            labels = rev(labels_mgmt$labels),
-            opacity = 1,
-            title = htmltools::HTML(
-              "<h3>PM<sub>2.5</sub> Monitoring Stations</h3>"))
+              "<h3>PM<sub>2.5</sub> Management Levels</h3>"))
 ```
