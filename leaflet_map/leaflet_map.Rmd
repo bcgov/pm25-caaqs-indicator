@@ -1,5 +1,5 @@
 ---
-title: "Air Quality Maps - PM 2.5"
+title: ""
 output: 
   html_document:
     css: "assets/caaqs-styles.css"
