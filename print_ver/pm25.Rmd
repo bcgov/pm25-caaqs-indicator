@@ -1,12 +1,13 @@
 ---
-topic: "air"
 title: "Status of Fine Particulate Matter in B.C. (2018-2020)"
+topic: air
 header-includes:
-  - \usepackage[utf8]{inputenc}
-  - \usepackage{siunitx}
-  - \sisetup{detect-all,per-mode=symbol}
-output: pdf_document
-
+- \usepackage[utf8]{inputenc}
+- \usepackage{siunitx}
+- \sisetup{detect-all,per-mode=symbol}
+output:
+  envreportutils.internal::print_ver: default
+  pdf_document: default
 ---
 
 <!--
