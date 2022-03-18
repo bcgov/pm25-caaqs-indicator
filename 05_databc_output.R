@@ -45,7 +45,7 @@ bind_rows(stations_old, stations_summary) %>%
   write_csv("out/databc/pm25_site_summary.csv", na = "")
 
 
-## Ambient CAAQs by airzone 
+## Airzone CAAQs
 
 az_ambient_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
                             resource = '5dd4fcf9-f7c6-49cf-90a0-0a5c9bc00334') %>%
@@ -56,39 +56,42 @@ az_ambient_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab',
   #  - caaqs / caaqs_ambient
   #  - rep_stn_name / station_name_ambient
   #  - rep_stn_id / rep_stn_id_ambient
-  mutate(n_years = coalesce(n_years, n_years_ambient),
-         metric_value = coalesce(metric_value, metric_value_ambient),
-         caaqs = coalesce(caaqs, caaqs_ambient),
-         rep_stn_name = coalesce(rep_stn_name, station_name_ambient),
-         rep_stn_id = coalesce(rep_stn_id, rep_stn_id_ambient)) %>%
-  select(-ends_with("_ambient"))
+  mutate(n_years_ambient = coalesce(n_years, n_years_ambient),
+         metric_value_ambient = coalesce(metric_value, metric_value_ambient),
+         caaqs_ambient = coalesce(caaqs, caaqs_ambient),
+         rep_stn_name_ambient = coalesce(rep_stn_name, station_name_ambient),
+         rep_stn_id_ambient = coalesce(rep_stn_id, rep_stn_id_ambient)) %>%
+  select(airzone, caaqs_year, metric, 
+         n_years_ambient, metric_value_ambient, caaqs_ambient, 
+         rep_stn_id_ambient, rep_stn_name_ambient)
+
+az_mgmt_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
+                             resource = '700a7155-0b68-4e5a-bbe0-11d4b844ec57') %>%
+  rename("metric" = "rep_metric") %>%
+  rename_with(~paste0(., "_mgmt"),
+              .cols = -c("airzone", "caaqs_year", "mgmt_level", "metric")) %>%
+  mutate(n_years_mgmt = NA, excluded = NA)
 
 
-az_ambient <- read_rds("data/datasets/az_ambient.rds") %>%
-  select(c(airzone, metric, n_years_ambient, metric_value_ambient, 
-         caaqs_ambient, rep_stn_id_ambient)) %>%
-  rename_with(.cols = ends_with("_ambient"), ~ str_remove(., "_ambient")) %>%
-  mutate(caaqs = as.character(caaqs), 
+airzones_old <- full_join(az_ambient_old, az_mgmt_old, 
+                          by = c("airzone", "caaqs_year", "metric"))
+
+airzones_summary <- read_rds("data/datasets/az_ambient.rds") %>%
+  mutate(rep_stn_name_ambient = rep_stn_id_ambient,
+         rep_stn_name_mgmt = rep_stn_id_mgmt, 
+         caaqs_ambient = as.character(caaqs_ambient), 
          caaqs_year = .env$rep_year)
 
 # Check for additional or missing columns
-setdiff(names(az_ambient_old), names(az_ambient))
-
+setdiff(names(airzones_old), names(airzones_summary))
+setdiff(names(airzones_summary), names(airzones_old))
 
 bind_rows(az_ambient_old, az_ambient) %>%
   arrange(caaqs_year) %>% 
-  write_csv("out/databc/pm25_airzone_ambient_summary.csv", na = "")
+  write_csv("out/databc/pm25_airzone_summary.csv", na = "")
 
 
-# air management zone 
 
-az_mgmt_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
-                            resource = '700a7155-0b68-4e5a-bbe0-11d4b844ec57')
-
-az_mgmt <- read_rds("data/datasets/az_mgmt.rds") %>%
-  mutate(mgmt_level = as.character(mgmt_level))
-
-setdiff(names(az_mgmt_old), names(az_mgmt))
 
 bind_rows(az_mgmt_old, az_mgmt) %>%
   arrange(caaqs_year)%>% 
