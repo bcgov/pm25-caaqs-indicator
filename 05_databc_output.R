@@ -27,28 +27,39 @@ library("bcdata")
 
 # Join old and new ------------------------
 
-## Stations
+## Stations ----------------------------------------
 
-stations_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
-                              resource = 'bfa3fdd8-2950-4d3a-b190-52fb39a5ffd4')
+stations_old <- bcdc_get_data(
+  '699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
+  resource = 'bfa3fdd8-2950-4d3a-b190-52fb39a5ffd4') %>%
+  rename(station_id = ems_id) %>%
+  select(-city)
                                          
 stations_summary <- read_rds("data/datasets/pm25_results.rds") %>%
-  select(-c(flag_yearly_incomplete, flag_two_of_three_years,flag_daily_incomplete)) %>%
+  select(-flag_yearly_incomplete, -flag_two_of_three_years, 
+         -flag_daily_incomplete, -region) %>%
   rename(station_name = site, latitude = lat, longitude = lon) %>%
   mutate(caaqs_ambient = as.character(caaqs_ambient),
-         mgmt_level = as.character(mgmt_level))
+         mgmt_level = as.character(mgmt_level),
+         station_id = station_name)
 
 setdiff(names(stations_old), names(stations_summary))
+setdiff(names(stations_summary), names(stations_old))
 
 bind_rows(stations_old, stations_summary) %>%
-  arrange(caaqs_year) %>% 
+  select(caaqs_year, airzone, station_name, station_id, 
+         latitude, longitude, instrument_type, metric, n_years, min_year, max_year, 
+         metric_value_ambient, caaqs_ambient,
+         excluded, metric_value_mgmt, mgmt_level) %>%
+  arrange(caaqs_year, airzone, station_name) %>% 
   write_csv("out/databc/pm25_site_summary.csv", na = "")
 
 
-## Airzone CAAQs
+## Airzones ----------------------
 
-az_ambient_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
-                            resource = '5dd4fcf9-f7c6-49cf-90a0-0a5c9bc00334') %>%
+az_ambient_old <- bcdc_get_data(
+  '699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
+  resource = '5dd4fcf9-f7c6-49cf-90a0-0a5c9bc00334') %>%
   
   # I think that several columns should be combined: 
   #  - n_years / n_years_ambient
@@ -80,6 +91,7 @@ airzones_summary <- read_rds("data/datasets/az_ambient.rds") %>%
   mutate(rep_stn_name_ambient = rep_stn_id_ambient,
          rep_stn_name_mgmt = rep_stn_id_mgmt, 
          caaqs_ambient = as.character(caaqs_ambient), 
+         mgmt_level = as.character(mgmt_level),
          caaqs_year = .env$rep_year)
 
 # Check for additional or missing columns
@@ -87,6 +99,11 @@ setdiff(names(airzones_old), names(airzones_summary))
 setdiff(names(airzones_summary), names(airzones_old))
 
 bind_rows(airzones_old, airzones_summary) %>%
+  select(caaqs_year, airzone, metric, 
+         n_years_ambient, metric_value_ambient, caaqs_ambient, 
+         rep_stn_name_ambient, rep_stn_id_ambient,
+         excluded, n_years_mgmt, metric_value_mgmt, mgmt_level, 
+         rep_stn_name_mgmt, rep_stn_id_mgmt) %>%
   arrange(caaqs_year, airzone) %>% 
   write_csv("out/databc/pm25_airzone_summary.csv", na = "")
 
