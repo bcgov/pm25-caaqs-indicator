@@ -52,7 +52,7 @@ bind_rows(stations_old, stations_summary) %>%
          metric_value_ambient, caaqs_ambient,
          excluded, metric_value_mgmt, mgmt_level) %>%
   arrange(caaqs_year, airzone, station_name) %>% 
-  write_csv("out/databc/pm25_site_summary.csv", na = "")
+  write_csv("out/databc/pm25_stations_summary.csv", na = "")
 
 
 ## Airzones ----------------------
@@ -105,5 +105,5 @@ bind_rows(airzones_old, airzones_summary) %>%
          excluded, n_years_mgmt, metric_value_mgmt, mgmt_level, 
          rep_stn_name_mgmt, rep_stn_id_mgmt) %>%
   arrange(caaqs_year, airzone) %>% 
-  write_csv("out/databc/pm25_airzone_summary.csv", na = "")
+  write_csv("out/databc/pm25_airzones_summary.csv", na = "")
 
