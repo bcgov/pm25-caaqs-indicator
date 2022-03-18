@@ -58,8 +58,6 @@ az_mgmt_sf <- az_mgmt %>%
          caaqs_ambient = replace_na(caaqs_ambient, levels(caaqs_ambient)[1]),
          caaqs_ambient_no_tfees = replace_na(caaqs_ambient_no_tfees, 
                                              levels(caaqs_ambient)[1])) 
-# Line 60 was throwing an error for me -  levels weren't assigned for caaqs_ambient_no_tfees
-# I think this works as it is the same labels
 
 stations_sf <- pm25_results %>% 
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%

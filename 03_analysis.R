@@ -85,7 +85,10 @@ az_mgmt <- az_ambient %>%
          caaqs_ambient_no_tfees = case_when(
            caaqs_ambient_no_tfees == 5 ~ unique(achievement_levels$labels)[3],
            caaqs_ambient_no_tfees == 1 ~ unique(achievement_levels$labels)[1],
-           TRUE ~ unique(achievement_levels$labels)[2]))
+           TRUE ~ unique(achievement_levels$labels)[2]),
+         caaqs_ambient_no_tfees = factor(
+           caaqs_ambient_no_tfees, ordered = TRUE,
+           levels = levels(caaqs_ambient)))
 
 # For print version --------------------------------------------------------
 
