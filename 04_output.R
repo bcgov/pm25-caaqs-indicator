@@ -72,7 +72,7 @@ print_summary <- stations_sf %>%
 
 # Spatial files for leaflet maps ---------------------------------------
 
-# Airzones by Management CAAQS (required with more than one metric)
+# Airzones by Management CAAQS
 # - Arranged by worst Management level, 
 # - BUT includes Management values for both metrics
 v <- az_mgmt_sf %>%
@@ -91,7 +91,8 @@ leaf_az_mgmt <- az_mgmt_sf %>%
   left_join(v, by = "rep_stn_id")
   
 # Stations by management CAAQS
-# - Arranged by worst CAAQS management, but include mgmt values for both metrics
+# - Arranged by worst CAAQS management, 
+# - BUT include mgmt values for both metrics
 v <- pm25_results %>%
   select("site", "metric",  "metric_value_mgmt") %>%
   mutate(name = paste0("metric_value_mgmt_", str_remove(metric, "pm2.5_"))) %>%
