@@ -59,10 +59,9 @@ labels_mgmt <- management_levels %>%
 # Load and prep data ------------------------------------
 
 # - Stations show Management levels and have management metric data on popups
-# - Airzones show Ambient levels and have ambient metric data on popups
-#
-# If there are TFEEs, this means that the management metric value might be
-# lower than the airzone metric value.
+# - Airzones show Management levels and have management metric values on popups,
+#   but ambient achievement levels in boxes (two if they differ do to TFEEs)
+# - Both popups show one value box per metric
 
 ## Stations - Get Management CAAQs and create popups --------------------------
 # - Do NOT keep insufficient data markers
@@ -93,7 +92,7 @@ stns_n <- stations %>%
   distinct()
 
 ## Airzones - Get Ambient CAAQs and create popups --------------------------
-# - Keep insufficent data polygons, but not popups
+# - Keep insufficient data polygons, but not popups
 az <- st_read(here("./out/pm_airzones_mgmt.geojson")) %>%
   left_join(stns_n, by = "airzone") %>%
   left_join(select(labels_mgmt, labels, legend_colour = colour, icons, units_html),
