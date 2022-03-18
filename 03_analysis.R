@@ -79,8 +79,8 @@ az_mgmt <- az_ambient %>%
          metric_value_mgmt,
          rep_stn_id = rep_stn_id_mgmt, n_years = n_years_mgmt, 
          caaqs_ambient) %>%
-  # Mgmt level reflects the WORST station with TFEE adjustment, does that level
-  # reflect a CAAQS Achievement (had there been no TFEEs?)
+  # Mgmt level reflects the WORST station with TFEE adjustment, 
+  # That should reflect a CAAQS Achievement (had there been no TFEEs)
   mutate(caaqs_ambient_no_tfees = map_int(mgmt_level, max),
          caaqs_ambient_no_tfees = case_when(
            caaqs_ambient_no_tfees == 5 ~ unique(achievement_levels$labels)[3],

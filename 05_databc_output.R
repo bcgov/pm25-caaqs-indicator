@@ -86,14 +86,7 @@ airzones_summary <- read_rds("data/datasets/az_ambient.rds") %>%
 setdiff(names(airzones_old), names(airzones_summary))
 setdiff(names(airzones_summary), names(airzones_old))
 
-bind_rows(az_ambient_old, az_ambient) %>%
-  arrange(caaqs_year) %>% 
+bind_rows(airzones_old, airzones_summary) %>%
+  arrange(caaqs_year, airzone) %>% 
   write_csv("out/databc/pm25_airzone_summary.csv", na = "")
-
-
-
-
-bind_rows(az_mgmt_old, az_mgmt) %>%
-  arrange(caaqs_year)%>% 
-  write_csv("out/databc/pm25_airzone_management_summary.csv", na = "")
 

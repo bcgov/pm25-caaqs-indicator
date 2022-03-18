@@ -72,8 +72,9 @@ print_summary <- stations_sf %>%
 
 # Spatial files for leaflet maps ---------------------------------------
 
-# Airzones by Management CAAQS
-# - Arranged by worst Management level, but includes Management values for both metrics
+# Airzones by Management CAAQS (required with more than one metric)
+# - Arranged by worst Management level, 
+# - BUT includes Management values for both metrics
 v <- az_mgmt_sf %>%
   st_drop_geometry() %>%
   select("rep_stn_id", "metric", "metric_value_mgmt") %>%
