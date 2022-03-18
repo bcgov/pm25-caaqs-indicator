@@ -72,8 +72,7 @@ print_summary <- stations_sf %>%
 
 # Spatial files for leaflet maps ---------------------------------------
 
-v <- stations_sf %>%
-  st_drop_geometry() %>%
+v <- pm25_results %>%
   select("site", "metric", "metric_value_mgmt") %>%
   mutate(name = paste0("metric_value_mgmt_", str_remove(metric, "pm2.5_"))) %>%
   select(-metric) %>%
