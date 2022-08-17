@@ -58,8 +58,6 @@ az_mgmt_sf <- az_mgmt %>%
          caaqs_ambient = replace_na(caaqs_ambient, levels(caaqs_ambient)[1]),
          caaqs_ambient_no_tfees = replace_na(caaqs_ambient_no_tfees, 
                                              levels(caaqs_ambient)[1])) 
-# Line 60 was throwing an error for me -  levels weren't assigned for caaqs_ambient_no_tfees
-# I think this works as it is the same labels
 
 stations_sf <- pm25_results %>% 
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -74,31 +72,25 @@ print_summary <- stations_sf %>%
 
 # Spatial files for leaflet maps ---------------------------------------
 
-# Airzones by Management CAAQS
-# - Arranged by worst Management level, but includes Management values for both metrics
-v <- az_mgmt_sf %>%
-  st_drop_geometry() %>%
-  select("rep_stn_id", "metric", "metric_value_mgmt") %>%
-  drop_na(rep_stn_id) %>%
+v <- pm25_results %>%
+  select("site", "metric", "metric_value_mgmt") %>%
   mutate(name = paste0("metric_value_mgmt_", str_remove(metric, "pm2.5_"))) %>%
   select(-metric) %>%
   pivot_wider(names_from = name, values_from = metric_value_mgmt)
 
+# Airzones by Management CAAQS
+# - Arranged by worst Management level, 
+# - BUT includes Management values for both metrics for the Representative station
 leaf_az_mgmt <- az_mgmt_sf %>%
   select(airzone, caaqs_ambient, caaqs_ambient_no_tfees, 
          mgmt_level, rep_stn_id, n_years, geometry) %>%
   group_by(airzone) %>% 
   slice_max(mgmt_level, with_ties = FALSE) %>%
-  left_join(v, by = "rep_stn_id")
+  left_join(v, by = c("rep_stn_id" = "site"))
   
 # Stations by management CAAQS
-# - Arranged by worst CAAQS management, but include mgmt values for both metrics
-v <- pm25_results %>%
-  select("site", "metric",  "metric_value_mgmt") %>%
-  mutate(name = paste0("metric_value_mgmt_", str_remove(metric, "pm2.5_"))) %>%
-  select(-metric) %>%
-  pivot_wider(names_from = name, values_from = metric_value_mgmt)
-
+# - Arranged by worst CAAQS management, 
+# - BUT include Management values for both metrics 
 leaf_stations_mgmt <- stations_sf %>%
   select(airzone, site, mgmt_level, n_years) %>%
   group_by(site) %>% 
