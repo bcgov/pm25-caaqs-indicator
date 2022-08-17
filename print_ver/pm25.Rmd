@@ -6,8 +6,8 @@ header-includes:
 - \usepackage{siunitx}
 - \sisetup{detect-all,per-mode=symbol}
 output:
-  envreportutils.internal::print_ver: default
   pdf_document: default
+  envreportutils.internal::print_ver: default
 ---
 
 <!--
@@ -205,16 +205,11 @@ sufficient data was available for the `r year_range` reporting period.
 plots[["achievement_map_24h"]]
 ```
 
-
-\newpage
-
 # Status of Annual PM~2.5~ Levels in B.C. Air Zones (`r year_range`)
 
 ```{r achievement_map_annual, fig.height=8}
 plots[["achievement_map_annual"]]
 ```
-
-\newpage
 
 # PM~2.5~ Metrics for Air Monitoring Stations within B.C. Air Zones (`r year_range`)
 
