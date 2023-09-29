@@ -51,20 +51,21 @@ az <- airzones() %>%
 # - subset to those stations analysed
 
 stations_clean <- stations %>%
-
+  filter(!is.na(lat)) %>%
   # Look for problems
   assert(within_bounds(-90, 90), lat) %>%
   assert(within_bounds(-180, 180), lon) %>%
-
+  
   # Use airzones from bcmaps
-  select(-airzone) %>%
+  select(-airzone) %>% 
   assign_airzone(airzones = az, 
                  station_id = "site", 
-                 coords = c("lon", "lat")) %>%
+                 coords = c("lon", "lat"))  %>% 
+  filter(!is.na(airzone)) %>%
   assert(not_na, airzone) %>%
   
   # Only keep stations for pm25
-  filter(pm25) %>%
+  filter(pm25) %>% 
   select(site, region, airzone, lat, lon)
 
 # Check distances -------------------
@@ -105,14 +106,15 @@ if(FALSE) {
 
 ## Overall clean -------------
 pm25_clean <- pm25 %>% 
-
-  # Format dates, only keep dates in range
-  mutate(date_time = format_caaqs_dt(date_time), 
-         year = year(date_time)) %>% 
-  filter(year <= rep_year) %>% 
+  #added to prep for format_caaqs_dt
   
-  # Clean negative values
-  mutate(value = clean_neg(value, type = "pm25")) %>% 
+  # Format dates, only keep dates in range
+  # mutate(date_time = format_caaqs_dt(date_time), 
+  mutate(year = year(date_time)) %>% 
+  filter(year <= rep_year) %>% 
+
+# Clean negative values
+mutate(value = clean_neg(value, type = "pm25")) %>% 
   
   # Omit NAs at at start/end of a site/instrument range
   nest(data = -c(site, instrument)) %>%
@@ -128,10 +130,11 @@ pm25_clean <- pm25 %>%
   
   # Categorize instrument types
   mutate(instrument_type = 
-           case_when(str_detect(instrument, "TEOM") ~ "TEOM",
-                     str_detect(instrument, "SHARP|BAM") ~ "FEM", 
-                     is.na(instrument) ~ NA_character_,
-                     TRUE ~ "Unknown")) %>% 
+           case_when( str_detect(instrument, "SHARP|BAM|T640") ~ "FEM", 
+                      str_detect(instrument, "TEOM") ~ "non-FEM",
+                      
+                      is.na(instrument) ~ NA_character_,
+                      TRUE ~ "Unknown")) %>% 
   assert(not_na, instrument_type) %>%
   
   # Clean up
@@ -211,13 +214,29 @@ deps_ovlp <- pm25_clean %>%
   mutate(overlap = max(min_date) <= min(max_date)) %>%
   # Only care when they overlap in dates
   filter(overlap)
-  
+
+#check and remove duplicates if necessary
+print(paste(nrow(devs_ovlp)))
+
 # Harmac Cedar Woobank instrument BAM1020_2 has only one day of operation 
 # (2014-08-01) and it overlaps with the first day of BAM1020
 # Let's omit it
 
-pm25_clean <- filter(pm25_clean, !(site == "Harmac Cedar Woobank" &
-                                     instrument == "BAM1020_2"))
+#for the overlaps, remove the T640
+pm25_clean <- filter(pm25_clean, !((site == "Harmac Cedar Woobank" &
+                                     instrument == "BAM1020_2") |
+                                     (site == 'Courtenay Elementary School' &
+                                        instrument == 'PM25_T640') |
+                                     (site == 'Houston Firehall' &
+                                        instrument == 'PM25_T640') |
+                                     (site == 'Langdale Elementary' &
+                                        instrument == 'PM25_T640') |
+                                     (site == 'Victoria Topaz' &
+                                        instrument == 'PM25_T640') 
+                                   
+                                   )
+                     
+                     )
 
 
 ## Check timeseries problems -----------------------
@@ -230,8 +249,10 @@ t <- pm25_clean %>%
          n_expect = map_dbl(ts, ~as.numeric(difftime(max(.$date_time), 
                                                      min(.$date_time), 
                                                      units = "hours")))) %>%
+  # View()
   filter(n_expect != n - 1, 
          n_distinct != n) %>%
+  
   verify(nrow(.) == 0)
 
 # None!

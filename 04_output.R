@@ -245,3 +245,4 @@ filter(leaf_stations_mgmt) %>%
 filter(leaf_az_mgmt) %>%
   st_transform(4326) %>% 
   st_write("out/pm_airzones_mgmt.geojson", delete_dsn = TRUE)
+

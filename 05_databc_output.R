@@ -67,18 +67,21 @@ az_ambient_old <- bcdc_get_data(
   #  - caaqs / caaqs_ambient
   #  - rep_stn_name / station_name_ambient
   #  - rep_stn_id / rep_stn_id_ambient
-  mutate(n_years_ambient = coalesce(n_years, n_years_ambient),
-         metric_value_ambient = coalesce(metric_value, metric_value_ambient),
-         caaqs_ambient = coalesce(caaqs, caaqs_ambient),
-         rep_stn_name_ambient = coalesce(rep_stn_name, station_name_ambient),
-         rep_stn_id_ambient = coalesce(rep_stn_id, rep_stn_id_ambient)) %>%
+
+  # - Update 2023: removed n_years_ambient from coalesce
+
+  mutate(n_years_ambient = coalesce(n_years),
+         metric_value_ambient = coalesce(metric_value),
+         caaqs_ambient = coalesce(caaqs),
+         rep_stn_name_ambient = coalesce(rep_stn_name),
+         rep_stn_id_ambient = coalesce(rep_stn_id)) %>%
   select(airzone, caaqs_year, metric, 
          n_years_ambient, metric_value_ambient, caaqs_ambient, 
          rep_stn_id_ambient, rep_stn_name_ambient)
 
 az_mgmt_old <- bcdc_get_data('699be99e-a9ba-403e-b0fe-3d13f84f45ab', 
                              resource = '700a7155-0b68-4e5a-bbe0-11d4b844ec57') %>%
-  rename("metric" = "rep_metric") %>%
+  # rename("metric" = "rep_metric") %>%
   rename_with(~paste0(., "_mgmt"),
               .cols = -c("airzone", "caaqs_year", "mgmt_level", "metric")) %>%
   mutate(n_years_mgmt = NA, excluded = NA)

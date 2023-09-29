@@ -30,7 +30,7 @@ dir.create("out", showWarnings = FALSE)
 dir.create("leaflet_map/station_plots/", showWarnings = FALSE, recursive = TRUE)
 dir.create("out/databc", showWarnings = FALSE)
 
-rep_year <- 2020
+rep_year <- 2021
 
 
 # Functions ----------------------------
