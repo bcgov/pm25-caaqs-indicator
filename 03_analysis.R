@@ -38,17 +38,49 @@ tfee_dates <- pm25_clean %>%
 
 # Calculate CAAQs --------------------------------------
 
-# PM25 24 Hour
+# - updated with data capture updates for TFEE (2023-09-29)
+# - data capture requirements are applied after TFEE adjustments
+
+# PM25 24 Hour CAAQS 
 pm25_24h_caaqs <- pm_24h_caaqs(pm25_clean, by = c("site", "instrument_type"))
+pm25_24h_caaqs_tfee <- pm_24h_caaqs(filter(pm25_clean,!flag_tfee), by = c("site", "instrument_type"))
+
 pm25_24h_mgmt <- caaqs_management(pm25_24h_caaqs, 
+                                       exclude_df = tfee_dates, 
+                                       exclude_df_dt = "date")
+pm25_24h_mgmt_tfee <- caaqs_management(pm25_24h_caaqs_tfee, 
                                   exclude_df = tfee_dates, 
                                   exclude_df_dt = "date")
-
-# PM25 Annual
+# PM25 Annual CAAQS
 pm25_annual_caaqs <- pm_annual_caaqs(pm25_clean, by = c("site", "instrument_type"))
+pm25_annual_caaqs_tfee <- pm_annual_caaqs(filter(pm25_clean,!flag_tfee), by = c("site", "instrument_type"))
+
 pm25_annual_mgmt <- caaqs_management(pm25_annual_caaqs, 
                                      exclude_df = tfee_dates, 
                                      exclude_df_dt = "date")
+pm25_annual_mgmt_tfee <- caaqs_management(pm25_annual_caaqs_tfee, 
+                                     exclude_df = tfee_dates, 
+                                     exclude_df_dt = "date")
+
+# UPDATE 2023
+
+# -merge data for tfee and non-tfee calculations 
+# -to correct for data capture requirements after TFEE adjustment
+# -use data capture requirements from tfee-derived data
+df_fill_24h <- pm25_24h_mgmt_tfee$caaqs %>%
+  select(site,instrument_type,caaqs_year,metric,metric_value_mgmt,mgmt_level)
+df_fill_annual <- pm25_annual_mgmt_tfee$caaqs %>%
+  select(site,instrument_type,caaqs_year,metric,metric_value_mgmt,mgmt_level)
+
+pm25_24h_mgmt$caaqs <- pm25_24h_mgmt$caaqs %>%
+  select(-metric_value_mgmt,-mgmt_level) %>%
+  left_join(df_fill_24h, by = c('site','instrument_type','caaqs_year','metric'))
+
+pm25_annual_mgmt$caaqs <- pm25_annual_mgmt$caaqs %>%
+  select(-metric_value_mgmt,-mgmt_level) %>%
+  left_join(df_fill_annual, by = c('site','instrument_type','caaqs_year','metric'))
+
+
 
 # Station results -----------------------------------------
 # Combine and filter
@@ -56,8 +88,11 @@ pm25_results <- bind_rows(get_caaqs(pm25_24h_mgmt),
                           get_caaqs(pm25_annual_mgmt)) %>%
   filter(caaqs_year == .env$rep_year, n_years > 1) %>% 
   left_join(stations_clean, by = "site") %>% 
+  ungroup() %>%
+  distinct() %>%
   # Ensure only 1 analysis per site
   add_count(site, metric) %>%
+  
   assert(in_set(1), n) %>%
   # Clean up
   select(airzone, site, region, lat, lon, everything(), -n)

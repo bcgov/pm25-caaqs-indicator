@@ -49,7 +49,10 @@ az <- airzones() %>%
 az_ambient_sf <- az_ambient %>% 
   complete(airzone = az$airzone, metric) %>% # Ensure ALL airzones
   left_join(az, ., by = "airzone") %>% 
+  filter(!is.na(caaqs_ambient )) %>%
   mutate(caaqs_ambient = replace_na(caaqs_ambient, levels(caaqs_ambient)[1]))
+
+
 
 az_mgmt_sf <- az_mgmt %>%
   complete(airzone = az$airzone, caaqs_year) %>% # Ensure ALL airzones

@@ -36,10 +36,22 @@ options("rcaaqs.timezone" = "Etc/GMT+8")
 # Load Data ---------------------------------
 stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %>%
   clean_names() %>%
-  rename(lon = long)
+  rename(lon = long) %>%
+  group_by(site) %>%
+  slice(1) %>%
+  ungroup()
+
+#list stations to remove
+#stations rhar are not AQMS
+lst_remove <- stations %>%
+  select(site,aqms) %>%
+  filter(aqms == 'N') %>%
+  pull(site) %>% unique()
+
 
 pm25 <- read_rds("data/raw/pm25_caaqs.Rds") %>%
-  as_tibble()
+  as_tibble() %>%
+  filter(!site %in% lst_remove)
 
 az <- airzones() %>% 
   st_make_valid() # fixes invalid geometry error in assign_airzones function below
@@ -266,3 +278,4 @@ stations_clean <- semi_join(stations_clean, pm25_clean, by = "site")
 # Write data ------------------------------
 write_rds(stations_clean, "data/datasets/stations_clean.rds")
 write_rds(pm25_clean, "data/datasets/pm25_clean.rds", compress = "gz")
+
