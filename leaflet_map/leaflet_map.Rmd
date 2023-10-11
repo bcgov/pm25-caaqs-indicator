@@ -10,7 +10,14 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Allows Rmd file to be run interactively and knit 
 # without having to change the relative file locations all the time
-library("here") 
+
+# inline package installation added to bug where package is not found
+
+# install.packages('here', repos='http://cran.us.r-project.org')
+# install.packages('geojsonio', repos='http://cran.us.r-project.org')
+
+
+library("here")
 
 # Tidyverse
 library("dplyr")
@@ -29,7 +36,7 @@ library("envreportutils")
 library("rcaaqs")
 
 # Get css
-css_caaqs_copy(folder = here("leaflet_map/"), overwrite = TRUE)
+css_caaqs_copy(folder = here::here("leaflet_map/"), overwrite = TRUE)
 
 # Assign labels, colours, and cutoffs using rcaaqs ----------------------------
 
@@ -147,7 +154,6 @@ ppo <- popupOptions(autoPanPaddingTopLeft = c(10, 10),
                     closeOnEscapeKey = TRUE, 
                     keepInView = TRUE)
 ```
-
 
 ```{r, warning=FALSE}
 leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)) %>% 
