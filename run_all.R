@@ -30,7 +30,6 @@ rmarkdown::render("print_ver/pm25.Rmd", output_file = outfile)
 ###############################################################################################
 ## copy files to web dev folder
 air_indicators_path <- "~/soe_wwwd/indicators/air"
-air_indicators_path <- '//question.bcgov/envwwwd/soe/indicators/air'
 air_viz_path <- file.path(air_indicators_path, "pm25_viz/")
 dir.create(air_viz_path, showWarnings = FALSE)
 air_indicators_station_plots <- file.path(air_viz_path, "station_plots/")
