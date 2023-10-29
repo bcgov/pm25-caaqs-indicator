@@ -81,6 +81,34 @@ add_caaqs_historic <- function(g, metric) {
     left_join(select(rcaaqs::management_levels, labels, colour) %>% distinct(), 
               by = "labels")
   
+  #' #added to customized legend order and labels
+  mgmt_breaks <- c(
+    'Insufficient Data', 
+    'Actions for Achieving Air Zone CAAQS' ,
+    'Actions for Preventing CAAQS Exceedance',
+    'Actions for Preventing Air Quality Deterioration',
+    'Actions for Keeping Clean Areas Clean',
+    "No Adjustment",  
+    "TF/EE Adjusted"
+  )
+  mgmt_labels <- c(
+    'Insufficient Data', 
+    'Actions for Achieving Air Zone CAAQS' ,
+    'Actions for Preventing CAAQS Exceedance',
+    'Actions for Preventing Air Quality Deterioration',
+    'Actions for Keeping Clean Areas Clean',
+    "No Adjustment",  
+    "TF/EE Adjusted"
+  )
+  mgmt_values <- c('Insufficient Data' = '#dbdbdb',
+                   'Actions for Preventing Air Quality Deterioration' = '#FEE08B',
+                   'Actions for Keeping Clean Areas Clean' = '#A6D96A',
+                   'Actions for Preventing CAAQS Exceedance' = '#F46D43',
+                   'Actions for Achieving Air Zone CAAQS' = '#A50026',
+                   "No Adjustment" = "#b4acb3", 
+                   "TF/EE Adjusted" = "#8f94a6")
+  
+  
   years <- select(g$data, caaqs_year) %>%
     distinct() %>%
     nrow() 
@@ -117,6 +145,9 @@ add_caaqs_historic <- function(g, metric) {
   g +
     geom_line(data = line_df, aes(x = x, y = y, colour = "CAAQS Achievement"), 
               inherit.aes = FALSE, linetype = "dashed", size = 1) +
+    scale_fill_manual(breaks = mgmt_breaks,
+                      labels = mgmt_labels,
+                      values = mgmt_values) +
     scale_colour_manual(values = last(hist_caaqs$colour))
 }
 

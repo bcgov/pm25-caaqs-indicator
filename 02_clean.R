@@ -36,6 +36,7 @@ options("rcaaqs.timezone" = "Etc/GMT+8")
 # Load Data ---------------------------------
 stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %>%
   clean_names() %>%
+  mutate(site = gsub('#','',site)) %>%
   rename(lon = long) %>%
   group_by(site) %>%
   slice(1) %>%
@@ -50,6 +51,7 @@ lst_remove <- stations %>%
 
 
 pm25 <- read_rds("data/raw/pm25_caaqs.Rds") %>%
+  filter(!is.na(value)) %>%
   as_tibble() %>%
   filter(!site %in% lst_remove)
 
@@ -228,7 +230,7 @@ deps_ovlp <- pm25_clean %>%
   filter(overlap)
 
 #check and remove duplicates if necessary
-print(paste(nrow(devs_ovlp)))
+# print(paste(nrow(deps_ovlp)))
 
 # Harmac Cedar Woobank instrument BAM1020_2 has only one day of operation 
 # (2014-08-01) and it overlaps with the first day of BAM1020
@@ -254,6 +256,13 @@ pm25_clean <- filter(pm25_clean, !((site == "Harmac Cedar Woobank" &
 ## Check timeseries problems -----------------------
 # - Check for missing/extra observations
 
+# -display duplicates
+# pm25_clean %>%
+#   group_by(site,instrument_type,date_time) %>%
+#   dplyr::mutate(count =n()) %>%
+#   filter(count >1) %>%
+#   View()
+
 t <- pm25_clean %>%
   nest(ts = c(-site, -instrument_type)) %>%
   mutate(n_distinct = map_int(ts, ~n_distinct(.$date_time)),
@@ -261,7 +270,7 @@ t <- pm25_clean %>%
          n_expect = map_dbl(ts, ~as.numeric(difftime(max(.$date_time), 
                                                      min(.$date_time), 
                                                      units = "hours")))) %>%
-  # View()
+  
   filter(n_expect != n - 1, 
          n_distinct != n) %>%
   
