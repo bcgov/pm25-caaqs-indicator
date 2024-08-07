@@ -38,6 +38,8 @@ library("rcaaqs")
 # Get css
 css_caaqs_copy(folder = here::here("leaflet_map/"), overwrite = TRUE)
 
+here()
+
 # Assign labels, colours, and cutoffs using rcaaqs ----------------------------
 
 # Ambient labels
@@ -52,7 +54,7 @@ labels_mgmt <- management_levels %>%
   filter(str_detect(parameter, "pm2.5")) %>%
   select(labels, colour, colour_text, units_html) %>%
   distinct() %>%
-  mutate(icons = paste0("assets/marker_", colour_text, ".svg"),
+  mutate(icons = paste0("leaflet_map/assets/marker_", colour_text, ".svg"),
          text_colour = c("white", "black", "black", "white", "white"))
 
 
@@ -79,12 +81,18 @@ stations <- read_sf(here("out/pm_stations_mgmt.geojson")) %>%
     metrics = c("24h", "annual"), 
     metric_names = c("24-hr Metric", "Annual Metric"),
     units = units_html[1],
+    plot_loc = "./leaflet_map/station_plots",
     airzone = "airzone", 
     station_name = "site", 
     station_id = "site", 
     value1 = "metric_value_mgmt_24h", 
     value2 = "metric_value_mgmt_annual",
-    level1 = "mgmt_level"))
+    level1 = "mgmt_level")) 
+
+# write_csv(stations, "stations.csv")
+#   
+# stations$popup <- str_replace(stations$popup, "./station_plots//", paste0("station_plots/", stations$popup, ".png"))
+#/tmp/pm25-caaqs-indicator/leaflet_map/station_plots//
 
 ## Count stations
 stns_n <- stations %>%
@@ -118,6 +126,7 @@ az <- st_read(here("./out/pm_airzones_mgmt.geojson")) %>%
     metrics = c("24h", "annual"), 
     metric_names = c("24-hour Metric", "Annual Metric"),
     units = units_html[1],
+    plot_loc = "./leaflet_map/station_plots",
     airzone = "airzone", 
     station_name = "rep_stn_id", 
     station_id = "rep_stn_id", 
@@ -127,7 +136,9 @@ az <- st_read(here("./out/pm_airzones_mgmt.geojson")) %>%
     level2 = "caaqs_ambient_no_tfees"),
     # Where insufficient data, keep the tool tip but omit the popup
     popup = if_else(caaqs_ambient == "Insufficient Data", 
-                    list(NA_character_), popup))
+                    list(NA_character_), popup)) 
+
+#az$popup <- gsub("./station_plots//","C:/tmp/pm25-caaqs-indicator/leaflet_map/station_plots//", az$popup)
   
 
 # Start splitting metrics ----------------------
@@ -140,11 +151,13 @@ pal_az <- colorFactor(palette = labels_mgmt$colour,
 
 # Create icons
 icon_size <- 30
+
+
 markers <- icons( # file locations have to be relative (can't use here())
   iconUrl = stations$icons,
   iconWidth = icon_size, iconHeight = icon_size,
   iconAnchorX = icon_size/2, iconAnchorY = icon_size,
-  shadowUrl = "assets/marker_shadow.svg",
+  shadowUrl = "leaflet_map/assets/marker_shadow.svg",
   shadowWidth = icon_size * 0.75, shadowHeight = icon_size * 0.75,
   shadowAnchorX = 1, shadowAnchorY = icon_size * 0.75)
 
@@ -158,7 +171,7 @@ ppo <- popupOptions(autoPanPaddingTopLeft = c(10, 10),
 ```{r, warning=FALSE}
 leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)) %>% 
   addProviderTiles(providers$CartoDB) %>%
-  add_bc_home_button() %>%
+  #add_bc_home_button() %>%
   # Re-centre map on popup close
   set_bc_view_on_close() %>%
   
@@ -172,10 +185,10 @@ leaflet(width = "900px", height = "700px", options = leafletOptions(minZoom = 5)
   
   # Add station markers
   addMarkers(data = stations,
-             icon = markers, label = ~site, 
+             icon = markers, label = ~site,
              popup = ~popup,
              # Stick to marker, not mouse
-             labelOptions = labelOptions(sticky = FALSE, 
+             labelOptions = labelOptions(sticky = FALSE,
                                          offset = c(0, -icon_size/2))) %>%
   
   # Legend

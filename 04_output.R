@@ -125,7 +125,7 @@ for(s in sites) {
   g2 <- add_caaqs_historic(g2, metric = "pm2.5_annual")
   
   ggsave(paste0("leaflet_map/station_plots/", s, "_24h.svg"), g1, 
-         width = 778, height = 254, dpi = 72, units = "px", bg = "white")
+         width = 778, height = 254, dpi = 72, units = "px", bg = "white") 
   
   ggsave(paste0("leaflet_map/station_plots/", s, "_annual.svg"), g2, 
          width = 778, height = 254, dpi = 72, units = "px", bg = "white")
@@ -135,6 +135,7 @@ for(s in sites) {
   stn_plots[[s]][["annual"]] <- g2
 }
 
+#remove_filename_spaces(dir = "leaflet_map/station_plots/", pattern = " ", replacement = "")
 
 # Summary plot -------------------------------------------------------------
 # - For print version
@@ -178,7 +179,7 @@ labels_df <-  data.frame(
                    "Central\nInterior", "Southern\nInterior", 
                    "Georgia Strait", "Lower Fraser Valley"))
 
-g <- ggplot(az_mgmt_sf) +   
+g <- ggplot(az_mgmt_sf) +  
   geom_sf(aes(fill = mgmt_level), colour = "white") + 
   coord_sf(datum = NA) + 
   theme_minimal() + 
