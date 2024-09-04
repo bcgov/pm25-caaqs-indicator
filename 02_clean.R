@@ -43,7 +43,7 @@ stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %
   ungroup()
 
 #list stations to remove
-#stations rhar are not AQMS
+#stations that are not AQMS
 lst_remove <- stations %>%
   select(site,aqms) %>%
   filter(aqms == 'N') %>%
@@ -79,7 +79,7 @@ stations_clean <- stations %>%
   assert(not_na, airzone) %>%
   
   # Only keep stations for pm25
-  filter(pm25) %>% 
+  # filter(pm25) %>% 
   select(site, region, airzone, lat, lon)
 
 # Check distances -------------------

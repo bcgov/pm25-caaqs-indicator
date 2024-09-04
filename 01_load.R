@@ -26,6 +26,8 @@ library("curl")
 # FTP URL
 ftp <- "ftp://ftp.env.gov.bc.ca/pub/outgoing/AIR/CAAQS/data/"
 
+
+
 # See File list
 curl(url = ftp) %>% read_lines()
 curl(url = file.path(ftp, "!Readme.txt")) %>% read_lines()

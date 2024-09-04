@@ -38,19 +38,22 @@ tfee_dates <- pm25_clean %>%
 
 # Calculate CAAQs --------------------------------------
 
-# - updated with data capture updates for TFEE (2023-09-29)
-# - data capture requirements are applied after TFEE adjustments
 
 # PM25 24 Hour CAAQS 
 pm25_24h_caaqs <- pm_24h_caaqs(pm25_clean, by = c("site", "instrument_type"))
 pm25_24h_caaqs_tfee <- pm_24h_caaqs(filter(pm25_clean,!flag_tfee), by = c("site", "instrument_type"))
 
+
+
 pm25_24h_mgmt <- caaqs_management(pm25_24h_caaqs, 
                                        exclude_df = tfee_dates, 
                                        exclude_df_dt = "date")
-pm25_24h_mgmt_tfee <- caaqs_management(pm25_24h_caaqs_tfee, 
-                                  exclude_df = tfee_dates, 
-                                  exclude_df_dt = "date")
+
+pm25_24h_mgmt_tfee <- pm25_24h_mgmt
+# pm25_24h_mgmt_tfee <- caaqs_management(pm25_24h_caaqs_tfee, 
+#                                   exclude_df = tfee_dates, 
+#                                   exclude_df_dt = "date")
+
 # PM25 Annual CAAQS
 pm25_annual_caaqs <- pm_annual_caaqs(pm25_clean, by = c("site", "instrument_type"))
 pm25_annual_caaqs_tfee <- pm_annual_caaqs(filter(pm25_clean,!flag_tfee), by = c("site", "instrument_type"))
@@ -58,15 +61,12 @@ pm25_annual_caaqs_tfee <- pm_annual_caaqs(filter(pm25_clean,!flag_tfee), by = c(
 pm25_annual_mgmt <- caaqs_management(pm25_annual_caaqs, 
                                      exclude_df = tfee_dates, 
                                      exclude_df_dt = "date")
-pm25_annual_mgmt_tfee <- caaqs_management(pm25_annual_caaqs_tfee, 
-                                     exclude_df = tfee_dates, 
-                                     exclude_df_dt = "date")
+pm25_annual_mgmt_tfee <- pm25_annual_mgmt
+# pm25_annual_mgmt_tfee <- caaqs_management(pm25_annual_caaqs_tfee, 
+#                                      exclude_df = tfee_dates, 
+#                                      exclude_df_dt = "date")
 
-# UPDATE 2023
 
-# -merge data for tfee and non-tfee calculations 
-# -to correct for data capture requirements after TFEE adjustment
-# -use data capture requirements from tfee-derived data
 df_fill_24h <- pm25_24h_mgmt_tfee$caaqs %>%
   select(site,instrument_type,caaqs_year,metric,metric_value_mgmt,mgmt_level)
 df_fill_annual <- pm25_annual_mgmt_tfee$caaqs %>%
@@ -146,6 +146,59 @@ print_tfee <- get_daily(pm25_24h_caaqs) %>%
             tfee_occurred_in_months = paste0(sort(unique(month(date))), collapse = ", "),
             across(starts_with("n_tfee_days_"), .fns = ~na.omit(unique(.))))
 
+# -new condition to assign insufficient data for stations with the following conditions
+    # -  CAAQS not achieved (before TFEE)
+    # -  after TFEE, meet CAAQS, mgmt level not read
+    # -  only two of three years available
+    # -  one of those two years have insufficient annual data
+    # -  site was previously under red management level
+
+pm25_unclassified <- pm25_24h_mgmt$caaqs %>%
+  arrange(site,instrument_type ,caaqs_year) %>%
+  group_by(site,instrument_type ) %>%
+  mutate(flag_yearly_incomplete_1 = lag(flag_yearly_incomplete),
+         flag_yearly_incomplete_2 = lag(flag_yearly_incomplete,n=2)) %>%
+  # colnames()
+  filter(mgmt_level != 'Actions for Achieving Air Zone CAAQS',caaqs_ambient == 'Not Achieved',flag_two_of_three_years) %>%
+  filter(flag_yearly_incomplete_1|flag_yearly_incomplete_2|flag_yearly_incomplete) %>%
+  select(-flag_yearly_incomplete_1,-flag_yearly_incomplete_2)
+
+# -unclassifiable stations should have insufficient data
+pm25_unclassified %>%
+  colnames()
+pm25_unclassified$metric_value_mgmt <- NA
+pm25_unclassified$mgmt_level <- levels(pm25_unclassified$mgmt_level[[1]])[1]
+
+# -udate value from pm25_results
+pm25_results_unclassified <- pm25_results %>%
+  inner_join(pm25_unclassified %>% select(site,instrument_type,caaqs_year,metric), 
+             by = c('site','instrument_type','caaqs_year','metric'))
+
+pm25_results_unclassified$metric_value_mgmt <- NA
+pm25_results_unclassified$mgmt_level <-  levels(pm25_results_unclassified$mgmt_level[[1]])[1]
+
+pm25_results <- pm25_results %>%
+  anti_join(pm25_unclassified %>% select(site,instrument_type,caaqs_year,metric), 
+            by = c('site','instrument_type','caaqs_year','metric')) %>%
+  bind_rows(pm25_results_unclassified)
+
+# -update value from pm25_24h
+
+pm25_24h_mgmt_unclassified <- pm25_24h_mgmt$caaqs %>%
+  inner_join(pm25_results_unclassified %>% select(site,instrument_type,caaqs_year,metric),
+             by = c('site','instrument_type','caaqs_year','metric'))
+
+pm25_24h_mgmt_unclassified %>%
+  colnames()
+pm25_24h_mgmt_unclassified$metric_value_mgmt <- NA
+pm25_24h_mgmt_unclassified$mgmt_level <- levels(pm25_24h_mgmt_unclassified$mgmt_level[[1]])[1]
+
+pm25_24h_mgmt$caaqs <- pm25_24h_mgmt$caaqs %>%
+  anti_join(pm25_results_unclassified %>% select(site,instrument_type,caaqs_year,metric),
+             by = c('site','instrument_type','caaqs_year','metric')) %>%
+  bind_rows(pm25_24h_mgmt_unclassified)
+
+# -save data
 write_rds(pm25_results, "data/datasets/pm25_results.rds")
 write_rds(az_ambient, "data/datasets/az_ambient.rds")
 write_rds(az_mgmt, "data/datasets/az_mgmt.rds")
