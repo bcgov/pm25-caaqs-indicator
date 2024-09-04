@@ -164,18 +164,26 @@ pm25_unclassified <- pm25_24h_mgmt$caaqs %>%
   select(-flag_yearly_incomplete_1,-flag_yearly_incomplete_2)
 
 # -unclassifiable stations should have insufficient data
+
+# -define levels for mgmgt levels
+lvl_mgmt <- levels(pm25_results$mgmt_level)
+
+
 pm25_unclassified %>%
   colnames()
 pm25_unclassified$metric_value_mgmt <- NA
-pm25_unclassified$mgmt_level <- levels(pm25_unclassified$mgmt_level[[1]])[1]
+pm25_unclassified$mgmt_level <- factor(lvl_mgmt[[1]],levels = lvl_mgmt,ordered = TRUE)
 
-# -udate value from pm25_results
+# -update value from pm25_results
+
+
 pm25_results_unclassified <- pm25_results %>%
   inner_join(pm25_unclassified %>% select(site,instrument_type,caaqs_year,metric), 
              by = c('site','instrument_type','caaqs_year','metric'))
 
+
 pm25_results_unclassified$metric_value_mgmt <- NA
-pm25_results_unclassified$mgmt_level <-  levels(pm25_results_unclassified$mgmt_level[[1]])[1]
+pm25_results_unclassified$mgmt_level <-  factor(lvl_mgmt[[1]],levels = lvl_mgmt,ordered = TRUE)
 
 pm25_results <- pm25_results %>%
   anti_join(pm25_unclassified %>% select(site,instrument_type,caaqs_year,metric), 
@@ -191,7 +199,7 @@ pm25_24h_mgmt_unclassified <- pm25_24h_mgmt$caaqs %>%
 pm25_24h_mgmt_unclassified %>%
   colnames()
 pm25_24h_mgmt_unclassified$metric_value_mgmt <- NA
-pm25_24h_mgmt_unclassified$mgmt_level <- levels(pm25_24h_mgmt_unclassified$mgmt_level[[1]])[1]
+pm25_24h_mgmt_unclassified$mgmt_level <- factor(lvl_mgmt[[1]],levels = lvl_mgmt,ordered = TRUE)
 
 pm25_24h_mgmt$caaqs <- pm25_24h_mgmt$caaqs %>%
   anti_join(pm25_results_unclassified %>% select(site,instrument_type,caaqs_year,metric),

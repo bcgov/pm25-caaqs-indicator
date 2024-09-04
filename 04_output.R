@@ -96,6 +96,7 @@ leaf_az_mgmt <- az_mgmt_sf %>%
 # - BUT include Management values for both metrics 
 leaf_stations_mgmt <- stations_sf %>%
   select(airzone, site, mgmt_level, n_years) %>%
+  
   group_by(site) %>% 
   slice_max(mgmt_level, with_ties = FALSE) %>%
   ungroup() %>%
