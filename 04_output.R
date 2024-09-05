@@ -49,7 +49,7 @@ az <- airzones() %>%
 az_ambient_sf <- az_ambient %>% 
   complete(airzone = az$airzone, metric) %>% # Ensure ALL airzones
   left_join(az, ., by = "airzone") %>% 
-  filter(!is.na(caaqs_ambient )) %>%
+  #filter(!is.na(caaqs_ambient )) %>%
   mutate(caaqs_ambient = replace_na(caaqs_ambient, levels(caaqs_ambient)[1]))
 
 
@@ -68,6 +68,7 @@ stations_sf <- pm25_results %>%
 
 # Numbers for print version 
 print_summary <- stations_sf %>%
+  filter(!is.na(metric_value_ambient)) |> 
   group_by(metric) %>%
   summarise(n = n(), 
             n_achieved = sum(caaqs_ambient == "Achieved", na.rm = TRUE), 
@@ -181,7 +182,7 @@ labels_df <-  data.frame(
                    "Georgia Strait", "Lower Fraser Valley"))
 
 g <- ggplot(az_mgmt_sf) +  
-  geom_sf(aes(fill = mgmt_level), colour = "white") + 
+  geom_sf(aes(fill = mgmt_level), colour = "white", show.legend = TRUE) + 
   coord_sf(datum = NA) + 
   theme_minimal() + 
   scale_fill_manual(values = colrs, 
