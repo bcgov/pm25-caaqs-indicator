@@ -1,13 +1,12 @@
 ---
-title: "Status of Fine Particulate Matter in B.C. (2018-2020)"
+title: "Status of Fine Particulate Matter in B.C. (2019-2021)"
 topic: air
 header-includes:
 - \usepackage[utf8]{inputenc}
 - \usepackage{siunitx}
 - \sisetup{detect-all,per-mode=symbol}
 output:
-  pdf_document: default
-  envreportutils.internal::print_ver: default
+  pdf_document: envreportutils.internal::print_ver
 ---
 
 <!--
@@ -27,8 +26,6 @@ specific language governing permissions and limitations under the License.
 
 ```{r setup, include = FALSE}
 
-renv::restore()
-
 knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE, 
                       warning = FALSE, error = FALSE, fig.width = 7,
                       dev = "cairo_pdf") # To get unicode in the map plots
@@ -44,6 +41,7 @@ library("ggtext")
 
 library("rcaaqs")
 library("envreportutils")
+library("envreportutils.internal")
 
 
 # Karly added: is_html, is_pdf add-ons to code chunks until we decide whether html and pdf outputs will come from the same document 
@@ -59,7 +57,7 @@ knitr_latex_char <- function(x) {
   return(y)
 }
 
-year_range <- "2018-2020"
+year_range <- "2019-2021"
 
 # Data from 04_outputs.R
 tfee <- read_rds(here("data/datasets/print_tfee.rds"))
@@ -173,11 +171,12 @@ Environment](http://www.ccme.ca).
     (`r print_summary$percent_achieved[print_summary$metric == "pm2.5_24h"]`%) 
     with sufficient data for analysis.
 -   **Fine particulate matter levels met both of the Canadian Ambient
-    Air Quality Standards in one of B.C.'s seven air zones.** The Coastal, 
-    Northeast, and Lower Fraser Valley, air zones met the
-    PM~2.5~ annual standard, while the Central Interior, Georgia Strait, and
-    Southern Interior air zones exceeded it. The Coastal air zone met the 
-    PM~2.5~ 24-hour standard, while the Northeast, Central Interior, 
+    Air Quality Standards in two of B.C.'s seven air zones.** The Coastal, 
+    Northeast, Georgia Strait, and Lower Fraser Valley air zones met the
+    PM~2.5~ annual standard, while the Central Interior and
+    Southern Interior air zones exceeded it. The Coastal 
+    and Northeast air zones met the 
+    PM~2.5~ 24-hour standard, while the Central Interior, 
     Southern Interior, Lower Fraser Valley, and Georgia
     Strait air zones exceeded it.
     Currently, there are no 
@@ -265,10 +264,9 @@ pollutants below the Canadian Ambient Air Quality Standards.
     rigorous as fine particulate matter levels approach the standard.
     Actions for each management level are detailed in the [Guidance Document on Air Zone Management (2019)
     (PDF)](https://ccme.ca/en/res/guidancedocumentonairzonemanagement_secured.pdf).
--   The Southern Interior air zone was assigned to a red management level, 
-    the Central Interior, Georgia Strait, and Lower Fraser Valley to an 
-    orange management level, and the 
-    Coastal and Northeast air zones were assigned to a yellow management level. 
+-   The Central Interior and Southern Interior air zone was assigned to a red management level, 
+    the Georgia Strait air zone to an orange management level, and the 
+    Coastal, Lower Fraser Valley, and Northeast air zones were assigned to a yellow management level. 
     There are currently no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -309,11 +307,9 @@ plots[["pm_mgmt_chart"]]
     (May-October) where the daily fine particulate matter
     concentration was determined to be influenced by smoke from
     wildfires and exceeded the 24-hour standard of 
-    \SI{`r pm_lvls[["pm2.5_24h"]]`}{\micro\gram\per\metre\cubed}. The
-    majority of wildfire influences occurred in 2018 and 2020. Those daily
+    \SI{`r pm_lvls[["pm2.5_24h"]]`}{\micro\gram\per\metre\cubed}.  Those daily
     concentrations were removed from the calculations of management
-    levels, resulting in a change from red to orange for the Central Interior
-    and Georgia Strait air zones; from red to yellow for the Northeast air zone.
+    levels, resulting in a change from red to orange for the Georgia Strait air zone and from red to yellow for the Lower Fraser Valley air zone.
 
 <!-- See the summaries calculated in the starting RMD chunk for information 
      needed to fill in the above bullet point. -->
@@ -370,13 +366,13 @@ each file, as indicated in parentheses below.
 -   [BC Air
     Zones](https://catalogue.data.gov.bc.ca/dataset/e8eeefc4-2826-47bc-8430-85703d328516) (`r get_data_license("ogl-bc")`)
 
-Published and Available On-Line at Environmental Reporting BC (April 2021):
+Published and Available On-Line at Environmental Reporting BC:
 <http://www.env.gov.bc.ca/soe/indicators/air/fine_pm.html>
 
 Email correspondence to: envreportbc@gov.bc.ca
 
 *Suggested Citation*:  
-Environmental Reporting BC. 2021. Status of Fine Particulate Matter in B.C. (`r year_range`). State of Environment Reporting, Ministry of Environment and Climate Change Strategy, British Columbia, Canada.
+Environmental Reporting BC. 2024. Status of Fine Particulate Matter in B.C. (`r year_range`). State of Environment Reporting, Ministry of Environment and Climate Change Strategy, British Columbia, Canada.
 
 # Appendix: Detailed fine particulate matter Candadian Ambient Air Quality Standard results for each monitoring station within air zones in B.C.
 

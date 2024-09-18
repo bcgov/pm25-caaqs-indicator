@@ -18,8 +18,8 @@
 # renv::init()     # - Only needs be done to get things started, no longer necessary
 # renv::update()   # - Update renv packages - best done at the start of an analysis update
 # renv::snapshot() # - As needed to keep renv packages up-to-date
-
-renv::restore()   # - When updating from GitHub etc. restore to packages in lockfile
+# test
+# renv::restore()   # - When updating from GitHub etc. restore to packages in lockfile
 
 library("magrittr")
 
@@ -30,7 +30,7 @@ dir.create("out", showWarnings = FALSE)
 dir.create("leaflet_map/station_plots/", showWarnings = FALSE, recursive = TRUE)
 dir.create("out/databc", showWarnings = FALSE)
 
-rep_year <- 2020
+rep_year <- 2021
 
 
 # Functions ----------------------------
@@ -38,7 +38,7 @@ rep_year <- 2020
 # Achievement maps - used in 04_output.R
 achievement_map <- function(az_data, stn_data, az_labs, stn_labs) {
   ggplot() + 
-    geom_sf(data = az_data, aes(fill = caaqs_ambient), colour = "white") + 
+    geom_sf(data = az_data, aes(fill = caaqs_ambient), colour = "white", show.legend = TRUE) + 
     geom_sf(data = stn_data, aes(colour = metric_value_ambient), size = 3) + 
     scale_fill_manual(
       values = get_colours(type = "achievement", drop_na = FALSE), 
@@ -81,6 +81,34 @@ add_caaqs_historic <- function(g, metric) {
     left_join(select(rcaaqs::management_levels, labels, colour) %>% distinct(), 
               by = "labels")
   
+  #' #added to customized legend order and labels
+  mgmt_breaks <- c(
+    'Insufficient Data', 
+    'Actions for Achieving Air Zone CAAQS' ,
+    'Actions for Preventing CAAQS Exceedance',
+    'Actions for Preventing Air Quality Deterioration',
+    'Actions for Keeping Clean Areas Clean',
+    "No Adjustment",  
+    "TF/EE Adjusted"
+  )
+  mgmt_labels <- c(
+    'Insufficient Data', 
+    'Actions for Achieving Air Zone CAAQS' ,
+    'Actions for Preventing CAAQS Exceedance',
+    'Actions for Preventing Air Quality Deterioration',
+    'Actions for Keeping Clean Areas Clean',
+    "No Adjustment",  
+    "TF/EE Adjusted"
+  )
+  mgmt_values <- c('Insufficient Data' = '#dbdbdb',
+                   'Actions for Preventing Air Quality Deterioration' = '#FEE08B',
+                   'Actions for Keeping Clean Areas Clean' = '#A6D96A',
+                   'Actions for Preventing CAAQS Exceedance' = '#F46D43',
+                   'Actions for Achieving Air Zone CAAQS' = '#A50026',
+                   "No Adjustment" = "#b4acb3", 
+                   "TF/EE Adjusted" = "#8f94a6")
+  
+  
   years <- select(g$data, caaqs_year) %>%
     distinct() %>%
     nrow() 
@@ -117,6 +145,9 @@ add_caaqs_historic <- function(g, metric) {
   g +
     geom_line(data = line_df, aes(x = x, y = y, colour = "CAAQS Achievement"), 
               inherit.aes = FALSE, linetype = "dashed", size = 1) +
+    scale_fill_manual(breaks = mgmt_breaks,
+                      labels = mgmt_labels,
+                      values = mgmt_values) +
     scale_colour_manual(values = last(hist_caaqs$colour))
 }
 

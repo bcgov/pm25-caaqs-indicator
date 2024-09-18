@@ -26,6 +26,8 @@ library("curl")
 # FTP URL
 ftp <- "ftp://ftp.env.gov.bc.ca/pub/outgoing/AIR/CAAQS/data/"
 
+
+
 # See File list
 curl(url = ftp) %>% read_lines()
 curl(url = file.path(ftp, "!Readme.txt")) %>% read_lines()
@@ -42,3 +44,4 @@ if(!file.exists(file_stn)) curl_download(file.path(ftp, "caaqs_stationlist.csv")
 
 # Update cached version of airzones
 airzones(ask = FALSE, force = TRUE) # Make sure up-to-date
+

@@ -36,10 +36,24 @@ options("rcaaqs.timezone" = "Etc/GMT+8")
 # Load Data ---------------------------------
 stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %>%
   clean_names() %>%
-  rename(lon = long)
+  mutate(site = gsub('#','',site)) %>%
+  rename(lon = long) %>%
+  group_by(site) %>%
+  slice(1) %>%
+  ungroup()
+
+#list stations to remove
+#stations that are not AQMS
+lst_remove <- stations %>%
+  select(site,aqms) %>%
+  filter(aqms == 'N') %>%
+  pull(site) %>% unique()
+
 
 pm25 <- read_rds("data/raw/pm25_caaqs.Rds") %>%
-  as_tibble()
+  filter(!is.na(value)) %>%
+  as_tibble() %>%
+  filter(!site %in% lst_remove)
 
 az <- airzones() %>% 
   st_make_valid() # fixes invalid geometry error in assign_airzones function below
@@ -51,20 +65,21 @@ az <- airzones() %>%
 # - subset to those stations analysed
 
 stations_clean <- stations %>%
-
+  filter(!is.na(lat)) %>%
   # Look for problems
   assert(within_bounds(-90, 90), lat) %>%
   assert(within_bounds(-180, 180), lon) %>%
-
+  
   # Use airzones from bcmaps
-  select(-airzone) %>%
+  select(-airzone) %>% 
   assign_airzone(airzones = az, 
                  station_id = "site", 
-                 coords = c("lon", "lat")) %>%
+                 coords = c("lon", "lat"))  %>% 
+  filter(!is.na(airzone)) %>%
   assert(not_na, airzone) %>%
   
   # Only keep stations for pm25
-  filter(pm25) %>%
+  # filter(pm25) %>% 
   select(site, region, airzone, lat, lon)
 
 # Check distances -------------------
@@ -105,14 +120,15 @@ if(FALSE) {
 
 ## Overall clean -------------
 pm25_clean <- pm25 %>% 
-
-  # Format dates, only keep dates in range
-  mutate(date_time = format_caaqs_dt(date_time), 
-         year = year(date_time)) %>% 
-  filter(year <= rep_year) %>% 
+  #added to prep for format_caaqs_dt
   
-  # Clean negative values
-  mutate(value = clean_neg(value, type = "pm25")) %>% 
+  # Format dates, only keep dates in range
+  # mutate(date_time = format_caaqs_dt(date_time), 
+  mutate(year = year(date_time)) %>% 
+  filter(year <= rep_year) %>% 
+
+# Clean negative values
+mutate(value = clean_neg(value, type = "pm25")) %>% 
   
   # Omit NAs at at start/end of a site/instrument range
   nest(data = -c(site, instrument)) %>%
@@ -128,10 +144,11 @@ pm25_clean <- pm25 %>%
   
   # Categorize instrument types
   mutate(instrument_type = 
-           case_when(str_detect(instrument, "TEOM") ~ "TEOM",
-                     str_detect(instrument, "SHARP|BAM") ~ "FEM", 
-                     is.na(instrument) ~ NA_character_,
-                     TRUE ~ "Unknown")) %>% 
+           case_when( str_detect(instrument, "SHARP|BAM|T640") ~ "FEM", 
+                      str_detect(instrument, "TEOM") ~ "non-FEM",
+                      
+                      is.na(instrument) ~ NA_character_,
+                      TRUE ~ "Unknown")) %>% 
   assert(not_na, instrument_type) %>%
   
   # Clean up
@@ -211,17 +228,40 @@ deps_ovlp <- pm25_clean %>%
   mutate(overlap = max(min_date) <= min(max_date)) %>%
   # Only care when they overlap in dates
   filter(overlap)
-  
+
+#check and remove duplicates if necessary
+# print(paste(nrow(deps_ovlp)))
+
 # Harmac Cedar Woobank instrument BAM1020_2 has only one day of operation 
 # (2014-08-01) and it overlaps with the first day of BAM1020
 # Let's omit it
 
-pm25_clean <- filter(pm25_clean, !(site == "Harmac Cedar Woobank" &
-                                     instrument == "BAM1020_2"))
+#for the overlaps, remove the T640
+pm25_clean <- filter(pm25_clean, !((site == "Harmac Cedar Woobank" &
+                                     instrument == "BAM1020_2") |
+                                     (site == 'Courtenay Elementary School' &
+                                        instrument == 'PM25_T640') |
+                                     (site == 'Houston Firehall' &
+                                        instrument == 'PM25_T640') |
+                                     (site == 'Langdale Elementary' &
+                                        instrument == 'PM25_T640') |
+                                     (site == 'Victoria Topaz' &
+                                        instrument == 'PM25_T640') 
+                                   
+                                   )
+                     
+                     )
 
 
 ## Check timeseries problems -----------------------
 # - Check for missing/extra observations
+
+# -display duplicates
+# pm25_clean %>%
+#   group_by(site,instrument_type,date_time) %>%
+#   dplyr::mutate(count =n()) %>%
+#   filter(count >1) %>%
+#   View()
 
 t <- pm25_clean %>%
   nest(ts = c(-site, -instrument_type)) %>%
@@ -230,8 +270,10 @@ t <- pm25_clean %>%
          n_expect = map_dbl(ts, ~as.numeric(difftime(max(.$date_time), 
                                                      min(.$date_time), 
                                                      units = "hours")))) %>%
+  
   filter(n_expect != n - 1, 
          n_distinct != n) %>%
+  
   verify(nrow(.) == 0)
 
 # None!
@@ -245,3 +287,4 @@ stations_clean <- semi_join(stations_clean, pm25_clean, by = "site")
 # Write data ------------------------------
 write_rds(stations_clean, "data/datasets/stations_clean.rds")
 write_rds(pm25_clean, "data/datasets/pm25_clean.rds", compress = "gz")
+

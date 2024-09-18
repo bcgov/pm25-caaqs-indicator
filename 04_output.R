@@ -49,7 +49,10 @@ az <- airzones() %>%
 az_ambient_sf <- az_ambient %>% 
   complete(airzone = az$airzone, metric) %>% # Ensure ALL airzones
   left_join(az, ., by = "airzone") %>% 
+  #filter(!is.na(caaqs_ambient )) %>%
   mutate(caaqs_ambient = replace_na(caaqs_ambient, levels(caaqs_ambient)[1]))
+
+
 
 az_mgmt_sf <- az_mgmt %>%
   complete(airzone = az$airzone, caaqs_year) %>% # Ensure ALL airzones
@@ -65,6 +68,7 @@ stations_sf <- pm25_results %>%
 
 # Numbers for print version 
 print_summary <- stations_sf %>%
+  filter(!is.na(metric_value_ambient)) |> 
   group_by(metric) %>%
   summarise(n = n(), 
             n_achieved = sum(caaqs_ambient == "Achieved", na.rm = TRUE), 
@@ -93,6 +97,7 @@ leaf_az_mgmt <- az_mgmt_sf %>%
 # - BUT include Management values for both metrics 
 leaf_stations_mgmt <- stations_sf %>%
   select(airzone, site, mgmt_level, n_years) %>%
+  
   group_by(site) %>% 
   slice_max(mgmt_level, with_ties = FALSE) %>%
   ungroup() %>%
@@ -122,7 +127,7 @@ for(s in sites) {
   g2 <- add_caaqs_historic(g2, metric = "pm2.5_annual")
   
   ggsave(paste0("leaflet_map/station_plots/", s, "_24h.svg"), g1, 
-         width = 778, height = 254, dpi = 72, units = "px", bg = "white")
+         width = 778, height = 254, dpi = 72, units = "px", bg = "white") 
   
   ggsave(paste0("leaflet_map/station_plots/", s, "_annual.svg"), g2, 
          width = 778, height = 254, dpi = 72, units = "px", bg = "white")
@@ -132,6 +137,7 @@ for(s in sites) {
   stn_plots[[s]][["annual"]] <- g2
 }
 
+#remove_filename_spaces(dir = "leaflet_map/station_plots/", pattern = " ", replacement = "")
 
 # Summary plot -------------------------------------------------------------
 # - For print version
@@ -175,8 +181,8 @@ labels_df <-  data.frame(
                    "Central\nInterior", "Southern\nInterior", 
                    "Georgia Strait", "Lower Fraser Valley"))
 
-g <- ggplot(az_mgmt_sf) +   
-  geom_sf(aes(fill = mgmt_level), colour = "white") + 
+g <- ggplot(az_mgmt_sf) +  
+  geom_sf(aes(fill = mgmt_level), colour = "white", show.legend = TRUE) + 
   coord_sf(datum = NA) + 
   theme_minimal() + 
   scale_fill_manual(values = colrs, 
@@ -245,3 +251,4 @@ filter(leaf_stations_mgmt) %>%
 filter(leaf_az_mgmt) %>%
   st_transform(4326) %>% 
   st_write("out/pm_airzones_mgmt.geojson", delete_dsn = TRUE)
+
