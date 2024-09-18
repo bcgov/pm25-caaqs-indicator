@@ -22,9 +22,6 @@ There are five scripts that are required for the analysis, they need to be run i
 
 The `run_all.R` script can be `source`ed to run it all at once.
 
-This repository uses `renv` to ensure all required packages and the correct
-versions of said packages are installed. 
-
 ## Getting Help or Reporting an Issue
 
 To report bugs/issues/feature requests, please file an [issue](https://github.com/bcgov/pm25-caaqs-analysis/issues/).
