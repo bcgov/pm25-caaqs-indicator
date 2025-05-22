@@ -1,5 +1,5 @@
 ---
-title: "Status of Fine Particulate Matter in B.C. (2019-2021)"
+title: "Status of Fine Particulate Matter in B.C. (2020-2022)"
 topic: air
 header-includes:
 - \usepackage[utf8]{inputenc}
@@ -7,10 +7,12 @@ header-includes:
 - \sisetup{detect-all,per-mode=symbol}
 output:
   pdf_document: envreportutils.internal::print_ver
+  html_document:
+    df_print: paged
 ---
 
 <!--
-Copyright 2018 Province of British Columbia
+Copyright 2025 Province of British Columbia
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -57,7 +59,7 @@ knitr_latex_char <- function(x) {
   return(y)
 }
 
-year_range <- "2019-2021"
+year_range <- "2020-2022"
 
 # Data from 04_outputs.R
 tfee <- read_rds(here("data/datasets/print_tfee.rds"))

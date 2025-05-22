@@ -1,4 +1,4 @@
-# Copyright 2022 Province of British Columbia
+# Copyright 2025 Province of British Columbia
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -30,7 +30,7 @@ dir.create("out", showWarnings = FALSE)
 dir.create("leaflet_map/station_plots/", showWarnings = FALSE, recursive = TRUE)
 dir.create("out/databc", showWarnings = FALSE)
 
-rep_year <- 2021
+rep_year <- 2022
 
 
 # Functions ----------------------------
