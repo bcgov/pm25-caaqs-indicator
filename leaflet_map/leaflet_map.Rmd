@@ -38,7 +38,7 @@ library("rcaaqs")
 # Get css
 css_caaqs_copy(folder = here::here("leaflet_map/"), overwrite = TRUE)
 
-here()
+setwd(here()) # Set working directory to the project root
 
 # Assign labels, colours, and cutoffs using rcaaqs ----------------------------
 
@@ -54,7 +54,7 @@ labels_mgmt <- management_levels %>%
   filter(str_detect(parameter, "pm2.5")) %>%
   select(labels, colour, colour_text, units_html) %>%
   distinct() %>%
-  mutate(icons = paste0("leaflet_map/assets/marker_", colour_text, ".svg"),
+  mutate(icons = paste0(here(), "/leaflet_map/assets/marker_", colour_text, ".svg"),
          text_colour = c("white", "black", "black", "white", "white"))
 
 
@@ -157,7 +157,7 @@ markers <- icons( # file locations have to be relative (can't use here())
   iconUrl = stations$icons,
   iconWidth = icon_size, iconHeight = icon_size,
   iconAnchorX = icon_size/2, iconAnchorY = icon_size,
-  shadowUrl = "leaflet_map/assets/marker_shadow.svg",
+  shadowUrl = paste0(here(),"/leaflet_map/assets/marker_shadow.svg"),
   shadowWidth = icon_size * 0.75, shadowHeight = icon_size * 0.75,
   shadowAnchorX = 1, shadowAnchorY = icon_size * 0.75)
 
