@@ -1,4 +1,4 @@
-# Copyright 2019 Province of British Columbia
+# Copyright 2025 Province of British Columbia
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ library("purrr")
 
 library("bcdata")
 library('rcaaqs')
+library("assertr")
 
 # Join old and new ------------------------
 
@@ -46,11 +47,26 @@ pm25_results <- bind_rows(get_caaqs(pm25_24h_mgmt),
   ungroup() %>%
   distinct() %>%
   # Ensure only 1 analysis per site
-  add_count(site, metric) %>%
-  
-  #assert(in_set(1), n) %>%
+  add_count(site, caaqs_year, metric, instrument_type) %>%
+  assert(in_set(1), n) %>%
   # Clean up
-  select(airzone, site, region, lat, lon, everything(), -n, -flag_daily_incomplete) |> 
+  select(caaqs_year,
+         airzone, 
+         station_name = site, 
+         region, 
+         latitude = lat, 
+         longitude = lon, 
+         instrument_type,
+         metric,	
+         n_years,	
+         min_year,	
+         max_year,	
+         metric_value_ambient,	
+         caaqs_ambient,	
+         excluded,	
+         metric_value_mgmt,
+         mgmt_level,
+         everything(), -n, -flag_daily_incomplete, -flag_yearly_incomplete) %>% 
   arrange(airzone, caaqs_year)
 
 write_csv(pm25_results, "out/databc/pm25_stations_summary.csv", na = "")
@@ -58,15 +74,29 @@ write_csv(pm25_results, "out/databc/pm25_stations_summary.csv", na = "")
 # Airzone results ---------------------------------------------------------
 az_ambient_year <- pm25_results %>%
   nest(data = c(-metric, -caaqs_year)) %>%
-  mutate(data = map(data, ~airzone_metric(., keep = "site", station_id = "site"))) %>%
+  mutate(data = map(data, ~airzone_metric(., keep = "station_name", station_id = "station_name"))) %>%
   unnest(data) %>%
   select(airzone, metric, caaqs_year, everything())
 
 az_mgmt_year <- az_ambient_year %>% 
-  group_by(airzone, caaqs_year) %>%   
+  group_by(airzone, caaqs_year, metric) %>%   
   # Get which ever metric is worst (one per airzone)
   slice_max(mgmt_level, with_ties = FALSE) %>% 
   ungroup() %>%
+  select(caaqs_year,	
+         airzone, 
+         metric,	
+         n_years_ambient,
+         metric_value_ambient,
+         caaqs_ambient,
+         rep_stn_name_ambient = rep_stn_id_ambient,	
+         rep_stn_id_ambient,	
+         excluded,	
+         n_years_mgmt,
+         metric_value_mgmt,
+         mgmt_level,
+         rep_stn_name_mgmt = rep_stn_id_mgmt,
+         rep_stn_id_mgmt) %>%
   mutate(caaqs_ambient_no_tfees = map_int(mgmt_level, max),
          caaqs_ambient_no_tfees = case_when(
            caaqs_ambient_no_tfees == 5 ~ unique(achievement_levels$labels)[3],
@@ -74,7 +104,7 @@ az_mgmt_year <- az_ambient_year %>%
            TRUE ~ unique(achievement_levels$labels)[2]),
          caaqs_ambient_no_tfees = factor(
            caaqs_ambient_no_tfees, ordered = TRUE,
-           levels = levels(caaqs_ambient))) |> 
+           levels = levels(caaqs_ambient))) %>%
   arrange(caaqs_year, airzone)
 
 write_csv(az_mgmt_year, "out/databc/pm25_airzones_summary.csv", na = "")
