@@ -1,4 +1,4 @@
-# Copyright 2015 Province of British Columbia
+# Copyright 2025 Province of British Columbia
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -114,6 +114,14 @@ sites <- pm25_results %>%
   unique()
 
 stn_plots <- list()
+
+# Remove non-FEM Whistler Meadow Park data in 2013, 2014, and 2016 to avoid duplicates in bar plots
+pm25_24h_mgmt[["caaqs"]] <- pm25_24h_mgmt[["caaqs"]] %>%
+  filter(!(paste0(site, instrument_type, caaqs_year) %in% c("Whistler Meadow Parknon-FEM2016", "Whistler Meadow Parknon-FEM2014", "Whistler Meadow Parknon-FEM2013")))
+
+pm25_annual_mgmt[["caaqs"]] <- pm25_annual_mgmt[["caaqs"]] %>%
+  filter(!(paste0(site, instrument_type, caaqs_year) %in% c("Whistler Meadow Parknon-FEM2016", "Whistler Meadow Parknon-FEM2014", "Whistler Meadow Parknon-FEM2013")))
+
 
 for(s in sites) {
   message("Creating plots for ", s)

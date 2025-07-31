@@ -1,4 +1,4 @@
-# Copyright 2015 Province of British Columbia
+# Copyright 2025 Province of British Columbia
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -79,7 +79,7 @@ stations_clean <- stations %>%
   assert(not_na, airzone) %>%
   
   # Only keep stations for pm25
-  # filter(pm25) %>% 
+  # filter(site %in% pm25$site) %>% 
   select(site, region, airzone, lat, lon)
 
 # Check distances -------------------
