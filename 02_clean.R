@@ -37,7 +37,7 @@ options("rcaaqs.timezone" = "Etc/GMT+8")
 stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %>%
   clean_names() %>%
   mutate(site = gsub('#','',site)) %>%
-  rename(lon = long) %>%
+  # rename(lon = long) %>% # formatting change - 20260428
   group_by(site) %>%
   slice(1) %>%
   ungroup()
@@ -46,7 +46,7 @@ stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %
 #stations that are not AQMS
 lst_remove <- stations %>%
   select(site,aqms) %>%
-  filter(aqms == 'N') %>%
+  filter(aqms == 'N')  %>%
   pull(site) %>% unique()
 
 
@@ -126,9 +126,9 @@ pm25_clean <- pm25 %>%
   # mutate(date_time = format_caaqs_dt(date_time), 
   mutate(year = year(date_time)) %>% 
   filter(year <= rep_year) %>% 
-
-# Clean negative values
-mutate(value = clean_neg(value, type = "pm25")) %>% 
+  
+  # Clean negative values
+  mutate(value = clean_neg(value, type = "pm25")) %>% 
   
   # Omit NAs at at start/end of a site/instrument range
   nest(data = -c(site, instrument)) %>%
@@ -238,7 +238,7 @@ deps_ovlp <- pm25_clean %>%
 
 #for the overlaps, remove the T640
 pm25_clean <- filter(pm25_clean, !((site == "Harmac Cedar Woobank" &
-                                     instrument == "BAM1020_2") |
+                                      instrument == "BAM1020_2") |
                                      (site == 'Courtenay Elementary School' &
                                         instrument == 'PM25_T640') |
                                      (site == 'Houston Firehall' &
@@ -248,9 +248,9 @@ pm25_clean <- filter(pm25_clean, !((site == "Harmac Cedar Woobank" &
                                      (site == 'Victoria Topaz' &
                                         instrument == 'PM25_T640') 
                                    
-                                   )
-                     
-                     )
+)
+
+)
 
 
 ## Check timeseries problems -----------------------
