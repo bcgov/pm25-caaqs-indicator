@@ -1,5 +1,5 @@
 ---
-title: "Status of Fine Particulate Matter in B.C. (2020-2022)"
+title: "Status of Fine Particulate Matter in B.C. (2021-2023 & 2022-2024)"
 topic: air
 header-includes:
 - \usepackage[utf8]{inputenc}
@@ -40,10 +40,12 @@ library("here")
 library("purrr")
 library("ggplot2")
 library("ggtext")
-
+library("assertr")
 library("rcaaqs")
 library("envreportutils")
 library("envreportutils.internal")
+library("lubridate")
+library("english")
 
 
 # Karly added: is_html, is_pdf add-ons to code chunks until we decide whether html and pdf outputs will come from the same document 
@@ -59,14 +61,20 @@ knitr_latex_char <- function(x) {
   return(y)
 }
 
-year_range <- "2020-2022"
+year_range <- "2022-2024"
+year_range_previous <- "2021-2023"
 
-# Data from 04_outputs.R
-tfee <- read_rds(here("data/datasets/print_tfee.rds"))
-plots <- read_rds(here("data/datasets/print_plots.rds"))
-stn_plots <- read_rds(here("data/datasets/print_stn_plots.rds"))
-print_summary <- read_rds(here("data/datasets/print_summary.rds"))
-pm25_results <- read_rds(here("data/datasets/pm25_results.rds")) # From 03_analysis.R
+# Data from 04_outp uts.R
+tfee <- read_rds(here("data/datasets/rep_year_2024/print_tfee.rds"))
+plots <- read_rds(here("data/datasets/rep_year_2024/print_plots.rds"))
+plots_2023 <- read_rds(here("data/datasets/rep_year_2023/print_plots.rds"))
+stn_plots <- read_rds(here("data/datasets/rep_year_2024/print_stn_plots.rds"))
+print_summary <- read_rds(here("data/datasets/rep_year_2024/print_summary.rds"))
+pm25_results <- read_rds(here("data/datasets/rep_year_2024/pm25_results.rds")) # From 03_analysis.R
+pm25_24h_mgmt <- read_rds(here("data/datasets/rep_year_2024/pm25_24h_mgmt.rds"))
+pm25_annual_mgmt <- read_rds(here("data/datasets/rep_year_2024/pm25_annual_mgmt.rds"))
+pm25_clean <- read_rds(here("data/datasets/rep_year_2024/pm25_clean.rds"))
+stations_clean <- read_rds(here("data/datasets/rep_year_2024/stations_clean.rds"))
 
 # Specify cutoffs from rcaaqs
 pm_lvls <- achievement_levels %>%
@@ -78,13 +86,13 @@ pm_lvls <- achievement_levels %>%
 # Summaries to consult when writing descriptions....
 
 # Which Achieved or Not
-read_rds(here("data/datasets/az_ambient.rds")) %>%
+read_rds(here("data/datasets/rep_year_2024/az_ambient.rds")) %>%
   select(airzone, metric, caaqs_ambient) %>%
   arrange(metric, caaqs_ambient) %>%
   pivot_wider(names_from = "metric", values_from = "caaqs_ambient")
 
 # What management levels, and how affected by TFEEs?
-read_rds(here("data/datasets/az_ambient.rds")) %>%
+read_rds(here("data/datasets/rep_year_2024/az_ambient.rds")) %>%
   group_by(airzone) %>%
   slice_max(mgmt_level, with_ties = FALSE) %>%
   # Get the management levels if there had been no TFEEs...
@@ -97,15 +105,102 @@ read_rds(here("data/datasets/az_ambient.rds")) %>%
 
 # tfee details
 tfee
+
+# 2023 results
+year_prev <- 2023
+
+pm25_results_combined <- bind_rows(get_caaqs(pm25_24h_mgmt),
+                          get_caaqs(pm25_annual_mgmt)) %>%
+  left_join(stations_clean, by = "site") %>% 
+  ungroup() %>%
+  distinct() %>%
+  # Ensure only 1 analysis per site
+  add_count(site, caaqs_year, metric, instrument_type) %>%
+  assert(in_set(1), n) %>%
+  # Clean up
+  select(caaqs_year,
+         airzone, 
+         station_name = site, 
+         region, 
+         latitude = lat, 
+         longitude = lon, 
+         instrument_type,
+         metric,	
+         n_years,	
+         min_year,	
+         max_year,	
+         metric_value_ambient,	
+         caaqs_ambient,	
+         excluded,	
+         metric_value_mgmt,
+         mgmt_level,
+         everything(), -n, -flag_daily_incomplete, -flag_yearly_incomplete) %>% 
+  arrange(airzone, caaqs_year)
+
+
+yrs_present <- sort(unique(pm25_results_combined$caaqs_year))
+summarise_year <- function(df, y) {
+  az_achieved <- df %>%
+                  filter(caaqs_year == y) %>%
+                  nest(data = c(-metric, -caaqs_year)) %>%
+                  mutate(data = map(data, ~airzone_metric(., keep = "station_name", station_id = "station_name"))) %>%
+                  unnest(data) %>%
+                  select(airzone, metric, caaqs_year, everything()) %>%
+                  group_by(metric) %>%
+                  summarise(az_achieved = sum(caaqs_ambient == "Achieved", na.rm = TRUE))
+  df %>%
+    filter(caaqs_year == y) %>%
+    group_by(metric) %>%
+    filter(!is.na(metric_value_ambient)) %>%
+    summarise(
+      year = y,
+      n_stations = n(),
+      n_achieved = sum(caaqs_ambient == "Achieved", na.rm = TRUE),
+      pct_achieved = round(100 * n_achieved / n_stations),
+      .groups = "drop")  %>%
+      left_join(az_achieved, by = "metric")
+}
+
+summary_prev <- summarise_year(pm25_results_combined, year_prev)
+
+
+pm25_24h_caaqs <- pm_24h_caaqs(pm25_clean, by = c("site", "instrument_type"))
+
+pm25_24h_lvl <- achievement_levels %>%
+  filter(parameter == "pm2.5_24h", lower_breaks > 0) %>%
+  pull(lower_breaks) 
+
+tfee_dates <- pm25_clean %>%
+  filter(flag_tfee) %>%
+  # Ceiling TFEE to capture original dates
+  mutate(date = ceiling_date(date_time, unit = "hour"),
+         date = as_date(date)) %>%
+  select(site, instrument_type, date) %>%
+  distinct()
+
+summarise_tfee <- function(df, y) {
+  get_daily(df) %>% 
+    ungroup() %>%
+    filter(avg_24h >= pm25_24h_lvl, year(date) >= y - 2) %>% 
+    semi_join(tfee_dates, by = c("site", "date")) %>%
+    arrange(date) %>%
+    group_by(year = year(date)) %>%
+    mutate(n_year = n_distinct(date)) %>%
+    ungroup() %>%
+    pivot_wider(names_from = year, values_from = n_year, names_prefix = "n_tfee_days_") %>%
+    summarize(n_sites = n_distinct(site),
+              tfee_occurred_in_months = paste0(sort(unique(month(date))), collapse = ", "),
+              across(starts_with("n_tfee_days_"), .fns = ~na.omit(unique(.))))
+}
+
+
+
+summarise_tfee_prev <- summarise_tfee(pm25_24h_caaqs, year_prev)
 ```
 
 British Columbia operates a network of air monitoring stations that
-measure fine particulate matter and other air pollutants. This indicator
-reports on the concentration of fine particulate matter from `r year_range`
-and compares it to the [Canadian Ambient Air Quality
-Standards](https://www.ccme.ca/en/air-quality-report#slide-7)
-established by the [Canadian Council of Ministers of the
-Environment](http://www.ccme.ca).
+measure fine particulate matter and other air pollutants. This iteration of the indicator reports on the concentration of fine particulate matter from two time periods, `r year_range_previous` and `r year_range`. The data is reported in three-year averages to compare to the [Canadian Ambient Air Quality Standards](https://www.ccme.ca/en/air-quality-report#slide-7)
+established by the [Canadian Council of Ministers of the Environment](http://www.ccme.ca).
 
 \begin{center}
 
@@ -159,11 +254,22 @@ Environment](http://www.ccme.ca).
     health effects including heart and lung disease.^[1](#fn1)^ Both
     short-term (24-hour) and longer-term (a year or more) exposure to
     fine particulate matter can have negative effects on human health.
--   **Fine particulate matter levels met the Canadian Ambient Air
-    Quality Standards at `r min(print_summary$percent_achieved)`
+-   **2021-2023: fine particulate matter levels met the Canadian Ambient Air
+    Quality Standards at `r min(summary_prev$pct_achieved)`
     percent of assessed monitoring stations in B.C.** There are two standards 
     for PM~2.5~---an annual standard and a
     24-hour standard (see sidebar). The annual standard was met at 
+    `r summary_prev$n_achieved[summary_prev$metric == "pm2.5_annual"]` of the 
+    `r summary_prev$n_stations[summary_prev$metric == "pm2.5_annual"]` stations 
+    (`r summary_prev$pct_achieved[summary_prev$metric == "pm2.5_annual"]`%) 
+    for which valid data was obtained, while the 24-hour standard was met at 
+    `r summary_prev$n_achieved[summary_prev$metric == "pm2.5_24h"]` of the 
+    `r summary_prev$n_stations[summary_prev$metric == "pm2.5_24h"]` stations 
+    (`r summary_prev$pct_achieved[summary_prev$metric == "pm2.5_24h"]`%) 
+    with sufficient data for analysis.
+-   **2022-2024: fine particulate matter levels met the Canadian Ambient Air
+    Quality Standards at `r min(print_summary$percent_achieved)`
+    percent of assessed monitoring stations in B.C.** The annual standard was met at 
     `r print_summary$n_achieved[print_summary$metric == "pm2.5_annual"]` of the 
     `r print_summary$n[print_summary$metric == "pm2.5_annual"]` stations 
     (`r print_summary$percent_achieved[print_summary$metric == "pm2.5_annual"]`%) 
@@ -171,10 +277,9 @@ Environment](http://www.ccme.ca).
     `r print_summary$n_achieved[print_summary$metric == "pm2.5_24h"]` of the 
     `r print_summary$n[print_summary$metric == "pm2.5_24h"]` stations 
     (`r print_summary$percent_achieved[print_summary$metric == "pm2.5_24h"]`%) 
-    with sufficient data for analysis.
--   **Fine particulate matter levels met both of the Canadian Ambient
-    Air Quality Standards in two of B.C.'s seven air zones.** The Coastal, 
-    Northeast, Georgia Strait, and Lower Fraser Valley air zones met both the PM~2.5~ annual and 24-hour standards. The Central Interior air zone exceeded the PM~2.5~ 24-hour standard at Houston and Valemount, and the PM~2.5~ annual standard at Vanderhoof. The Southern Interior air zone exceeded the PM~2.5~ annual standard at Grand Forks.
+    with sufficient data for analysis.    
+-   **During both periods, fine particulate matter levels met the annual Canadian Ambient
+    Air Quality Standards in `r as.character(english(summary_prev$az_achieved[summary_prev$metric=="pm2.5_annual"]))` of B.C.'s seven air zones, and met the 24-hour standard in `r as.character(english(summary_prev$az_achieved[summary_prev$metric=="pm2.5_24h"]))` air zones.** The Coastal and Georgia Strait air zones met both the PM~2.5~ annual and 24-hour standards. The Central Interior air zone exceeded the PM~2.5~ 24-hour standard at Houston, and the PM~2.5~ annual standard at Vanderhoof. The Southern Interior air zone exceeded the PM~2.5~ annual standard at Grand Forks in 2023 and Golden Helipad in 2024.
     Currently, there are no 
     [air monitoring stations](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     in the Northwest air zone.
@@ -192,7 +297,7 @@ The maps and chart below summarise the Canadian Ambient Air Quality Standard
 achievement status for fine particulate matter in B.C. air zones, as
 well as both the annual and 24-hour PM~2.5~ levels at individual
 monitoring stations. Summaries are given for each monitoring station where
-sufficient data was available for the `r year_range` reporting period.
+sufficient data was available for the `r year_range` and `r year_range_previous` reporting periods.
 
 # Status of 24-hour PM~2.5~ Levels in B.C. Air Zones (`r year_range`)
 
@@ -212,6 +317,24 @@ plots[["achievement_map_annual"]]
 plots[["pm_ambient_summary_plot"]]
 ```
 
+# Status of 24-hour PM~2.5~ Levels in B.C. Air Zones (`r year_range_previous`)
+
+```{r achievement_map_24h_2023, fig.height=8}
+plots_2023[["achievement_map_24h"]]
+```
+
+# Status of Annual PM~2.5~ Levels in B.C. Air Zones (`r year_range_previous`)
+
+```{r achievement_map_annual_2023, fig.height=8}
+plots_2023[["achievement_map_annual"]]
+```
+
+# PM~2.5~ Metrics for Air Monitoring Stations within B.C. Air Zones (`r year_range_previous`)
+
+```{r pm_ambient_summary_plot_2023, fig.height=9}
+plots_2023[["pm_ambient_summary_plot"]]
+```
+
 \hyperdef{}{metric-info}{}
 ### More about the Canadian Ambient Air Quality Standard fine particulate matter metrics:
 
@@ -227,7 +350,7 @@ plots[["pm_ambient_summary_plot"]]
     data when there are no available three-year reporting stations in
     the air zone.
 -   Only air monitoring stations with sufficient data on fine
-    particulate matter concentrations for the `r year_range` reporting period
+    particulate matter concentrations for the `r year_range` and `r year_range_previous` reporting periods
     were included in this indicator. Visit [Current Air Quality
     Data](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
     for a complete list of air monitoring stations across B.C.
@@ -272,7 +395,7 @@ pollutants below the Canadian Ambient Air Quality Standards.
 
 \newpage
     
-# Air Quality Management Levels in B.C. Air Zones   
+# Air Quality Management Levels in B.C. Air Zones (`r year_range`)  
 
 ```{r pm_mgmt_map, fig.height=9}
 plots[["pm_mgmt_map"]]
@@ -280,10 +403,24 @@ plots[["pm_mgmt_map"]]
 
 \newpage
 
-# Station-Level Air Quality Management Levels Within Air Zones
+# Station-Level Air Quality Management Levels Within Air Zones (`r year_range`)
 
 ```{r pm_mgmt_chart, fig.height=8}
 plots[["pm_mgmt_chart"]]
+```
+
+# Air Quality Management Levels in B.C. Air Zones (`r year_range_previous`)   
+
+```{r pm_mgmt_map_2023, fig.height=9}
+plots_2023[["pm_mgmt_map"]]
+```
+
+\newpage
+
+# Station-Level Air Quality Management Levels Within Air Zones (`r year_range_previous`)
+
+```{r pm_mgmt_chart_2023, fig.height=8}
+plots_2023[["pm_mgmt_chart"]]
 ```
 
 #### More about the Air Quality Management System management levels:
@@ -297,15 +434,7 @@ plots[["pm_mgmt_chart"]]
     external influences. These arrangements aim to ensure that
     jurisdictions are responsible for managing only the emissions
     sources they can control.
--   Wildfires are generally the largest contributor to transboundary
-    flows and exceptional events in B.C. Over the `r year_range` reporting
-    period, `r tfee$n_sites` stations had one or more days during the wildfire season
-    (May-October) where the daily fine particulate matter
-    concentration was determined to be influenced by smoke from
-    wildfires and exceeded the 24-hour standard of 
-    \SI{`r pm_lvls[["pm2.5_24h"]]`}{\micro\gram\per\metre\cubed}.  Those daily
-    concentrations were removed from the calculations of management
-    levels, resulting in a change from red to orange for the Georgia Strait air zone and from red to yellow for the Lower Fraser Valley air zone.
+-   During the wildfire season (May-October), `r summarise_tfee_prev$n_sites` monitoring stations in the `r year_range_previous` reporting period and `r tfee$n_sites` stations in `r year_range` reporting period recorded one or more days where the daily fine particulate matter concentration was determined to be influenced by smoke from wildfires and exceeded the 24-hour standard of \SI{`r pm_lvls[["pm2.5_24h"]]`}{\micro\gram\per\metre\cubed}. Those daily concentrations were removed from the calculations of management levels, resulting in a change from red to yellow for the Lower Fraser Valley air zone.
 
 <!-- See the summaries calculated in the starting RMD chunk for information 
      needed to fill in the above bullet point. -->
@@ -339,14 +468,16 @@ the analysis presented on this page is also available on
 -   [Learn more about the implementation of the Air Quality Management
     System in British
     Columbia](http://www2.gov.bc.ca/gov/content?id=8FA84ADC845A49AB93E525A58D9D4A97)
--   [Access B.C.'s real-time data on air pollutants and find locations
-    of all provincial air monitoring stations in
-    B.C.](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
+-   [Access B.C.'s real-time data on air pollutants and find locations of all provincial air monitoring stations in B.C.](http://www2.gov.bc.ca/gov/content?id=292EC5BD62A149A192B7DD2CE155E33E)
 -   [BC Lung Association's BC State of the Air
     Reports](https://bc.lung.ca/state-air-report)
+-   [Canadian Ambient Air Quality Standards](https://www.ccme.ca/en/air-quality-report#slide-7)
+-   [Canadian Council of Ministers of the Environment](https://www.ccme.ca/en)
 -   [Canadian Environmental Sustainability Indicators: Air 
     Indicators](https://www.canada.ca/en/environment-climate-change/services/environmental-indicators/air.html)
--   ^1^[Canadian Smog Science Assessment: Highlights and Key
+-   [Guidance Document on Achievement Determination: Canadian Ambient Air Quality Standards for Fine Particulate Matter and Ozone (2012)](http://publications.gc.ca/pub?id=9.697756&sl=0)
+-   [Guidance Document on Air Zone Management](https://ccme.ca/en/res/guidancedocumentonairzonemanagement_secured.pdf)
+-   [Canadian Smog Science Assessment: Highlights and Key
     Messages](http://publications.gc.ca/site/eng/9.694820/publication.html)
 
 ### Data
@@ -368,7 +499,7 @@ Published and Available On-Line at Environmental Reporting BC:
 Email correspondence to: envreportbc@gov.bc.ca
 
 *Suggested Citation*:  
-Environmental Reporting BC. `r format(Sys.Date(), "%Y")`. Status of Fine Particulate Matter in B.C. (`r year_range`). State of Environment Reporting, Ministry of Environment and Parks, British Columbia, Canada.
+Environmental Reporting BC. `r format(Sys.Date(), "%Y")`. Status of Fine Particulate Matter in B.C. (`r paste0(year_range_previous, " & ", year_range)`). State of Environment Reporting, Ministry of Environment and Parks, British Columbia, Canada.
 
 # Appendix: Detailed fine particulate matter Candadian Ambient Air Quality Standard results for each monitoring station within air zones in B.C.
 
