@@ -1,4 +1,4 @@
-# Copyright 2025 Province of British Columbia
+# Copyright 2026 Province of British Columbia
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,10 +36,10 @@ library("assertr")
 
 # Testing -----------------------------------------------------------------
 
-pm25_24h_mgmt <- read_rds("data/datasets/pm25_24h_mgmt.rds")
-pm25_annual_mgmt <- read_rds("data/datasets/pm25_annual_mgmt.rds")
+pm25_24h_mgmt <- read_rds(file.path(rep_dir_data, "pm25_24h_mgmt.rds"))
+pm25_annual_mgmt <- read_rds(file.path(rep_dir_data, "pm25_annual_mgmt.rds"))
 
-stations_clean <- read_rds("data/datasets/stations_clean.rds")
+stations_clean <- read_rds(file.path(rep_dir_data, "stations_clean.rds"))
 
 pm25_results <- bind_rows(get_caaqs(pm25_24h_mgmt),
                           get_caaqs(pm25_annual_mgmt)) %>%
@@ -69,7 +69,10 @@ pm25_results <- bind_rows(get_caaqs(pm25_24h_mgmt),
          everything(), -n, -flag_daily_incomplete, -flag_yearly_incomplete) %>% 
   arrange(airzone, caaqs_year)
 
-write_csv(pm25_results, "out/databc/pm25_stations_summary.csv", na = "")
+databc_dir <- file.path(rep_dir_out, "databc")
+dir.create(databc_dir, showWarnings = FALSE, recursive = TRUE)
+
+write_csv(pm25_results, file.path(databc_dir, "pm25_stations_summary.csv"), na = "")
 
 # Airzone results ---------------------------------------------------------
 az_ambient_year <- pm25_results %>%
@@ -107,7 +110,7 @@ az_mgmt_year <- az_ambient_year %>%
            levels = levels(caaqs_ambient))) %>%
   arrange(caaqs_year, airzone)
 
-write_csv(az_mgmt_year, "out/databc/pm25_airzones_summary.csv", na = "")
+write_csv(az_mgmt_year, file.path(databc_dir, "pm25_airzones_summary.csv"), na = "")
 
 # Old code - confirm with Jerome and delete section -----------------------
 

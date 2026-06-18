@@ -1,4 +1,4 @@
-# Copyright 2025 Province of British Columbia
+# Copyright 2026 Province of British Columbia
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -37,7 +37,7 @@ options("rcaaqs.timezone" = "Etc/GMT+8")
 stations <- read_csv("data/raw/caaqs_stationlist.csv", show_col_types = FALSE) %>%
   clean_names() %>%
   mutate(site = gsub('#','',site)) %>%
-  rename(lon = long) %>%
+  #rename(lon = long) %>%
   group_by(site) %>%
   slice(1) %>%
   ungroup()
@@ -112,7 +112,7 @@ if(FALSE) {
     labs(x = "", y = "Distance (m)", 
          title = "Distance between stations", 
          subtitle = "Where distance < 2km")
-  ggsave("out/stations_distance.png", width = 12)
+  ggsave(file.path(rep_dir_out, "stations_distance.png"), width = 12)
 }
 
 
@@ -178,7 +178,7 @@ if(FALSE) {
                     subtitle = "Exluding missing data") +
     plot_layout(guides = "collect")
   
-  ggsave(filename = "out/pm25_instrument_overlap.png", width = 14, height = 10)
+  ggsave(filename = file.path(rep_dir_out, "pm25_instrument_overlap.png"), width = 14, height = 10)
   
   # Check by dist
   dist_site <- filter(dist, dist <= 2000) %>% 
@@ -202,7 +202,7 @@ if(FALSE) {
                     subtitle = "Exluding missing data") +
     plot_layout(guides = "collect")
   
-  ggsave(filename = "out/pm25_stn_nearby.png", width = 14, height = 10)
+  ggsave(filename = file.path(rep_dir_out, "pm25_stn_nearby.png"), width = 14, height = 10)
   
   # All recent years (2018 - 2020) have only one instrument
 }
@@ -285,6 +285,6 @@ t <- pm25_clean %>%
 stations_clean <- semi_join(stations_clean, pm25_clean, by = "site")
 
 # Write data ------------------------------
-write_rds(stations_clean, "data/datasets/stations_clean.rds")
-write_rds(pm25_clean, "data/datasets/pm25_clean.rds", compress = "gz")
+write_rds(stations_clean, file.path(rep_dir_data, "stations_clean.rds"))
+write_rds(pm25_clean, file.path(rep_dir_data, "pm25_clean.rds"), compress = "gz")
 

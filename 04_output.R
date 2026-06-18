@@ -1,4 +1,4 @@
-# Copyright 2025 Province of British Columbia
+# Copyright 2026 Province of British Columbia
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -28,12 +28,12 @@ library("rcaaqs")
 library("envreportutils")
 
 # Load Data --------------------------------------------------
-pm25_results <- read_rds("data/datasets/pm25_results.rds")
-pm25_24h_mgmt <- read_rds("data/datasets/pm25_24h_mgmt.rds")
-pm25_annual_mgmt <- read_rds("data/datasets/pm25_annual_mgmt.rds")
+pm25_results <- read_rds(file.path(rep_dir_data,"pm25_results.rds"))
+pm25_24h_mgmt <- read_rds(file.path(rep_dir_data,"pm25_24h_mgmt.rds"))
+pm25_annual_mgmt <- read_rds(file.path(rep_dir_data,"pm25_annual_mgmt.rds"))
 
-az_ambient <- read_rds("data/datasets/az_ambient.rds")
-az_mgmt <- read_rds("data/datasets/az_mgmt.rds")
+az_ambient <- read_rds(file.path(rep_dir_data,"az_ambient.rds"))
+az_mgmt <- read_rds(file.path(rep_dir_data,"az_mgmt.rds"))
 
 # Let's save plots for the print version
 print_plots <- list()
@@ -128,16 +128,33 @@ for(s in sites) {
   
   g1 <- plot_caaqs(pm25_24h_mgmt, id = s, id_col = "site", year_min = 2013,
                    plot_std = FALSE, plot_mgmt = FALSE)
+  g1 <- g1 + theme(
+                axis.text.x = element_text(
+                angle = 45,       # Rotate text by 45 degrees
+                hjust = 1,        # Adjust horizontal justification
+                vjust = 1         # Adjust vertical justification
+              )
+            )
+  
   g1 <- add_caaqs_historic(g1, metric = "pm2.5_24h")
   
   g2 <- plot_caaqs(pm25_annual_mgmt, id = s, id_col = "site", year_min = 2013,
                    plot_std = FALSE, plot_mgmt = FALSE)
+  
+  g2 <- g2 + theme(
+            axis.text.x = element_text(
+            angle = 45,       # Rotate text by 45 degrees
+            hjust = 1,        # Adjust horizontal justification
+            vjust = 1         # Adjust vertical justification
+            )
+          )
+  
   g2 <- add_caaqs_historic(g2, metric = "pm2.5_annual")
   
-  ggsave(paste0("leaflet_map/station_plots/", s, "_24h.svg"), g1, 
+  ggsave(file.path(rep_dir_station_plots, paste0(s, "_24h.svg")), g1, 
          width = 778, height = 254, dpi = 72, units = "px", bg = "white") 
   
-  ggsave(paste0("leaflet_map/station_plots/", s, "_annual.svg"), g2, 
+  ggsave(file.path(rep_dir_station_plots, paste0(s, "_annual.svg")), g2, 
          width = 778, height = 254, dpi = 72, units = "px", bg = "white")
   
   # Save for print version
@@ -209,7 +226,7 @@ g <- ggplot(az_mgmt_sf) +
 print_plots[["pm_mgmt_map"]] <- g
 
 # SVG of airzone CAAQS mgmt level map
-ggsave("out/pm_caaqs_mgmt_map.svg", plot = g, dpi = 72,
+ggsave(file.path(rep_dir_out, "pm_caaqs_mgmt_map.svg"), plot = g, dpi = 72,
        width = 500, height = 500, units = "px", bg = "white")
 
 ## Bar Chart --------------
@@ -228,7 +245,10 @@ g <- ggplot(data = pm25_results, aes(x = metric, fill = mgmt_level)) +
   theme_soe_facet() +
   theme(panel.grid.major.y = (element_blank()),
         axis.text = element_text(size = 14),
+        axis.text.y = element_text(hjust  = 1),
         axis.title = element_text(size = 14),
+        axis.ticks.y = element_line(colour = "transparent"),
+        axis.ticks.length.y = unit(4, "pt"),
         legend.position = "bottom",
         legend.direction = "vertical",
         legend.box.just = "left",
@@ -241,22 +261,58 @@ g <- ggplot(data = pm25_results, aes(x = metric, fill = mgmt_level)) +
 print_plots[["pm_mgmt_chart"]] <- g
 
 # SVG of airzone/station CAAQS mgmt achievement chart
-ggsave("out/pm_caaqs_mgmt_chart.svg", dpi = 72,
+ggsave(file.path(rep_dir_out, "pm_caaqs_mgmt_chart.svg"), dpi = 72,
        width = 500, height = 600, units = "px", bg = "white")
 
 # Output data ------------------------------------------------
 
 # For print version
-write_rds(print_plots, "data/datasets/print_plots.rds")
-write_rds(stn_plots, "data/datasets/print_stn_plots.rds")
-write_rds(print_summary, "data/datasets/print_summary.rds")
+write_rds(print_plots, file.path(rep_dir_data, "print_plots.rds"))
+write_rds(stn_plots, file.path(rep_dir_data, "print_stn_plots.rds"))
+write_rds(print_summary, file.path(rep_dir_data, "print_summary.rds"))
 
 # For leaflet maps
 filter(leaf_stations_mgmt) %>%
   st_transform(4326) %>% 
-  st_write("out/pm_stations_mgmt.geojson", delete_dsn = TRUE)
+  st_write(file.path(rep_dir_out, "pm_stations_mgmt.geojson"), delete_dsn = TRUE)
 
 filter(leaf_az_mgmt) %>%
   st_transform(4326) %>% 
-  st_write("out/pm_airzones_mgmt.geojson", delete_dsn = TRUE)
+  st_write(file.path(rep_dir_out, "pm_airzones_mgmt.geojson"), delete_dsn = TRUE)
 
+# Copy station SVGs to leaflet_map only for rep_year 2024
+if (rep_year == 2024) {
+  
+  message("Copying station plots to leaflet_map for rep_year = 2024")
+  
+  leaflet_stn_dir <- file.path("leaflet_map", "station_plots")
+  dir.create(leaflet_stn_dir, showWarnings = FALSE, recursive = TRUE)
+  
+  source_dir <- rep_dir_station_plots
+  
+  svgs <- list.files(
+    source_dir,
+    pattern = "\\.svg$",
+    full.names = TRUE
+  )
+  
+  if (length(svgs) == 0) {
+    warning(
+      "No station SVGs found in ",
+      source_dir,
+      " for rep_year = 2024"
+    )
+  } else {
+    file.copy(
+      from = svgs,
+      to   = leaflet_stn_dir,
+      overwrite = TRUE
+    )
+  }
+  
+} else {
+  message(
+    "Skipping leaflet_map station SVG copy (rep_year = ",
+    rep_year, ")"
+  )
+}

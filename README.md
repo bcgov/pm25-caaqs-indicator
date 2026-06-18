@@ -19,6 +19,7 @@ There are five scripts that are required for the analysis, they need to be run i
 - `03_analysis.R` - performs the analysis
 - `04_output.R` - creates maps and graphs and saves outputs
 - `05_databc_output.R` - creates output files for Data BC catalogue
+- `06_qa_compare_years.R` - Compares previous and current reporting years to support QA/QC, including summary, coverage, and station-level change diagnostics.
 
 The `run_all.R` script can be `source`ed to run it all at once.
 
@@ -34,7 +35,7 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 ## License
 
-    Copyright 2025 Province of British Columbia
+    Copyright 2026 Province of British Columbia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

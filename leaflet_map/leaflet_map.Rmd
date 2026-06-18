@@ -67,7 +67,7 @@ labels_mgmt <- management_levels %>%
 
 ## Stations - Get Management CAAQs and create popups --------------------------
 # - Do NOT keep insufficient data markers
-stations <- read_sf(here("out/pm_stations_mgmt.geojson")) %>%
+stations <- read_sf(here("out/rep_year_2024/pm_stations_mgmt.geojson")) %>%
   # Count total stations
   add_count(airzone) %>%
   filter(mgmt_level != "Insufficient Data") %>%
@@ -102,7 +102,7 @@ stns_n <- stations %>%
 
 ## Airzones - Get Ambient CAAQs and create popups --------------------------
 # - Keep insufficient data polygons, but not popups
-az <- st_read(here("./out/pm_airzones_mgmt.geojson")) %>%
+az <- st_read(here("./out/rep_year_2024/pm_airzones_mgmt.geojson")) %>%
   left_join(stns_n, by = "airzone") %>%
   left_join(select(labels_mgmt, labels, legend_colour = colour, icons, units_html),
             by = c("mgmt_level" = "labels")) %>%

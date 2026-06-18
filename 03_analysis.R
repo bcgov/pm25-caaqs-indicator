@@ -1,4 +1,4 @@
-# Copyright 2025 Province of British Columbia
+# Copyright 2026 Province of British Columbia
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -24,8 +24,8 @@ library("assertr")
 library("rcaaqs")
 
 # Load Data ----------------------
-pm25_clean <- read_rds("data/datasets/pm25_clean.rds")
-stations_clean <- read_rds("data/datasets/stations_clean.rds")
+pm25_clean <- read_rds(file.path(rep_dir_data, "pm25_clean.rds"))
+stations_clean <- read_rds(file.path(rep_dir_data, "stations_clean.rds"))
 
 # Transboundary Flows and Exceptional Events ------------------------------
 tfee_dates <- pm25_clean %>%
@@ -207,14 +207,13 @@ pm25_24h_mgmt$caaqs <- pm25_24h_mgmt$caaqs %>%
   bind_rows(pm25_24h_mgmt_unclassified)
 
 # -save data
-write_rds(pm25_results, "data/datasets/pm25_results.rds")
-write_rds(az_ambient, "data/datasets/az_ambient.rds")
-write_rds(az_mgmt, "data/datasets/az_mgmt.rds")
-write_rds(pm25_24h_mgmt, "data/datasets/pm25_24h_mgmt.rds")
-write_rds(pm25_annual_mgmt, "data/datasets/pm25_annual_mgmt.rds")
-write_rds(print_tfee, "data/datasets/print_tfee.rds")
+write_rds(pm25_results,  file.path(rep_dir_data, "pm25_results.rds"))
+write_rds(az_ambient,  file.path(rep_dir_data, "az_ambient.rds"))
+write_rds(az_mgmt,  file.path(rep_dir_data, "az_mgmt.rds"))
+write_rds(pm25_24h_mgmt,  file.path(rep_dir_data, "pm25_24h_mgmt.rds"))
+write_rds(pm25_annual_mgmt,  file.path(rep_dir_data, "pm25_annual_mgmt.rds"))
+write_rds(print_tfee,  file.path(rep_dir_data, "print_tfee.rds"))
 
-write_csv(pm25_results, "out/pm2.5_caaqs_combined_results.csv", na = "")
-write_csv(az_ambient, "out/pm2.5_airzone_results.csv" , na = "")
-write_csv(az_mgmt, "out/pm2.5_airzone_management_levels.csv", na = "")
-
+write_csv(pm25_results, file.path(rep_dir_out, "pm2.5_caaqs_combined_results.csv"), na = "")
+write_csv(az_ambient, file.path(rep_dir_out, "pm2.5_airzone_results.csv") , na = "")
+write_csv(az_mgmt, file.path(rep_dir_out, "pm2.5_airzone_management_levels.csv"), na = "")

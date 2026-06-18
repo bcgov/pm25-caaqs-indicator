@@ -1,4 +1,4 @@
-# Copyright 2025 Province of British Columbia
+# Copyright 2026 Province of British Columbia
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -28,9 +28,16 @@ dir.create("data/raw", showWarnings = FALSE, recursive = TRUE)
 dir.create("data/datasets", showWarnings = FALSE, recursive = TRUE)
 dir.create("out", showWarnings = FALSE)
 dir.create("leaflet_map/station_plots/", showWarnings = FALSE, recursive = TRUE)
-dir.create("out/databc", showWarnings = FALSE)
+#dir.create("out/databc", showWarnings = FALSE)
 
-rep_year <- 2022
+
+# Reporting year parameter
+# To generate results for multiple periods (e.g., 2021-2023 and 2022-2024)
+# Run the full pipeline once per year by updating rep_year accordingly.
+# Example: rep_year <- 2023 # generate 2021-2023 results
+#          rep_year <- 2024 # generate 2022-2024 results
+
+rep_year <- 2024
 
 
 # Functions ----------------------------
@@ -151,5 +158,16 @@ add_caaqs_historic <- function(g, metric) {
     scale_colour_manual(values = last(hist_caaqs$colour))
 }
 
+## Derived output directories (year-scoped) -----------------------------
 
+rep_dir_data <- file.path("data", "datasets", paste0("rep_year_", rep_year))
+rep_dir_out  <- file.path("out", paste0("rep_year_", rep_year))
+
+dir.create(rep_dir_data, showWarnings = FALSE, recursive = TRUE)
+dir.create(rep_dir_out,  showWarnings = FALSE, recursive = TRUE)
+
+
+## Leaflet station plot directory (year-scoped)
+rep_dir_station_plots <- file.path(rep_dir_out, "station_plots")
+dir.create(rep_dir_station_plots, showWarnings = FALSE, recursive = TRUE)
 

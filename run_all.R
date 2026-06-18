@@ -1,4 +1,4 @@
-# Copyright 2015 Province of British Columbia
+# Copyright 2026 Province of British Columbia
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -17,6 +17,7 @@ source("02_clean.R")
 source("03_analysis.R")
 source("04_output.R")
 source("05_databc_output.R")
+source("06_qa_compare_years.R")
 
 mon_year <- format(Sys.Date(), "%B%Y")
 outfile <- paste0("envreportbc_pm25_", mon_year, ".pdf")
